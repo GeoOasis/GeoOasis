@@ -1,22 +1,26 @@
 <script setup lang="ts">
-import ToolsBar from './tools/ToolsBar.vue'
+import BoardBar from './components/BoardBar.vue'
+import ToolsBar from './components/ToolsBar.vue'
+import LayersBar from './components/LayersBar.vue'
 
 </script>
 
 <template>
-  <div class="common-layout">
-    <el-container>
-      <el-header>GeoCollab</el-header>
-      <el-container>
-        <el-aside width="200px">Aside</el-aside>
-        <el-main>
-          Cesium
-        </el-main>
-      </el-container>
-    </el-container>
-    <tools-bar></tools-bar>
+  <div class="layout-main">
+    <div class="layout-container">
+      Cesium展示编辑区
+    </div>
+    <BoardBar />
+    <LayersBar />
+    <ToolsBar />
   </div>
 </template>
 
 <style scoped>
+.layout-main {
+  background-color: bisque;
+  height: 100%;
+  width: 100%;
+}
+
 </style>

@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "cesium": "^1.113.0",
     "element-plus": "^2.4.4",
     "vue": "^3.3.11"
   },
