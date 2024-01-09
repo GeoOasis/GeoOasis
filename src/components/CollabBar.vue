@@ -1,19 +1,18 @@
 <script setup lang="ts">
-// 展示工具栏，笔刷这些
+// 展示avatar等
 </script>
 
 <template>
-    <div class="toolsbar">
-        <el-button v-for="i in 7" :key="i" type="primary" circle>{{ i }}</el-button>
+    <div class="collabbar">
+        <el-avatar src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"/>
     </div>
 </template>
 
 <style scoped>
-.toolsbar {
+.collabbar {
     position: fixed;
-    top: 30px;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 60px;
+    right: 30px;
     /* background-color: gray; */
     background-color: skyblue;
     box-shadow: 0 0 10px;
