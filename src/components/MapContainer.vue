@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { Viewer, ImageryLayer, OpenStreetMapImageryProvider } from 'cesium'
-import 'cesium/Build/CesiumUnminified/Widgets/widgets.css'
+import { onMounted, ref } from 'vue';
+import { Viewer, ImageryLayer, OpenStreetMapImageryProvider } from 'cesium';
+import 'cesium/Build/CesiumUnminified/Widgets/widgets.css';
 
-import {useViewerStore} from '../store/viewer-store'
+import { useViewerStore } from '../store/viewer-store';
 
 const viewerDivRef = ref<HTMLDivElement>();
-window.CESIUM_BASE_URL = 'node_modules/cesium/Build/CesiumUnminified/'
+window.CESIUM_BASE_URL = 'node_modules/cesium/Build/CesiumUnminified/';
 // let viewer: Viewer | null = null;
 
 const viewerStore = useViewerStore();
@@ -29,17 +29,17 @@ onMounted(() => {
     baseLayer: new ImageryLayer(new OpenStreetMapImageryProvider({
       url: "https://tile.openstreetmap.org/"
     })
-    // imageryProvider: new TileMapServiceImageryProvider({
-    //   url: 'node_modules/cesium/Build/CesiumUnminified/Assets/Textures/NaturalEarthII',
-    // })
+      // imageryProvider: new TileMapServiceImageryProvider({
+      //   url: 'node_modules/cesium/Build/CesiumUnminified/Assets/Textures/NaturalEarthII',
+      // })
     ),
-  })
-})
+  });
+});
 </script>
 
 <template>
-    <div id="cesium-viewer" ref="viewerDivRef"></div>
-    <slot></slot>
+  <div id="cesium-viewer" ref="viewerDivRef"></div>
+  <slot></slot>
 </template>
 
 <style scoped>
