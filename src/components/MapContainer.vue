@@ -2,11 +2,11 @@
 import { onMounted, ref } from 'vue';
 import { Viewer, ImageryLayer, OpenStreetMapImageryProvider } from 'cesium';
 import 'cesium/Build/CesiumUnminified/Widgets/widgets.css';
-
 import { useViewerStore } from '../store/viewer-store';
 
-const viewerDivRef = ref<HTMLDivElement>();
 window.CESIUM_BASE_URL = 'node_modules/cesium/Build/CesiumUnminified/';
+
+const viewerDivRef = ref<HTMLDivElement>();
 // let viewer: Viewer | null = null;
 
 const viewerStore = useViewerStore();
@@ -14,7 +14,7 @@ const viewerStore = useViewerStore();
 onMounted(() => {
   viewerStore.viewerRef = new Viewer(viewerDivRef.value as HTMLElement, {
     animation: false,
-    baseLayerPicker: true,
+    baseLayerPicker: false,
     fullscreenButton: false,
     geocoder: false,
     homeButton: true,
@@ -28,18 +28,14 @@ onMounted(() => {
     shouldAnimate: false,
     baseLayer: new ImageryLayer(new OpenStreetMapImageryProvider({
       url: "https://tile.openstreetmap.org/"
-    })
-      // imageryProvider: new TileMapServiceImageryProvider({
-      //   url: 'node_modules/cesium/Build/CesiumUnminified/Assets/Textures/NaturalEarthII',
-      // })
-    ),
+    }))
   });
+  console.log("Map container mounted")
 });
 </script>
 
 <template>
   <div id="cesium-viewer" ref="viewerDivRef"></div>
-  <slot></slot>
 </template>
 
 <style scoped>

@@ -10,13 +10,12 @@ import MapContainer from './components/MapContainer.vue';
 
 <template>
   <div class="layout-main">
-    <map-container>
-      <CollabBar />
-      <BoardBar />
-      <LayersBar />
-      <ToolsBar />
-      <FooterBar />
-    </map-container>
+    <MapContainer />
+    <CollabBar />
+    <BoardBar />
+    <LayersBar />
+    <ToolsBar />
+    <FooterBar />
   </div>
 </template>
 

@@ -1,38 +1,33 @@
 <script setup lang="ts">
-import { Cartesian3, Color, Entity } from 'cesium';
-import { useViewerStore } from '../store/viewer-store';
-import { storeToRefs } from 'pinia';
-const viewerStore = useViewerStore();
-const { viewerRef } = storeToRefs(viewerStore);
-const addEntity = () => {
-    // @ts-ignore
-    const wyoming: Entity = viewerStore.viewerRef.entities.add({
-        polygon: {
-            hierarchy: Cartesian3.fromDegreesArray([
-                -109.080842, 45.002073, -105.91517, 45.002073, -104.058488, 44.996596,
-                -104.053011, 43.002989, -104.053011, 41.003906, -105.728954, 40.998429,
-                -107.919731, 41.003906, -109.04798, 40.998429, -111.047063, 40.998429,
-                -111.047063, 42.000709, -111.047063, 44.476286, -111.05254, 45.002073
-            ]),
-            height: 0,
-            material: Color.RED.withAlpha(0.5),
-            outline: true,
-            outlineColor: Color.BLACK,
-        },
-    });
-    // viewerStore.viewerRef?.flyTo(wyoming);
-    viewerRef.value?.flyTo(wyoming);
-};
+import { useLayersBar } from '../composables/useLayersBar';
 
+const { baseLayers, updateLayerList, addEntity } = useLayersBar();
 </script>
 
 <template>
     <div class="layersbar">
-        <ul>
-            <li>layer1</li>
-            <li>layer2</li>
-            <li>layer3</li>
-        </ul>
+        <el-table :data="baseLayers" size="small">
+            <el-table-column label="Index" width="50">
+                <template #default="scope">
+                    <span>{{ scope.row.index }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column label="LayerName">
+                <template #default="scope">
+                    <span>{{ scope.row.name }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column label="Operations">
+                <template #default="scope">
+                    <el-button type="danger" size="small">删除</el-button>
+                    <!-- <el-button size="small" type="danger" @click="handleDelete(scope.$index, scope.row)">
+                        Delete
+                    </el-button> -->
+                </template>
+            </el-table-column>
+        </el-table>
+        <el-divider></el-divider>
+        <el-button type="primary" @click="updateLayerList">updateLayerList</el-button>
         <el-button type="primary" icon="el-icon-edit" @click="addEntity">
             测试
         </el-button>
@@ -46,7 +41,7 @@ const addEntity = () => {
     top: 50%;
     transform: translateY(-50%);
 
-    width: 200px;
+    width: 300px;
     height: calc(100% - 300px);
 
     background-color: skyblue;

@@ -1,5 +1,9 @@
 <script setup lang="ts">
+import { onMounted } from 'vue';
 // 展示avatar等
+onMounted(() => {
+    console.log("Collab Bar mounted")
+})
 </script>
 
 <template>
