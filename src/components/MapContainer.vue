@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue';
 import { Viewer, ImageryLayer, OpenStreetMapImageryProvider } from 'cesium';
 import 'cesium/Build/CesiumUnminified/Widgets/widgets.css';
 import { useViewerStore } from '../store/viewer-store';
+import { ElNotification } from 'element-plus';
 
 window.CESIUM_BASE_URL = 'node_modules/cesium/Build/CesiumUnminified/';
 
@@ -18,9 +19,9 @@ onMounted(() => {
     fullscreenButton: false,
     geocoder: false,
     homeButton: true,
-    infoBox: true,
+    infoBox: false,
     sceneModePicker: true,
-    selectionIndicator: true,
+    selectionIndicator: false,
     timeline: false,
     navigationHelpButton: false,
     navigationInstructionsInitiallyVisible: false,
@@ -31,6 +32,11 @@ onMounted(() => {
     }))
   });
   console.log("Map container mounted")
+  // For test
+  ElNotification({
+    title: '提示',
+    message: "Map container mounted",
+  });
 });
 </script>
 

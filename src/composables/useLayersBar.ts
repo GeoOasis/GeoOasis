@@ -17,6 +17,7 @@ interface ILayerItem {
 
 export const useLayersBar = () => {
     // data or state or viewModel
+    // Map数据结构
     const baseLayers = ref<ILayerItem[]>([]);
     // const trueLayers = shallowRef<ImageryLayer[]>([]);
 
@@ -104,8 +105,8 @@ export const useLayersBar = () => {
         addBasyLayerOption("Bing Maps Aerial", createWorldImageryAsync());
         updateLayerList();
         console.log("LayersBar mounted");
-        console.log("dope!!");
-        console.log(viewerRef.value.container);
+        // console.log("dope!!");
+        // console.log(viewerRef.value.container);
         // setupLayers();
     });
 

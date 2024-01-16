@@ -1,10 +1,15 @@
 <script setup lang="ts">
-// 展示工具栏，笔刷这些
+import { useToolsBar } from '../composables/useToolsBar';
+const { addLine, addPoint, darwLine, darwLineCallBackProperty } = useToolsBar();
 </script>
 
 <template>
     <div class="toolsbar">
-        <el-button v-for="i in 7" :key="i" type="primary" circle>{{ i }}</el-button>
+        <el-button type="primary" @click="addLine">加线</el-button>
+        <el-button type="primary" @click="darwLine">画线</el-button>
+        <el-button type="primary" @click="darwLineCallBackProperty">画线callback</el-button>
+        <el-button type="danger" @click="addPoint">加点</el-button>
+        <el-button v-for="i in 5" :key="i" type="primary" circle>{{ i }}</el-button>
     </div>
 </template>
 
