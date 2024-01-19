@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
+import { useCollabBar } from '../composables/useCollabBar';
+
+const { usersList } = useCollabBar();
 // 展示avatar等
 onMounted(() => {
     console.log("Collab Bar mounted")
@@ -8,7 +11,7 @@ onMounted(() => {
 
 <template>
     <div class="collabbar">
-        <el-avatar src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png" />
+        <el-avatar class="avatar" :size="60" v-for="user in usersList" :key="user[0]">{{ user[1].name }}</el-avatar>
     </div>
 </template>
 
@@ -22,5 +25,9 @@ onMounted(() => {
     box-shadow: 0 0 10px;
     border-radius: 10px;
     padding: 0 15px;
+}
+
+.avatar {
+    background-color: dodgerblue;
 }
 </style>
