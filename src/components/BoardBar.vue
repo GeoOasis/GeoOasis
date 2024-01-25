@@ -3,20 +3,16 @@
 
 <template>
     <div class="boardbar">
-        <h2>GeoCollab</h2>
+        <span>GeoOasis Menu</span>
     </div>
 </template>
 
 <style scoped>
 .boardbar {
-    position: fixed;
-    top: 30px;
-    left: 30px;
-    /* transform: translateX(-50%); */
-    /* background-color: gray; */
-    background-color: skyblue;
+    background-color: #E1F0DA;
     box-shadow: 0 0 10px;
-    border-radius: 10px;
+    border-radius: 5px;
     padding: 0 15px;
+    height: 35px;
 }
 </style>

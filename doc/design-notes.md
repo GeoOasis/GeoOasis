@@ -25,6 +25,8 @@ viewerRef相当于全局保存的状态。使用shallowRef来避免响应式劫�
 
 ### GUI部分
 
+[色卡](https://www.colorhunt.co/palette/e1f0dad4e7c5bfd8af99bc85)
+
 参考 Felt，Figma，blitz，terriajs，excalidraw等
 
 ### Cesium部分

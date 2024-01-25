@@ -44,7 +44,7 @@ const { baseLayers, updateLayerList, addEntity } = useLayersBar();
     width: 300px;
     height: calc(100% - 300px);
 
-    background-color: skyblue;
+    background-color: #E1F0DA;
     box-shadow: 0 0 10px;
     border-radius: 10px;
     padding: 30px;

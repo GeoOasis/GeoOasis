@@ -13,10 +13,7 @@
     position: fixed;
     bottom: 60px;
     right: 30px;
-    /* left: 50%;
-    transform: translateX(-50%); */
-    /* background-color: gray; */
-    background-color: skyblue;
+    background-color: #E1F0DA;
     box-shadow: 0 0 10px;
     border-radius: 10px;
     padding: 0 15px;
