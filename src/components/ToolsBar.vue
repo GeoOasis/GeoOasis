@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { useToolsBar } from '../composables/useToolsBar';
-import { ref } from 'vue';
-const { addLine, addPoint, darwLine, darwLineCallBackProperty } = useToolsBar();
-const radio1 = ref('marker');
+const { activeTool, addLine } = useToolsBar();
 const items = [{
+    label: 'default',
+    icon: 'default'
+}, {
     label: 'marker',
     icon: 'marker'
+}, {
+    label: 'point',
+    icon: 'point',
 }, {
     label: 'polyline',
     icon: 'polyline',
@@ -17,15 +21,12 @@ const items = [{
 
 <template>
     <div class="toolsbar">
-        <el-radio-group v-model="radio1" fill="#99BC85" style="height: 35px;">
+        <el-radio-group v-model="activeTool" fill="#99BC85" style="height: 35px;">
             <el-radio-button class="custom-el-radio-button" v-for="item in items" :key="item.label"
                 :label="item.label"></el-radio-button>
         </el-radio-group>
         <p> 测试：</p>
         <el-button type="primary" @click="addLine">加线</el-button>
-        <el-button type="primary" @click="darwLine">画线</el-button>
-        <el-button type="primary" @click="darwLineCallBackProperty">画线callback</el-button>
-        <el-button type="danger" @click="addPoint">加点</el-button>
     </div>
 </template>
 
