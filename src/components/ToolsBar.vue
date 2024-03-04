@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useToolsBar } from '../composables/useToolsBar';
-const { activeTool, addLine } = useToolsBar();
+const { activeTool, addImage } = useToolsBar();
 const items = [{
     label: 'default',
     icon: 'default'
@@ -16,6 +16,9 @@ const items = [{
 }, {
     label: 'polygon',
     icon: 'polygon',
+}, {
+    label: 'model',
+    icon: 'model'
 }];
 </script>
 
@@ -26,7 +29,7 @@ const items = [{
                 :label="item.label"></el-radio-button>
         </el-radio-group>
         <p> 测试：</p>
-        <el-button type="primary" @click="addLine">加线</el-button>
+        <el-button type="primary" @click="addImage">添加图片</el-button>
     </div>
 </template>
 

@@ -5,19 +5,19 @@ import {
     Cartesian3,
     Color,
     ScreenSpaceEventHandler,
-    ScreenSpaceEventType
+    ScreenSpaceEventType,
+    Entity
 } from "cesium";
 import {
     newPointElement,
     Element,
-    newPolylineElement
+    newPolylineElement,
+    newModelElement
 } from "../element/element";
-import { Editor } from "../editor/editor";
 
 export const useToolsBar = () => {
     // data or model or state
     let handler: ScreenSpaceEventHandler;
-    let editor: Editor;
     let isEditting: boolean = true;
     let isDrawing: boolean = false;
     let edittingElement: Element | null = null;
@@ -29,12 +29,11 @@ export const useToolsBar = () => {
     // store
     const viewerStore = useViewerStore();
     const { viewerRef } = storeToRefs(viewerStore);
+    const { editor } = viewerStore;
 
     // hooks
     onMounted(() => {
         console.log("ToolsBar mounted");
-        editor = new Editor();
-        editor.viewer = viewerRef.value;
         const scene = viewerRef.value.scene;
         handler = new ScreenSpaceEventHandler(scene.canvas);
         handler.setInputAction(
@@ -100,6 +99,17 @@ export const useToolsBar = () => {
                 break;
             case "rectangle":
                 break;
+            case "model":
+                const ModelElement = newModelElement(
+                    "1232434123432314",
+                    "myModel",
+                    true,
+                    startPoint,
+                    "./Cesium_Air.glb"
+                );
+                editor.addElement(ModelElement);
+                edittingElement = ModelElement;
+                break;
             default:
                 break;
         }
@@ -112,6 +122,8 @@ export const useToolsBar = () => {
                 case "polyline":
                     // @ts-ignore
                     edittingElement.positions.push(startPoint);
+                    break;
+                case "model":
                     break;
                 default:
                     break;
@@ -141,6 +153,8 @@ export const useToolsBar = () => {
                     // @ts-ignore
                     edittingElement.positions.push(endPoint);
                     break;
+                case "model":
+                    break;
                 default:
                     break;
             }
@@ -157,6 +171,10 @@ export const useToolsBar = () => {
                     activeTool.value = "default";
                     break;
                 case "polyline":
+                    break;
+                case "model":
+                    edittingElement = null;
+                    activeTool.value = "default";
                     break;
                 default:
                     break;
@@ -178,24 +196,53 @@ export const useToolsBar = () => {
         }
     };
 
-    const addLine = () => {
-        const redLine = viewerRef.value.entities.add({
-            name: "Red Line",
-            polyline: {
-                positions: Cartesian3.fromDegreesArray([-75, 35, -100, 35]),
-                width: 5,
-                material: Color.RED,
-                clampToGround: true
+    const addImage = () => {
+        // const redLine = viewerRef.value.entities.add({
+        //     name: "Image Rectangle",
+        //     rectangle: {
+        //         coordinates: Rectangle.fromDegrees(-92.0, 30.0, -76.0, 40.0),
+        //         material: Color.GREEN.withAlpha(0.5)
+        //     }
+        //     // polyline: {
+        //     //     positions: Cartesian3.fromDegreesArray([-75, 35, -100, 35]),
+        //     //     width: 5,
+        //     //     material: Color.RED,
+        //     //     clampToGround: true
+        //     // }
+        // });
+        // viewerRef.value.flyTo(redLine);
+        // setTimeout(() => {
+        //     if (redLine.polyline !== undefined) {
+        //         (redLine.polyline.positions as any) =
+        //             Cartesian3.fromDegreesArray([-75, 0, -100, 0]);
+        //     }
+        // }, 5000);
+        const ent = new Entity({
+            name: "fsd",
+            point: {
+                pixelSize: 12
             }
         });
-        viewerRef.value.flyTo(redLine);
-        setTimeout(() => {
-            if (redLine.polyline !== undefined) {
-                (redLine.polyline.positions as any) =
-                    Cartesian3.fromDegreesArray([-75, 0, -100, 0]);
+        const ProxyEntity = new Proxy(ent, {
+            get(target, prop) {
+                if (prop === "name") {
+                    return target[prop];
+                }
             }
-        }, 5000);
+        });
+        viewerRef.value.entities.add(ProxyEntity);
+
+        const model = viewerRef.value.entities.add({
+            name: "123",
+            position: Cartesian3.fromDegrees(-75, 40, 0),
+            model: {
+                uri: "./Cesium_Air.glb",
+                minimumPixelSize: 128,
+                maximumScale: 20000
+            }
+        });
+        viewerRef.value.trackedEntity = model;
     };
 
-    return { activeTool, addLine };
+    return { activeTool, addImage };
 };

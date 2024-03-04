@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useLayersBar } from '../composables/useLayersBar';
 
-const { baseLayers, updateLayerList, addEntity } = useLayersBar();
+const { baseLayers, updateLayerList } = useLayersBar();
 </script>
 
 <template>
@@ -13,11 +13,13 @@ const { baseLayers, updateLayerList, addEntity } = useLayersBar();
                 </template>
             </el-table-column>
             <el-table-column label="LayerName">
+
                 <template #default="scope">
                     <span>{{ scope.row.name }}</span>
                 </template>
             </el-table-column>
             <el-table-column label="Operations">
+
                 <template #default="scope">
                     <el-button type="danger" size="small">删除</el-button>
                     <!-- <el-button size="small" type="danger" @click="handleDelete(scope.$index, scope.row)">
@@ -28,9 +30,6 @@ const { baseLayers, updateLayerList, addEntity } = useLayersBar();
         </el-table>
         <el-divider></el-divider>
         <el-button type="primary" @click="updateLayerList">updateLayerList</el-button>
-        <el-button type="primary" icon="el-icon-edit" @click="addEntity">
-            测试
-        </el-button>
     </div>
 </template>
 

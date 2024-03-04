@@ -31,6 +31,7 @@ onMounted(() => {
       url: "https://tile.openstreetmap.org/"
     }))
   });
+  viewerStore.editor.viewer = viewerStore.viewerRef;
   console.log("Map container mounted")
   // For test
   ElNotification({

@@ -1,9 +1,10 @@
 import {
     Element,
     GeoOasisPointElement,
-    GeoOasisPolylineElement
+    GeoOasisPolylineElement,
+    GeoOasisModelElement
 } from "../element/element";
-import { Entity, Viewer } from "cesium";
+import { Entity, Viewer, CallbackProperty } from "cesium";
 
 const generatePointEntityfromElement = (
     element: GeoOasisPointElement
@@ -32,9 +33,25 @@ const generatePolylineEntityfromElement = (
     });
 };
 
+const generateModelEntityfromElement = (
+    element: GeoOasisModelElement
+): Entity => {
+    return new Entity({
+        id: element.id,
+        name: element.name,
+        show: element.show,
+        position: element.position,
+        model: {
+            uri: element.url,
+            minimumPixelSize: 128,
+            maximumScale: 20000
+        }
+    });
+};
+
 // Editor is singleton
 export class Editor {
-    // 后续考虑是否使用Map来保存
+    // TODO 考虑是否还需要数组保存elements和entities，似乎原生的entityCollection已经可以替代了
     // elements 保存所有的元素 在APP中相当于响应式状态
     private elements: Element[] = [];
     // entities 保存元素对应的实体
@@ -62,6 +79,11 @@ export class Editor {
                 break;
             case "polygon":
                 break;
+            case "model":
+                entity = generateModelEntityfromElement(
+                    element as GeoOasisModelElement
+                );
+                break;
         }
         if (entity) {
             this.viewer.entities.add(entity);
@@ -84,6 +106,8 @@ export class Editor {
                 break;
             case "polygon":
                 break;
+            case "model":
+                break;
         }
     }
 
@@ -99,6 +123,8 @@ export class Editor {
                 break;
             case "polygon":
                 break;
+            case "model":
+                break;
         }
     }
 
@@ -108,5 +134,12 @@ export class Editor {
 
     getEntity(id: string) {
         return this.entitiesMap.get(id);
+    }
+
+    onChange() {
+        // TODO 每次修改element的时候就调用这个函数，
+        // param: ElementRef
+        //
+        // ElementRef = this.elements
     }
 }
