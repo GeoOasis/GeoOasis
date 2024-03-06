@@ -157,10 +157,10 @@ export const useCollabBar = () => {
             3626.0426275055174
         );
         const transform = Transforms.eastNorthUpToFixedFrame(center);
-        viewerRef.value.camera.lookAtTransform(
-            transform,
-            new HeadingPitchRange(0, -Math.PI / 4, 2900)
-        );
+        // viewerRef.value.camera.lookAtTransform(
+        //     transform,
+        //     new HeadingPitchRange(0, -Math.PI / 4, 2900)
+        // );
         createDefaultUser();
     });
 

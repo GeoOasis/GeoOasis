@@ -1,17 +1,40 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue';
 import { useLayersBar } from '../composables/useLayersBar';
 
-const { baseLayers, updateLayerList } = useLayersBar();
+const { selectedLayer, elementsRef, additionalLayersRef, updateLayerList } = useLayersBar();
+
+const pointElements = computed(() => {
+    // @ts-ignore
+    return elementsRef.filter((e) => e.type === 'point');
+})
+const polylineElements = computed(() => {
+    // @ts-ignore
+    return elementsRef.filter((e) => e.type === 'polyline');
+});
+
+const options = [
+    {
+        value: 'Bing',
+        label: 'Bing'
+    },
+    {
+        value: 'ArcGIS',
+        label: 'ArcGIS'
+    }
+]
+
 </script>
 
 <template>
     <div class="layersbar">
-        <el-table :data="baseLayers" size="small">
-            <el-table-column label="Index" width="50">
+        <h3>Layers</h3>
+        <el-table :data="additionalLayersRef" size="small">
+            <!-- <el-table-column label="Index" width="50">
                 <template #default="scope">
                     <span>{{ scope.row.index }}</span>
                 </template>
-            </el-table-column>
+</el-table-column> -->
             <el-table-column label="LayerName">
 
                 <template #default="scope">
@@ -28,8 +51,15 @@ const { baseLayers, updateLayerList } = useLayersBar();
                 </template>
             </el-table-column>
         </el-table>
-        <el-divider></el-divider>
+        <el-select v-model="selectedLayer" placeholder="Select">
+            <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value" />
+        </el-select>
         <el-button type="primary" @click="updateLayerList">updateLayerList</el-button>
+        <el-divider></el-divider>
+        <!-- <el-button type="primary">添加Layer</el-button> -->
+        <h3>Elements</h3>
+        <p class="element" v-for="e in pointElements">{{ e.type }}</p>
+        <p class="element" v-for="e in polylineElements">{{ e.type }}</p>
     </div>
 </template>
 
@@ -47,5 +77,14 @@ const { baseLayers, updateLayerList } = useLayersBar();
     box-shadow: 0 0 10px;
     border-radius: 10px;
     padding: 30px;
+}
+
+.element {
+    width: 100px;
+
+    border-radius: 5px;
+    box-shadow: 0 0 3px;
+    padding: 5px;
+    margin: 5px;
 }
 </style>
