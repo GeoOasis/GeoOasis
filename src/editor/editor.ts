@@ -50,7 +50,7 @@ const generateModelEntityfromElement = (
 };
 
 // Editor is singleton
-export class Editor {
+export class Editor extends EventTarget {
     // TODO 考虑是否还需要数组保存elements和entities，似乎原生的entityCollection已经可以替代了
     // elements 保存所有的元素 在APP中相当于响应式状态
     private elements: Element[] = [];
@@ -62,7 +62,16 @@ export class Editor {
 
     viewer: Viewer = {} as Viewer;
 
+    constructor() {
+        super();
+    }
+
     addElement(element: Element) {
+        this.dispatchEvent(
+            new CustomEvent("elementAdded", {
+                detail: element
+            })
+        );
         this.elements.push(element);
         this.elementsMap.set(element.id, element);
         let entity;
