@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { Viewer, ImageryLayer, OpenStreetMapImageryProvider, Ion } from 'cesium';
+import { Viewer, Ion } from 'cesium';
 import 'cesium/Build/CesiumUnminified/Widgets/widgets.css';
 import { useViewerStore } from '../store/viewer-store';
 import { ElNotification } from 'element-plus';
@@ -22,7 +22,7 @@ onMounted(() => {
     homeButton: true,
     infoBox: false,
     sceneModePicker: true,
-    selectionIndicator: false,
+    selectionIndicator: true,
     timeline: false,
     navigationHelpButton: false,
     navigationInstructionsInitiallyVisible: false,

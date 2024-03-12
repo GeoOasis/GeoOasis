@@ -4,7 +4,7 @@ import {
     GeoOasisPolylineElement,
     GeoOasisModelElement
 } from "../element/element";
-import { Entity, Viewer, CallbackProperty } from "cesium";
+import { Entity, Viewer, CallbackProperty, Cartesian2, Color } from "cesium";
 
 const generatePointEntityfromElement = (
     element: GeoOasisPointElement
@@ -15,7 +15,7 @@ const generatePointEntityfromElement = (
         show: element.show,
         position: element.position,
         point: {
-            pixelSize: 10
+            pixelSize: element.pixelSize
         }
     });
 };
@@ -150,5 +150,51 @@ export class Editor extends EventTarget {
         // param: ElementRef
         //
         // ElementRef = this.elements
+    }
+
+    mutateElement(element: Element, update: {}) {
+        console.log("mutateElement func!");
+        const mutatedElement = this.elementsMap.get(element.id);
+        if (!mutatedElement) {
+            console.log("element not found");
+            return;
+        }
+        const mutatedEntity = this.entitiesMap.get(element.id);
+        // 伪代码
+        if (element.type === "point") {
+            for (const key in update) {
+                const value = (update as any)[key];
+                console.log("Key: ", key, " Value: ", value);
+                if (typeof value !== "undefined") {
+                    // TODO 下面这个element其实就是selectedElement。
+                    // TODO 如果参数相同可以不修改
+                    //@ts-ignore
+                    mutatedElement[key] = value;
+                    if (key === "description") {
+                        // @ts-ignore
+                        mutatedEntity[key] = value;
+                    } else if (key === "color") {
+                        // @ts-ignore
+                        mutatedEntity.point[key] =
+                            Color.fromCssColorString(value);
+                    } else {
+                        // @ts-ignore
+                        mutatedEntity.point[key] = value;
+                    }
+                }
+            }
+        }
+    }
+
+    getSelectedElement(position: Cartesian2): Element | undefined {
+        const pickedEntity = this.viewer.scene.pick(position);
+        console.log("picked Entity is: ", pickedEntity);
+
+        if (pickedEntity) {
+            console.log(this.elementsMap.get(pickedEntity.id.id));
+
+            return this.elementsMap.get(pickedEntity.id.id);
+        }
+        return undefined;
     }
 }

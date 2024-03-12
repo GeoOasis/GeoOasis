@@ -1,4 +1,4 @@
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { storeToRefs } from "pinia";
 import { useViewerStore } from "../store/viewer-store";
 import {
@@ -19,16 +19,21 @@ export const useToolsBar = () => {
     // data or model or state
     let handler: ScreenSpaceEventHandler;
     let isEditting: boolean = true;
-    let isDrawing: boolean = false;
     let edittingElement: Element | null = null;
     let startPoint: Cartesian3;
     let endPoint: Cartesian3;
 
+    // let selectedElement: Element | undefined = undefined;
+
     const activeTool = ref("default");
+    // const isEditting = computed(() => activeTool.value !== "default");
 
     // store
     const viewerStore = useViewerStore();
-    const { viewerRef } = storeToRefs(viewerStore);
+    // 解构store中的state
+    const { viewerRef, isElementPanel, selectedElement } =
+        storeToRefs(viewerStore);
+    // 解构store中的普通变量
     const { editor } = viewerStore;
 
     // hooks
@@ -58,7 +63,13 @@ export const useToolsBar = () => {
         positionedEvent: ScreenSpaceEventHandler.PositionedEvent
     ) => {
         console.log("left down!");
-        if (!isEditting) return;
+        selectedElement.value = editor.getSelectedElement(
+            positionedEvent.position
+        );
+        isElementPanel.value = selectedElement.value ? true : false;
+
+        // * 假如是默认工具，则在此处返回
+        if (activeTool.value === "default") return;
         let cartesian = viewerRef.value.camera.pickEllipsoid(
             positionedEvent.position,
             viewerRef.value.scene.globe.ellipsoid
@@ -115,7 +126,6 @@ export const useToolsBar = () => {
         }
 
         if (edittingElement !== null) {
-            isDrawing = true;
             switch (activeTool.value) {
                 case "point":
                     break;
@@ -134,7 +144,7 @@ export const useToolsBar = () => {
     const handleCanvasMouseMove = (
         motionEvent: ScreenSpaceEventHandler.MotionEvent
     ) => {
-        if (!isDrawing) return;
+        if (edittingElement === null) return;
         let cartesian = viewerRef.value.camera.pickEllipsoid(
             motionEvent.endPosition,
             viewerRef.value.scene.globe.ellipsoid

@@ -12,12 +12,21 @@ export interface GeoOasisBaseElement {
     name: string;
     show: boolean;
     type: string;
+    description: string;
     // position: number[]; // 对于rectangle，point有用
     // posiitons: number[]; // 对于polyline有用
 }
 
+// points, billboards, labels
 export interface GeoOasisPointElement extends GeoOasisBaseElement {
     type: "point";
+    position: Cartesian3;
+    pixelSize: number;
+    color: string;
+}
+
+export interface GeoOasisLabelElement extends GeoOasisBaseElement {
+    type: "label";
     position: Cartesian3;
 }
 
@@ -60,12 +69,16 @@ export const newPointElement = (
     show: boolean,
     position: Cartesian3
 ): GeoOasisPointElement => {
+    // TODO defaultValue 设置
     return {
         id: nanoid(),
         type: "point",
         name,
         show,
-        position
+        description: "",
+        position,
+        pixelSize: 10,
+        color: "white"
     };
 };
 
@@ -80,6 +93,7 @@ export const newPolylineElement = (
         type: "polyline",
         name,
         show,
+        description: "",
         positions
     };
 };
@@ -96,6 +110,7 @@ export const newModelElement = (
         type: "model",
         name,
         show,
+        description: "",
         position,
         url
     };

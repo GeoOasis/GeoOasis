@@ -3,6 +3,13 @@ import MapContainer from './components/MapContainer.vue';
 import AppHeader from './components/AppHeader.vue';
 import FooterBar from './components/FooterBar.vue';
 import LayersBar from './components/LayersBar.vue';
+import ElementPanel from './components/ElementPanel.vue';
+import { useViewerStore } from './store/viewer-store';
+import { storeToRefs } from 'pinia';
+
+const store = useViewerStore();
+const { isElementPanel } = storeToRefs(store);
+
 </script>
 
 <template>
@@ -11,6 +18,7 @@ import LayersBar from './components/LayersBar.vue';
     <AppHeader />
     <LayersBar />
     <FooterBar />
+    <ElementPanel v-show="isElementPanel" />
   </div>
 </template>
 
