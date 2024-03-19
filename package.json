@@ -10,11 +10,13 @@
     "format": "prettier --write src/**/*.{ts,tsx,js,jsx,json,vue}"
   },
   "dependencies": {
+    "@hocuspocus/provider": "^2.11.3",
     "cesium": "^1.113.0",
     "element-plus": "^2.4.4",
     "nanoid": "^5.0.4",
     "pinia": "^2.1.7",
-    "vue": "^3.3.11"
+    "vue": "^3.3.11",
+    "yjs": "^13.6.14"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.5.2",

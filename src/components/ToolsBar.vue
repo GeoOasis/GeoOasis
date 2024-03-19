@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { useToolsBar } from '../composables/useToolsBar';
+import { useYjs } from "../composables/useYjs";
+
+const { yjsBinding } = useYjs();
 const { activeTool, addImage } = useToolsBar();
 const items = [{
     label: 'default',

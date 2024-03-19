@@ -11,7 +11,7 @@ import {
 } from "cesium";
 import { useViewerStore } from "../store/viewer-store";
 import { User } from "../core/collab/User";
-import { SERVER_URL } from "../Config";
+import { SERVER_URL } from "../contants";
 
 type UserList = Map<string, User>;
 
@@ -37,7 +37,9 @@ export const useCollabBar = () => {
 
     // * 所有组件挂载完之后 socket.on("connect",)才被触发
     // @ts-ignore
-    const socket = io(SERVER_URL);
+    const socket = io(SERVER_URL, {
+        reconnectionAttempts: 3
+    });
     console.log("socket initial!");
 
     socket.on("connect", () => {

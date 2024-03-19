@@ -66,10 +66,13 @@ export class Editor extends EventTarget {
         super();
     }
 
-    addElement(element: Element) {
+    addElement(element: Element, local: boolean = true) {
         this.dispatchEvent(
             new CustomEvent("elementAdded", {
-                detail: element
+                detail: {
+                    ...element,
+                    local
+                }
             })
         );
         this.elements.push(element);
