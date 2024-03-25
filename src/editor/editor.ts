@@ -4,16 +4,24 @@ import {
     GeoOasisPolylineElement,
     GeoOasisModelElement
 } from "../element/element";
-import { Entity, Viewer, CallbackProperty, Cartesian2, Color } from "cesium";
+import {
+    Entity,
+    Viewer,
+    CallbackProperty,
+    Cartesian2,
+    Color,
+    Cartesian3
+} from "cesium";
 
 const generatePointEntityfromElement = (
     element: GeoOasisPointElement
 ): Entity => {
+    const poi = element.position;
     return new Entity({
         id: element.id,
         name: element.name,
         show: element.show,
-        position: element.position,
+        position: Cartesian3.fromElements(poi.x, poi.y, poi.z),
         point: {
             pixelSize: element.pixelSize
         }
@@ -70,8 +78,8 @@ export class Editor extends EventTarget {
         this.dispatchEvent(
             new CustomEvent("elementAdded", {
                 detail: {
-                    ...element,
-                    local
+                    element: element,
+                    local: local
                 }
             })
         );
@@ -148,22 +156,24 @@ export class Editor extends EventTarget {
         return this.entitiesMap.get(id);
     }
 
-    onChange() {
-        // TODO 每次修改element的时候就调用这个函数，
-        // param: ElementRef
-        //
-        // ElementRef = this.elements
-    }
-
-    mutateElement(element: Element, update: {}) {
+    mutateElement(element: Element, update: {}, local: boolean = true) {
+        // * update里的值 一定是被改变的。
         console.log("mutateElement func!");
         const mutatedElement = this.elementsMap.get(element.id);
         if (!mutatedElement) {
             console.log("element not found");
             return;
         }
+        this.dispatchEvent(
+            new CustomEvent("elementMutated", {
+                detail: {
+                    id: element.id,
+                    update: update,
+                    local: local
+                }
+            })
+        );
         const mutatedEntity = this.entitiesMap.get(element.id);
-        // 伪代码
         if (element.type === "point") {
             for (const key in update) {
                 const value = (update as any)[key];

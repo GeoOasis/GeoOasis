@@ -1,6 +1,12 @@
 import { nanoid } from "nanoid";
 import { Cartesian3 } from "cesium";
 
+export type Point3 = {
+    x: number;
+    y: number;
+    z: number;
+};
+
 export type Element =
     | GeoOasisPointElement
     | GeoOasisPolylineElement
@@ -20,7 +26,7 @@ export interface GeoOasisBaseElement {
 // points, billboards, labels
 export interface GeoOasisPointElement extends GeoOasisBaseElement {
     type: "point";
-    position: Cartesian3;
+    position: Point3;
     pixelSize: number;
     color: string;
 }
@@ -76,7 +82,11 @@ export const newPointElement = (
         name,
         show,
         description: "",
-        position,
+        position: {
+            x: position.x,
+            y: position.y,
+            z: position.z
+        },
         pixelSize: 10,
         color: "white"
     };

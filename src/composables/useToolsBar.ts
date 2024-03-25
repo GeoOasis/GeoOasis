@@ -130,6 +130,7 @@ export const useToolsBar = () => {
                 case "point":
                     break;
                 case "polyline":
+                    // TODO 这个操作实际上也是mutateElement操作，但是比较特殊。
                     // @ts-ignore
                     edittingElement.positions.push(startPoint);
                     break;

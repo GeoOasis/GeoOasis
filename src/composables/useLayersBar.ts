@@ -36,7 +36,7 @@ export const useLayersBar = () => {
         editor.addEventListener("elementAdded", (event) => {
             console.log(event);
             // @ts-ignore
-            elementsRef.push(event.detail);
+            elementsRef.push(event.detail.element);
         });
     });
 
