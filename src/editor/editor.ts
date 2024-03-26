@@ -1,10 +1,4 @@
 import {
-    Element,
-    GeoOasisPointElement,
-    GeoOasisPolylineElement,
-    GeoOasisModelElement
-} from "../element/element";
-import {
     Entity,
     Viewer,
     CallbackProperty,
@@ -12,6 +6,13 @@ import {
     Color,
     Cartesian3
 } from "cesium";
+import {
+    Element,
+    GeoOasisPointElement,
+    GeoOasisPolylineElement,
+    GeoOasisModelElement
+} from "../element/element";
+import { cartesian3FromPoint3 } from "../element/point";
 
 const generatePointEntityfromElement = (
     element: GeoOasisPointElement
@@ -116,6 +117,13 @@ export class Editor extends EventTarget {
         let entity = this.entitiesMap.get(id);
         switch (type) {
             case "point":
+                // @ts-ignore
+                entity.position = new CallbackProperty(() => {
+                    return cartesian3FromPoint3(
+                        // @ts-ignore
+                        this.elementsMap.get(id).position
+                    );
+                }, false);
                 break;
             case "polyline":
                 //@ts-ignore
@@ -135,6 +143,11 @@ export class Editor extends EventTarget {
         let entity = this.entitiesMap.get(id);
         switch (type) {
             case "point":
+                // @ts-ignore
+                entity.position = cartesian3FromPoint3(
+                    // @ts-ignore
+                    this.elementsMap.get(id).position
+                );
                 break;
             case "polyline":
                 // 若要阻止闪烁，可能需要再渲染一个entity
@@ -190,6 +203,9 @@ export class Editor extends EventTarget {
                         // @ts-ignore
                         mutatedEntity.point[key] =
                             Color.fromCssColorString(value);
+                    } else if (key === "position") {
+                        // position属性通过callbackproperty设置
+                        continue;
                     } else {
                         // @ts-ignore
                         mutatedEntity.point[key] = value;

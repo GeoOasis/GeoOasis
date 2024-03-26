@@ -14,16 +14,16 @@ import {
     newPolylineElement,
     newModelElement
 } from "../element/element";
+import { da } from "element-plus/es/locales.mjs";
 
 export const useToolsBar = () => {
     // data or model or state
     let handler: ScreenSpaceEventHandler;
     let isEditting: boolean = true;
     let edittingElement: Element | null = null;
+    let draggingElement: Element | undefined = undefined;
     let startPoint: Cartesian3;
     let endPoint: Cartesian3;
-
-    // let selectedElement: Element | undefined = undefined;
 
     const activeTool = ref("default");
     // const isEditting = computed(() => activeTool.value !== "default");
@@ -63,21 +63,40 @@ export const useToolsBar = () => {
         positionedEvent: ScreenSpaceEventHandler.PositionedEvent
     ) => {
         console.log("left down!");
-        selectedElement.value = editor.getSelectedElement(
-            positionedEvent.position
-        );
-        isElementPanel.value = selectedElement.value ? true : false;
 
-        // * 假如是默认工具，则在此处返回
-        if (activeTool.value === "default") return;
         let cartesian = viewerRef.value.camera.pickEllipsoid(
             positionedEvent.position,
             viewerRef.value.scene.globe.ellipsoid
         );
         // TODO 当LeftDown的时候，未选中地球时，LeftUp和MouseMove应该怎样处理
-        if (!cartesian) return;
+        if (!cartesian) {
+            draggingElement = undefined;
+            selectedElement.value = undefined;
+            isElementPanel.value = false;
+            return;
+        }
+
         startPoint = cartesian;
         console.log("left click on earth: ", cartesian);
+
+        // * if the active tool is default, then can drag&edit the selected element
+        if (activeTool.value === "default") {
+            // TODO 这里的逻辑还可以优化，draggingElement, selectedElement变量等等
+            draggingElement = editor.getSelectedElement(
+                positionedEvent.position
+            );
+            selectedElement.value = draggingElement;
+            isElementPanel.value = selectedElement.value ? true : false;
+            if (draggingElement) {
+                // 锁定相机
+                viewerRef.value.scene.screenSpaceCameraController.enableRotate =
+                    false;
+                console.log("start edit element: ", draggingElement.id);
+                editor.startEdit(draggingElement.id, draggingElement.type);
+            }
+            return;
+        }
+
         // 三种情况 point和polygon绘制的时候禁用mousemove，或者设置特定的mousemove
         // point: down up
         // line: down move up
@@ -105,7 +124,6 @@ export const useToolsBar = () => {
                     edittingElement = PolylineElement;
                     // ! startEdit()
                     editor.startEdit(edittingElement.id, edittingElement.type);
-                    console.log("polyline add!!!!");
                 }
                 break;
             case "rectangle":
@@ -145,6 +163,43 @@ export const useToolsBar = () => {
     const handleCanvasMouseMove = (
         motionEvent: ScreenSpaceEventHandler.MotionEvent
     ) => {
+        // drag element logic
+        if (draggingElement !== undefined) {
+            const motionStartPosition = viewerRef.value.camera.pickEllipsoid(
+                motionEvent.startPosition
+            );
+            const motionEndPosition = viewerRef.value.camera.pickEllipsoid(
+                motionEvent.endPosition
+            );
+            if (
+                motionStartPosition === undefined ||
+                motionEndPosition === undefined
+            )
+                return;
+            const delta_x = motionEndPosition.x - motionStartPosition.x;
+            const delta_y = motionEndPosition.y - motionStartPosition.y;
+            const delta_z = motionEndPosition.z - motionStartPosition.z;
+            switch (draggingElement.type) {
+                case "point":
+                    editor.mutateElement(draggingElement, {
+                        position: {
+                            x: motionEndPosition.x,
+                            y: motionEndPosition.y,
+                            z: motionEndPosition.z
+                        }
+                    });
+                    break;
+                case "polyline":
+                    // editor.mutateElement(draggingElement, {
+                    //     positions: []
+                    // });
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        // draw element logic
         if (edittingElement === null) return;
         let cartesian = viewerRef.value.camera.pickEllipsoid(
             motionEvent.endPosition,
@@ -174,6 +229,14 @@ export const useToolsBar = () => {
 
     const handleCanvasLeftUp = () => {
         console.log("left up!");
+        if (draggingElement !== undefined) {
+            console.log("stop edit element: ", draggingElement.id);
+            editor.stopEdit(draggingElement.id, draggingElement.type);
+            draggingElement = undefined;
+            viewerRef.value.scene.screenSpaceCameraController.enableRotate =
+                true;
+        }
+
         if (edittingElement !== null) {
             switch (activeTool.value) {
                 case "point":
@@ -193,7 +256,6 @@ export const useToolsBar = () => {
         }
     };
 
-    // TODO 是否需要改成其他方式
     const handleCanvasRightClick = () => {
         console.log("right click");
         if (edittingElement !== null) {

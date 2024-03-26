@@ -1,11 +1,6 @@
 import { nanoid } from "nanoid";
 import { Cartesian3 } from "cesium";
-
-export type Point3 = {
-    x: number;
-    y: number;
-    z: number;
-};
+import { Point3 } from "./point";
 
 export type Element =
     | GeoOasisPointElement
