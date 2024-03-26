@@ -3,18 +3,17 @@ import { storeToRefs } from "pinia";
 import { useViewerStore } from "../store/viewer-store";
 import {
     Cartesian3,
-    Color,
     ScreenSpaceEventHandler,
     ScreenSpaceEventType,
     Entity
 } from "cesium";
+import { Element } from "../element/element";
 import {
     newPointElement,
-    Element,
     newPolylineElement,
     newModelElement
-} from "../element/element";
-import { da } from "element-plus/es/locales.mjs";
+} from "../element/newElement";
+import { point3FromCartesian3 } from "../element/utils";
 
 export const useToolsBar = () => {
     // data or model or state
@@ -217,7 +216,9 @@ export const useToolsBar = () => {
                     // @ts-ignore
                     edittingElement.positions.pop();
                     // @ts-ignore
-                    edittingElement.positions.push(endPoint);
+                    edittingElement.positions.push(
+                        point3FromCartesian3(endPoint)
+                    );
                     break;
                 case "model":
                     break;
@@ -270,19 +271,6 @@ export const useToolsBar = () => {
     };
 
     const addImage = () => {
-        // const redLine = viewerRef.value.entities.add({
-        //     name: "Image Rectangle",
-        //     rectangle: {
-        //         coordinates: Rectangle.fromDegrees(-92.0, 30.0, -76.0, 40.0),
-        //         material: Color.GREEN.withAlpha(0.5)
-        //     }
-        //     // polyline: {
-        //     //     positions: Cartesian3.fromDegreesArray([-75, 35, -100, 35]),
-        //     //     width: 5,
-        //     //     material: Color.RED,
-        //     //     clampToGround: true
-        //     // }
-        // });
         // viewerRef.value.flyTo(redLine);
         // setTimeout(() => {
         //     if (redLine.polyline !== undefined) {
@@ -290,21 +278,6 @@ export const useToolsBar = () => {
         //             Cartesian3.fromDegreesArray([-75, 0, -100, 0]);
         //     }
         // }, 5000);
-        const ent = new Entity({
-            name: "fsd",
-            point: {
-                pixelSize: 12
-            }
-        });
-        const ProxyEntity = new Proxy(ent, {
-            get(target, prop) {
-                if (prop === "name") {
-                    return target[prop];
-                }
-            }
-        });
-        viewerRef.value.entities.add(ProxyEntity);
-
         const model = viewerRef.value.entities.add({
             name: "123",
             position: Cartesian3.fromDegrees(-75, 40, 0),

@@ -12,51 +12,12 @@ import {
     GeoOasisPolylineElement,
     GeoOasisModelElement
 } from "../element/element";
-import { cartesian3FromPoint3 } from "../element/point";
-
-const generatePointEntityfromElement = (
-    element: GeoOasisPointElement
-): Entity => {
-    const poi = element.position;
-    return new Entity({
-        id: element.id,
-        name: element.name,
-        show: element.show,
-        position: Cartesian3.fromElements(poi.x, poi.y, poi.z),
-        point: {
-            pixelSize: element.pixelSize
-        }
-    });
-};
-
-const generatePolylineEntityfromElement = (
-    element: GeoOasisPolylineElement
-): Entity => {
-    return new Entity({
-        id: element.id,
-        name: element.name,
-        show: element.show,
-        polyline: {
-            positions: element.positions
-        }
-    });
-};
-
-const generateModelEntityfromElement = (
-    element: GeoOasisModelElement
-): Entity => {
-    return new Entity({
-        id: element.id,
-        name: element.name,
-        show: element.show,
-        position: element.position,
-        model: {
-            uri: element.url,
-            minimumPixelSize: 128,
-            maximumScale: 20000
-        }
-    });
-};
+import {
+    cartesian3FromPoint3,
+    generatePointEntityfromElement,
+    generatePolylineEntityfromElement,
+    generateModelEntityfromElement
+} from "../element/utils";
 
 // Editor is singleton
 export class Editor extends EventTarget {
@@ -129,7 +90,9 @@ export class Editor extends EventTarget {
                 //@ts-ignore
                 entity.polyline.positions = new CallbackProperty(() => {
                     //@ts-ignore
-                    return this.elementsMap.get(id).positions;
+                    return this.elementsMap.get(id).positions.map((p) => {
+                        return cartesian3FromPoint3(p);
+                    });
                 }, false);
                 break;
             case "polygon":
@@ -152,7 +115,12 @@ export class Editor extends EventTarget {
             case "polyline":
                 // 若要阻止闪烁，可能需要再渲染一个entity
                 //@ts-ignore
-                entity.polyline.positions = this.elementsMap.get(id).positions;
+                entity.polyline.positions = this.elementsMap
+                    .get(id)
+                    // @ts-ignore
+                    .positions.map((p) => {
+                        return cartesian3FromPoint3(p);
+                    });
                 break;
             case "polygon":
                 break;

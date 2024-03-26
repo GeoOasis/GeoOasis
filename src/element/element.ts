@@ -1,4 +1,3 @@
-import { nanoid } from "nanoid";
 import { Cartesian3 } from "cesium";
 import { Point3 } from "./point";
 
@@ -33,7 +32,7 @@ export interface GeoOasisLabelElement extends GeoOasisBaseElement {
 
 export interface GeoOasisPolylineElement extends GeoOasisBaseElement {
     type: "polyline";
-    positions: Cartesian3[];
+    positions: Point3[];
     // width: number;
     // material: string;
     // clampToGround: boolean;
@@ -63,60 +62,3 @@ export interface GeoOasisModelElement extends GeoOasisBaseElement {
     position: Cartesian3;
     url: string;
 }
-
-export const newPointElement = (
-    id: string,
-    name: string,
-    show: boolean,
-    position: Cartesian3
-): GeoOasisPointElement => {
-    // TODO defaultValue 设置
-    return {
-        id: nanoid(),
-        type: "point",
-        name,
-        show,
-        description: "",
-        position: {
-            x: position.x,
-            y: position.y,
-            z: position.z
-        },
-        pixelSize: 10,
-        color: "white"
-    };
-};
-
-export const newPolylineElement = (
-    id: string,
-    name: string,
-    show: boolean,
-    positions: Cartesian3[]
-): GeoOasisPolylineElement => {
-    return {
-        id: nanoid(),
-        type: "polyline",
-        name,
-        show,
-        description: "",
-        positions
-    };
-};
-
-export const newModelElement = (
-    id: string,
-    name: string,
-    show: boolean,
-    position: Cartesian3,
-    url: string
-): GeoOasisModelElement => {
-    return {
-        id: nanoid(),
-        type: "model",
-        name,
-        show,
-        description: "",
-        position,
-        url
-    };
-};
