@@ -1,11 +1,10 @@
-import { computed, onMounted, ref } from "vue";
+import { onMounted, ref } from "vue";
 import { storeToRefs } from "pinia";
 import { useViewerStore } from "../store/viewer-store";
 import {
     Cartesian3,
     ScreenSpaceEventHandler,
-    ScreenSpaceEventType,
-    Entity
+    ScreenSpaceEventType
 } from "cesium";
 import { Element } from "../element/element";
 import {
@@ -18,7 +17,7 @@ import { point3FromCartesian3 } from "../element/utils";
 export const useToolsBar = () => {
     // data or model or state
     let handler: ScreenSpaceEventHandler;
-    let isEditting: boolean = true;
+    // let isEditting: boolean = true;
     let edittingElement: Element | null = null;
     let draggingElement: Element | undefined = undefined;
     let startPoint: Cartesian3;
@@ -90,8 +89,6 @@ export const useToolsBar = () => {
                 // 锁定相机
                 viewerRef.value.scene.screenSpaceCameraController.enableRotate =
                     false;
-                console.log("start edit element: ", draggingElement.id);
-                editor.startEdit(draggingElement.id, draggingElement.type);
             }
             return;
         }
@@ -121,8 +118,7 @@ export const useToolsBar = () => {
                     );
                     editor.addElement(PolylineElement);
                     edittingElement = PolylineElement;
-                    // ! startEdit()
-                    editor.startEdit(edittingElement.id, edittingElement.type);
+                    // startEdit()
                 }
                 break;
             case "rectangle":
@@ -147,9 +143,12 @@ export const useToolsBar = () => {
                 case "point":
                     break;
                 case "polyline":
-                    // TODO 这个操作实际上也是mutateElement操作，但是比较特殊。
-                    // @ts-ignore
-                    edittingElement.positions.push(startPoint);
+                    editor.mutateElement(edittingElement, {
+                        // @ts-ignore
+                        positions: edittingElement.positions.concat(
+                            point3FromCartesian3(startPoint)
+                        )
+                    });
                     break;
                 case "model":
                     break;
@@ -189,9 +188,16 @@ export const useToolsBar = () => {
                     });
                     break;
                 case "polyline":
-                    // editor.mutateElement(draggingElement, {
-                    //     positions: []
-                    // });
+                    const updatedPos = draggingElement.positions.map((pos) => {
+                        return {
+                            x: pos.x + delta_x,
+                            y: pos.y + delta_y,
+                            z: pos.z + delta_z
+                        };
+                    });
+                    editor.mutateElement(draggingElement, {
+                        positions: updatedPos
+                    });
                     break;
                 default:
                     break;
@@ -212,13 +218,13 @@ export const useToolsBar = () => {
                 case "point":
                     break;
                 case "polyline":
-                    // TODO 优化手段：记录点数，直接修改？
+                    // TODO 优化手段：减少对象创建
                     // @ts-ignore
-                    edittingElement.positions.pop();
-                    // @ts-ignore
-                    edittingElement.positions.push(
-                        point3FromCartesian3(endPoint)
-                    );
+                    const update = [...edittingElement.positions];
+                    update[update.length - 1] = point3FromCartesian3(endPoint);
+                    editor.mutateElement(edittingElement, {
+                        positions: update
+                    });
                     break;
                 case "model":
                     break;
@@ -231,8 +237,6 @@ export const useToolsBar = () => {
     const handleCanvasLeftUp = () => {
         console.log("left up!");
         if (draggingElement !== undefined) {
-            console.log("stop edit element: ", draggingElement.id);
-            editor.stopEdit(draggingElement.id, draggingElement.type);
             draggingElement = undefined;
             viewerRef.value.scene.screenSpaceCameraController.enableRotate =
                 true;
@@ -241,7 +245,6 @@ export const useToolsBar = () => {
         if (edittingElement !== null) {
             switch (activeTool.value) {
                 case "point":
-                    // ! stopEdit()
                     edittingElement = null;
                     activeTool.value = "default";
                     break;
@@ -263,7 +266,6 @@ export const useToolsBar = () => {
             if (activeTool.value === "polyline") {
                 console.log("double click, polyline finish");
                 // stopEdit();
-                editor.stopEdit(edittingElement.id, edittingElement.type);
                 edittingElement = null;
                 activeTool.value = "default";
             }
@@ -271,13 +273,6 @@ export const useToolsBar = () => {
     };
 
     const addImage = () => {
-        // viewerRef.value.flyTo(redLine);
-        // setTimeout(() => {
-        //     if (redLine.polyline !== undefined) {
-        //         (redLine.polyline.positions as any) =
-        //             Cartesian3.fromDegreesArray([-75, 0, -100, 0]);
-        //     }
-        // }, 5000);
         const model = viewerRef.value.entities.add({
             name: "123",
             position: Cartesian3.fromDegrees(-75, 40, 0),

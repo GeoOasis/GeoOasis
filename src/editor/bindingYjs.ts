@@ -40,7 +40,7 @@ export class BindingYjs {
         );
     }
 
-    handleYjsEvents(events: any, transaction: any) {
+    handleYjsEvents(events: Y.YEvent<any>[], transaction: Y.Transaction) {
         // ! 如果不是local，那么处理events
         if (!transaction.local) {
             console.log("remote transaction is received");

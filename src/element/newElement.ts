@@ -42,6 +42,7 @@ export const newPolylineElement = (
         name,
         show,
         description: "",
+        width: 5,
         positions: positions.map((p) => point3FromCartesian3(p))
     };
 };

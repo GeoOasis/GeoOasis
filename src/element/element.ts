@@ -33,7 +33,7 @@ export interface GeoOasisLabelElement extends GeoOasisBaseElement {
 export interface GeoOasisPolylineElement extends GeoOasisBaseElement {
     type: "polyline";
     positions: Point3[];
-    // width: number;
+    width: number;
     // material: string;
     // clampToGround: boolean;
     // zIndex: number;

@@ -1,11 +1,4 @@
-import {
-    Entity,
-    Viewer,
-    CallbackProperty,
-    Cartesian2,
-    Color,
-    Cartesian3
-} from "cesium";
+import { Entity, Viewer, CallbackProperty, Cartesian2, Color } from "cesium";
 import {
     Element,
     GeoOasisPointElement,
@@ -71,6 +64,8 @@ export class Editor extends EventTarget {
             this.viewer.entities.add(entity);
             this.entitiesMap.set(element.id, entity);
             this.entities.push(entity);
+            // * 默认开启callbackProperty
+            this.startEdit(element.id, element.type);
         }
     }
 
@@ -145,6 +140,7 @@ export class Editor extends EventTarget {
             console.log("element not found");
             return;
         }
+        // dispatch mutate info event
         this.dispatchEvent(
             new CustomEvent("elementMutated", {
                 detail: {
@@ -155,6 +151,7 @@ export class Editor extends EventTarget {
             })
         );
         const mutatedEntity = this.entitiesMap.get(element.id);
+        // mutate element and entity
         if (element.type === "point") {
             for (const key in update) {
                 const value = (update as any)[key];
@@ -164,6 +161,7 @@ export class Editor extends EventTarget {
                     // TODO 如果参数相同可以不修改
                     //@ts-ignore
                     mutatedElement[key] = value;
+                    // 特殊的key要特殊处理
                     if (key === "description") {
                         // @ts-ignore
                         mutatedEntity[key] = value;
@@ -172,12 +170,22 @@ export class Editor extends EventTarget {
                         mutatedEntity.point[key] =
                             Color.fromCssColorString(value);
                     } else if (key === "position") {
-                        // position属性通过callbackproperty设置
+                        // position属性不要赋值给mutatedEntity,因为由于callbackproperty
+                        // 只需要修改mutatedElement就可以。
                         continue;
                     } else {
                         // @ts-ignore
                         mutatedEntity.point[key] = value;
                     }
+                }
+            }
+        } else if (element.type === "polyline") {
+            for (const key in update) {
+                const value = (update as any)[key];
+                console.log("Key: ", key, " Value: ", value);
+                if (typeof value !== "undefined") {
+                    // @ts-ignore
+                    mutatedElement[key] = value;
                 }
             }
         }

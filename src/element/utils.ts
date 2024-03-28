@@ -29,6 +29,7 @@ export const generatePolylineEntityfromElement = (
         name: element.name,
         show: element.show,
         polyline: {
+            width: element.width,
             positions: element.positions.map((p) => cartesian3FromPoint3(p))
         }
     });
