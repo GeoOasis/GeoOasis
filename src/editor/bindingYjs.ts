@@ -2,6 +2,7 @@ import { HocuspocusProvider } from "@hocuspocus/provider";
 import * as Y from "yjs";
 import { Editor } from "./editor";
 import { Hocuspocus_URL } from "../contants";
+import { ElementAddedEvent, ElementMuatedEvent } from "./type";
 
 export class BindingYjs {
     private yjsProvider: HocuspocusProvider;
@@ -33,10 +34,10 @@ export class BindingYjs {
             self.handleYjsEvents(events, transactions)
         );
         this.editor.addEventListener("elementAdded", (event) =>
-            self.handleElementAdded(event)
+            self.handleElementAdded(event as ElementAddedEvent)
         );
         this.editor.addEventListener("elementMutated", (event) =>
-            self.handleElementMutated(event)
+            self.handleElementMutated(event as ElementMuatedEvent)
         );
     }
 
@@ -78,12 +79,11 @@ export class BindingYjs {
         }
     }
     // TODO 补全event：any类型
-    handleElementAdded(event: any) {
-        console.log(this);
-
+    handleElementAdded(event: ElementAddedEvent) {
         if (event.detail.local) {
             const element = new Y.Map();
             for (const key in event.detail.element) {
+                // @ts-ignore
                 const value = event.detail.element[key];
                 element.set(key, value);
             }
@@ -93,7 +93,7 @@ export class BindingYjs {
         }
     }
 
-    handleElementMutated(event: any) {
+    handleElementMutated(event: ElementMuatedEvent) {
         if (event.detail.local) {
             const update = event.detail.update;
             for (const key in update) {

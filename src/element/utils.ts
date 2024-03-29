@@ -9,7 +9,7 @@ import { Point3 } from "./point";
 export const generatePointEntityfromElement = (
     element: GeoOasisPointElement
 ): Entity => {
-    const poi = element.position;
+    const poi = element.positions[0];
     return new Entity({
         id: element.id,
         name: element.name,
@@ -38,11 +38,12 @@ export const generatePolylineEntityfromElement = (
 export const generateModelEntityfromElement = (
     element: GeoOasisModelElement
 ): Entity => {
+    const poi = element.positions[0];
     return new Entity({
         id: element.id,
         name: element.name,
         show: element.show,
-        position: element.position,
+        position: Cartesian3.fromElements(poi.x, poi.y, poi.z),
         model: {
             uri: element.url,
             minimumPixelSize: 128,

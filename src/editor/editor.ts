@@ -77,7 +77,7 @@ export class Editor extends EventTarget {
                 entity.position = new CallbackProperty(() => {
                     return cartesian3FromPoint3(
                         // @ts-ignore
-                        this.elementsMap.get(id).position
+                        this.elementsMap.get(id).positions[0]
                     );
                 }, false);
                 break;
@@ -104,7 +104,7 @@ export class Editor extends EventTarget {
                 // @ts-ignore
                 entity.position = cartesian3FromPoint3(
                     // @ts-ignore
-                    this.elementsMap.get(id).position
+                    this.elementsMap.get(id).positions[0]
                 );
                 break;
             case "polyline":
@@ -134,7 +134,7 @@ export class Editor extends EventTarget {
 
     mutateElement(element: Element, update: {}, local: boolean = true) {
         // * update里的值 一定是被改变的。
-        console.log("mutateElement func!");
+        // console.log("mutateElement func!");
         const mutatedElement = this.elementsMap.get(element.id);
         if (!mutatedElement) {
             console.log("element not found");
@@ -169,8 +169,8 @@ export class Editor extends EventTarget {
                         // @ts-ignore
                         mutatedEntity.point[key] =
                             Color.fromCssColorString(value);
-                    } else if (key === "position") {
-                        // position属性不要赋值给mutatedEntity,因为由于callbackproperty
+                    } else if (key === "positions") {
+                        // positions属性不要赋值给mutatedEntity,因为由于callbackproperty
                         // 只需要修改mutatedElement就可以。
                         continue;
                     } else {

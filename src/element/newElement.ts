@@ -20,11 +20,13 @@ export const newPointElement = (
         name,
         show,
         description: "",
-        position: {
-            x: position.x,
-            y: position.y,
-            z: position.z
-        },
+        positions: [
+            {
+                x: position.x,
+                y: position.y,
+                z: position.z
+            }
+        ],
         pixelSize: 10,
         color: "white"
     };
@@ -60,7 +62,13 @@ export const newModelElement = (
         name,
         show,
         description: "",
-        position,
+        positions: [
+            {
+                x: position.x,
+                y: position.y,
+                z: position.z
+            }
+        ],
         url
     };
 };

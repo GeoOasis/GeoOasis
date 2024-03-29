@@ -180,11 +180,13 @@ export const useToolsBar = () => {
             switch (draggingElement.type) {
                 case "point":
                     editor.mutateElement(draggingElement, {
-                        position: {
-                            x: motionEndPosition.x,
-                            y: motionEndPosition.y,
-                            z: motionEndPosition.z
-                        }
+                        positions: [
+                            {
+                                x: motionEndPosition.x,
+                                y: motionEndPosition.y,
+                                z: motionEndPosition.z
+                            }
+                        ]
                     });
                     break;
                 case "polyline":
