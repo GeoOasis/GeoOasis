@@ -1,19 +1,35 @@
-// base imagery layer添加到viewer.scene.globe.imageryCollection
-// service layer添加到entitiesCollection中
 export type GeoOasisLayer =
     | GeoOasisBaseImageryLayer
     | GeoOasisBaseTerrainLayer
-    | GeoOasisServiceLayer;
+    | GeoOasisImageryLayer
+    | GeoOasisServiceLayer
+    | GeoOasis3DTilesLayer;
 
 export interface GeoOasisBaseLayer {
     id: string;
     name: string;
 }
 
-// TODO 不同类型的图层还要在用一个属性区分，single，wms，wmts等等，不然不好设置option
-export interface GeoOasisBaseImageryLayer extends GeoOasisBaseLayer {
+export interface GeoOasisImageryLayer extends GeoOasisBaseLayer {
     type: "imagery";
+    provider:
+        | "bing"
+        | "arcgis"
+        | "osm"
+        | "st"
+        | "tms"
+        | "wms"
+        | "wmts"
+        | "custom";
     show: boolean;
+    url?: string;
+    credit?: string;
+    layer?: string;
+    parameters?: any;
+}
+
+export interface GeoOasisBaseImageryLayer extends GeoOasisImageryLayer {
+    provider: "bing" | "arcgis" | "osm" | "wmts" | "tms" | "custom";
 }
 
 export interface GeoOasisBaseTerrainLayer extends GeoOasisBaseLayer {
@@ -21,9 +37,16 @@ export interface GeoOasisBaseTerrainLayer extends GeoOasisBaseLayer {
     show: boolean;
 }
 
+// 非Base类型的Layer可以用来做空间分析
 export interface GeoOasisServiceLayer extends GeoOasisBaseLayer {
     // "gpx|kml|geojson|czml"
     type: "service";
+    url: string;
+    show: boolean;
+}
+
+export interface GeoOasis3DTilesLayer extends GeoOasisBaseLayer {
+    type: "3dtiles";
     url: string;
     show: boolean;
 }

@@ -2,8 +2,9 @@
 import { useToolsBar } from '../composables/useToolsBar';
 import { useYjs } from "../composables/useYjs";
 
+//@ts-ignore
 const { yjsBinding } = useYjs();
-const { activeTool, addImage } = useToolsBar();
+const { activeTool } = useToolsBar();
 const items = [{
     label: 'default',
     icon: 'default'
@@ -23,6 +24,7 @@ const items = [{
     label: 'model',
     icon: 'model'
 }];
+// TODO 添加layer的btn
 </script>
 
 <template>
@@ -31,8 +33,6 @@ const items = [{
             <el-radio-button class="custom-el-radio-button" v-for="item in items" :key="item.label"
                 :label="item.label"></el-radio-button>
         </el-radio-group>
-        <p> 测试：</p>
-        <el-button type="primary" @click="addImage">添加图片</el-button>
     </div>
 </template>
 

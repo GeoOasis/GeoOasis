@@ -1,26 +1,15 @@
-import { onMounted, reactive, ref, shallowRef, watch } from "vue";
-import {
-    ArcGisMapServerImageryProvider,
-    ImageryLayer,
-    ImageryProvider,
-    createWorldImageryAsync,
-    WebMapServiceImageryProvider
-} from "cesium";
-import { useViewerStore } from "../store/viewer-store";
+import { onMounted, reactive, ref, watch } from "vue";
 import { storeToRefs } from "pinia";
+import { nanoid } from "nanoid";
+import { useViewerStore } from "../store/viewer-store";
 import { GeoOasisLayer } from "../layer/layer";
 import { Element } from "../element/element";
-import { nanoid } from "nanoid";
 
 export const useLayersBar = () => {
-    // data or state
-    const baseLayers: ImageryLayer[] = [];
-
     const selectedLayer = ref("Bing");
-    // TODO 目前这种方法不是很好
     const elementsRef = reactive<Element[]>([]);
     const baseLayersRef = reactive<GeoOasisLayer[]>([]);
-    const additionalLayersRef = reactive<GeoOasisLayer[]>([]);
+    const layersRef = reactive<GeoOasisLayer[]>([]);
 
     // store
     const viewerStore = useViewerStore();
@@ -30,139 +19,100 @@ export const useLayersBar = () => {
     // mounted
     onMounted(() => {
         console.log("LayersBar mounted");
+        viewerRef.value.imageryLayers.layerAdded.addEventListener((e) => {
+            console.log("layer added!!!", e);
+        });
         // TODO 需要添加addLayer的按钮和panel
-        setupLayers();
-        // updateLayerList();
-        editor.addEventListener("elementAdded", (event) => {
+        editor.addEventListener("elementAdded", (event: any) => {
             console.log(event);
-            // @ts-ignore
             elementsRef.push(event.detail.element);
         });
+        editor.addEventListener("baseLayerAdded", (event: any) => {
+            baseLayersRef.push(event.detail.layer);
+        });
+        editor.addEventListener("layerAdded", (event: any) => {
+            console.log("--------------------layer added!!!", event);
+            layersRef.push(event.detail.layer);
+        });
+        setupLayers();
     });
 
     watch(selectedLayer, () => {
-        console.log("basemap changed");
         // 预设底图的索引始终为0
+        // 在初始化的时候，默认已经底图了
         const activeLayer = viewerRef.value.imageryLayers.get(0);
         viewerRef.value.imageryLayers.remove(activeLayer, false);
-        const layerIndex = baseLayersRef.findIndex(
-            (layer) => layer.name === selectedLayer.value
-        );
-        const layer = baseLayers[layerIndex];
-        if (layer) {
-            viewerRef.value.imageryLayers.add(layer, 0);
+
+        const baseLayer = editor.getBaseLayer(selectedLayer.value);
+        if (baseLayer) {
+            console.log("basemap changed");
+            viewerRef.value.imageryLayers.add(baseLayer, 0);
         }
     });
 
     // methods
-    // const addLayerItem = (name: string) => {
-    //     baseLayers.value.push({
-    //         index: baseLayers.value.length,
-    //         name: name
-    //     });
-    // };
-
-    // const deleteLayerItem = (index: number) => {
-    //     baseLayers.value.splice(index, 1);
-    // };
-
     const setupLayers = () => {
-        // updateLayerList();
-        addBaseLayerOption("Bing", createWorldImageryAsync());
-        addBaseLayerOption(
-            "ArcGIS",
-            ArcGisMapServerImageryProvider.fromUrl(
-                "https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"
-            )
-        );
-        addAdditionalLayerOption(
-            "United States GOES Infrared",
-            // @ts-ignore
-            new WebMapServiceImageryProvider({
-                url: "https://mesonet.agron.iastate.edu/cgi-bin/wms/goes/conus_ir.cgi?",
-                layers: "goes_conus_ir",
-                credit: "Infrared data courtesy Iowa Environmental Mesonet",
-                parameters: {
-                    transparent: "true",
-                    format: "image/png"
-                }
-            })
-        );
-        addAdditionalLayerOption(
-            "United States Weather Radar",
-            // @ts-ignore
-            new WebMapServiceImageryProvider({
-                url: "https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r.cgi?",
-                layers: "nexrad-n0r",
-                credit: "Radar data courtesy Iowa Environmental Mesonet",
-                parameters: {
-                    transparent: "true",
-                    format: "image/png"
-                }
-            })
-        );
+        editor.addBaseLayerOption({
+            id: nanoid(),
+            name: "Bing",
+            type: "imagery",
+            provider: "bing",
+            show: true
+        });
+        editor.addBaseLayerOption({
+            id: nanoid(),
+            name: "ArcGIS",
+            type: "imagery",
+            provider: "arcgis",
+            url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer",
+            show: true
+        });
+
+        editor.addLayer({
+            id: nanoid(),
+            name: "United States Weather Radar",
+            type: "imagery",
+            provider: "wms",
+            show: true,
+            url: "https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r.cgi?",
+            credit: "Radar data courtesy Iowa Environmental Mesonet",
+            layer: "nexrad-n0r",
+            parameters: {
+                transparent: "true",
+                format: "image/png"
+            }
+        });
+        editor.addLayer({
+            id: nanoid(),
+            name: "United States GOES Infrared",
+            type: "imagery",
+            provider: "wms",
+            show: true,
+            url: "https://mesonet.agron.iastate.edu/cgi-bin/wms/goes/conus_ir.cgi?",
+            credit: "Infrared data courtesy Iowa Environmental Mesonet",
+            layer: "goes_conus_ir",
+            parameters: {
+                transparent: "true",
+                format: "image/png"
+            }
+        });
     };
 
-    async function addBaseLayerOption(
-        name: string,
-        imageryProviderPromise: Promise<ImageryProvider>
-    ) {
-        try {
-            const imageryProvider = await Promise.resolve(
-                imageryProviderPromise
-            );
-            const baseLayer = new ImageryLayer(imageryProvider);
-            baseLayers.push(baseLayer);
-            // viewerRef.value.imageryLayers.add(baseLayer);
-            baseLayersRef.push({
-                id: nanoid(),
-                name: name,
-                type: "imagery",
-                show: true
-            });
-            // baseLayers.value.push({
-            //     index: baseLayers.value.length,
-            //     name: name
-            // });
-        } catch (error) {
-            console.error(
-                `There was an error while creating ${name}. ${error}`
-            );
-        }
-    }
-
-    async function addAdditionalLayerOption(
-        name: string,
-        imageryProviderPromise: Promise<ImageryProvider>
-    ) {
-        try {
-            const imageryProvider = await Promise.resolve(
-                imageryProviderPromise
-            );
-            const layer = new ImageryLayer(imageryProvider);
-            layer.alpha = 0.5;
-            layer.show = true;
-            viewerRef.value.imageryLayers.add(layer);
-            additionalLayersRef.push({
-                id: nanoid(),
-                name: name,
-                type: "imagery",
-                show: true
-            });
-        } catch (error) {
-            console.log(`There was an error while creating ${name}. ${error}`);
-        }
-    }
-
-    const updateLayerList = () => {};
+    const add3dtilesTest = () => {
+        editor.addLayer({
+            id: nanoid(),
+            name: "3dTiles",
+            type: "3dtiles",
+            url: "http://127.0.0.1:5500/tileset.json",
+            show: true
+        });
+    };
 
     return {
         selectedLayer,
         elementsRef,
         baseLayersRef,
-        additionalLayersRef,
-        updateLayerList
-        // addLayerItem,
-        // deleteLayerItem
+        layersRef,
+        add3dtilesTest
     };
 };

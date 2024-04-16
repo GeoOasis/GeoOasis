@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue';
 import { useLayersBar } from '../composables/useLayersBar';
 
-const { selectedLayer, elementsRef, additionalLayersRef, updateLayerList } = useLayersBar();
+const { selectedLayer, elementsRef, layersRef, add3dtilesTest } = useLayersBar();
 
 const pointElements = computed(() => {
     // @ts-ignore
@@ -29,7 +29,7 @@ const options = [
 <template>
     <div class="layersbar">
         <h3>Layers</h3>
-        <el-table :data="additionalLayersRef" size="small">
+        <el-table :data="layersRef" size="small">
             <!-- <el-table-column label="Index" width="50">
                 <template #default="scope">
                     <span>{{ scope.row.index }}</span>
@@ -54,9 +54,8 @@ const options = [
         <el-select v-model="selectedLayer" placeholder="Select">
             <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
-        <el-button type="primary" @click="updateLayerList">updateLayerList</el-button>
+        <el-button type="primary" @click="add3dtilesTest">updateLayerList</el-button>
         <el-divider></el-divider>
-        <!-- <el-button type="primary">添加Layer</el-button> -->
         <h3>Elements</h3>
         <p class="element" v-for="e in pointElements">{{ e.type }}</p>
         <p class="element" v-for="e in polylineElements">{{ e.type }}</p>

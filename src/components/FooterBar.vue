@@ -4,7 +4,7 @@
 
 <template>
     <div class="footerbar">
-        页脚栏
+        TODO footer
     </div>
 </template>
 

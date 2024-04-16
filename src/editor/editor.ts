@@ -1,4 +1,14 @@
-import { Entity, Viewer, CallbackProperty, Cartesian2, Color } from "cesium";
+import {
+    Entity,
+    Viewer,
+    CallbackProperty,
+    Cartesian2,
+    Color,
+    ImageryLayer,
+    DataSource,
+    Primitive,
+    Cesium3DTileset
+} from "cesium";
 import {
     Element,
     GeoOasisPointElement,
@@ -11,6 +21,18 @@ import {
     generatePolylineEntityfromElement,
     generateModelEntityfromElement
 } from "../element/utils";
+import {
+    GeoOasis3DTilesLayer,
+    GeoOasisBaseImageryLayer,
+    GeoOasisImageryLayer,
+    GeoOasisLayer,
+    GeoOasisServiceLayer
+} from "../layer/layer";
+import {
+    generateArcgisImageryFromLayer,
+    generateBingImageryFromLayer,
+    generateWMSImageryFromLayer
+} from "../layer/utils";
 
 // Editor is singleton
 export class Editor extends EventTarget {
@@ -23,12 +45,23 @@ export class Editor extends EventTarget {
     private elementsMap: Map<Element["id"], Element> = new Map();
     private entitiesMap: Map<Element["id"], Entity> = new Map();
 
+    private layersMap: Map<GeoOasisLayer["id"], GeoOasisLayer> = new Map();
+
+    // TODO type TrueLayer = ImageryLayer | DataSource | Primitive
+    private baseLayerArray: Array<GeoOasisBaseImageryLayer> = new Array();
+    private imageryLayersMap: Map<GeoOasisLayer["id"], ImageryLayer> =
+        new Map();
+    private serviceLayersMap: Map<GeoOasisLayer["id"], DataSource> = new Map();
+    private cesium3dtilesLayersMap: Map<GeoOasisLayer["id"], Primitive> =
+        new Map();
+
     viewer: Viewer = {} as Viewer;
 
     constructor() {
         super();
     }
 
+    // Elements logic
     addElement(element: Element, local: boolean = true) {
         this.dispatchEvent(
             new CustomEvent("elementAdded", {
@@ -201,5 +234,114 @@ export class Editor extends EventTarget {
             return this.elementsMap.get(pickedEntity.id.id);
         }
         return undefined;
+    }
+
+    // Layers logic
+    async addLayer(layer: GeoOasisLayer, local: boolean = true) {
+        this.dispatchEvent(
+            new CustomEvent("layerAdded", {
+                detail: {
+                    layer: layer,
+                    local: local
+                }
+            })
+        );
+        this.layersMap.set(layer.id, layer);
+        let layerTmp;
+        switch (layer.type) {
+            case "imagery":
+                layerTmp = await this.addImageryLayer(
+                    layer as GeoOasisImageryLayer
+                );
+                if (layerTmp) {
+                    layerTmp.alpha = 0.5;
+                    this.viewer.imageryLayers.add(layerTmp);
+                    this.imageryLayersMap.set(layer.id, layerTmp);
+                }
+                break;
+            case "service":
+                break;
+            case "3dtiles":
+                layerTmp = await this.add3dtilesLayer(
+                    layer as GeoOasis3DTilesLayer
+                );
+                if (layerTmp) {
+                    this.viewer.scene.primitives.add(layerTmp);
+                    this.cesium3dtilesLayersMap.set(layer.id, layerTmp as any);
+                    await this.viewer.zoomTo(layerTmp);
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    async addBaseLayerOption(layer: GeoOasisBaseImageryLayer) {
+        try {
+            this.dispatchEvent(
+                new CustomEvent("baseLayerAdded", {
+                    detail: {
+                        layer: layer
+                    }
+                })
+            );
+            this.baseLayerArray.push(layer);
+            let cesiumLayer;
+            switch (layer.provider) {
+                case "arcgis":
+                    cesiumLayer = await generateArcgisImageryFromLayer(layer);
+                    break;
+                case "bing":
+                    cesiumLayer = await generateBingImageryFromLayer(layer);
+                    break;
+                default:
+                    break;
+            }
+            if (cesiumLayer) {
+                this.imageryLayersMap.set(layer.id, cesiumLayer);
+                console.log("Add baseLayer option success");
+            }
+        } catch (error) {
+            console.error(
+                `There was an error while creating ${layer.name}. ${error}`
+            );
+        }
+    }
+
+    async addImageryLayer(layer: GeoOasisImageryLayer) {
+        try {
+            switch (layer.provider) {
+                case "wmts":
+                    break;
+                case "wms":
+                    return generateWMSImageryFromLayer(layer);
+                default:
+                    break;
+            }
+        } catch (error) {
+            console.error(
+                `There was an error while creating ${layer.name}. ${error}`
+            );
+        }
+    }
+
+    async addServiceLayer(layer: GeoOasisServiceLayer) {}
+
+    async add3dtilesLayer(layer: GeoOasis3DTilesLayer) {
+        try {
+            const tileset = await Cesium3DTileset.fromUrl(layer.url);
+            return tileset;
+        } catch (error) {
+            console.error(`Error creating tileset: ${error}`);
+        }
+    }
+
+    getBaseLayer(name: string) {
+        const baseLayer = this.baseLayerArray.find(
+            (layer) => layer.name === name
+        );
+        if (baseLayer) {
+            return this.imageryLayersMap.get(baseLayer.id);
+        }
     }
 }

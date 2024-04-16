@@ -97,6 +97,7 @@ export const useToolsBar = () => {
         // point: down up
         // line: down move up
         // polygon: down move up down move up ... doubleclick
+        // TODO: id设置
         switch (activeTool.value) {
             case "point":
                 const PointElement = newPointElement(
@@ -274,18 +275,5 @@ export const useToolsBar = () => {
         }
     };
 
-    const addImage = () => {
-        const model = viewerRef.value.entities.add({
-            name: "123",
-            position: Cartesian3.fromDegrees(-75, 40, 0),
-            model: {
-                uri: "./Cesium_Air.glb",
-                minimumPixelSize: 128,
-                maximumScale: 20000
-            }
-        });
-        viewerRef.value.trackedEntity = model;
-    };
-
-    return { activeTool, addImage };
+    return { activeTool };
 };
