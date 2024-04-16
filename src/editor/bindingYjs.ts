@@ -9,6 +9,8 @@ export class BindingYjs {
     private doc: Y.Doc;
     private editor: Editor;
     private sharedElementsMap: Y.Map<any>;
+    private sharedLayersMap: Y.Map<any>;
+    sharedAppStateMap: Y.Map<any>;
 
     constructor(editor: Editor) {
         let self = this;
@@ -26,22 +28,34 @@ export class BindingYjs {
         });
         this.doc = this.yjsProvider.document;
         this.sharedElementsMap = this.doc.getMap("yjsElementsMap");
+        this.sharedLayersMap = this.doc.getMap("yjsLayersMap");
+        this.sharedAppStateMap = this.doc.getMap("yjsAppStateMap");
     }
 
     init() {
         const self = this;
         this.sharedElementsMap.observeDeep((events, transactions) =>
-            self.handleYjsEvents(events, transactions)
+            self.handleYjsElementsEvents(events, transactions)
         );
+        this.sharedLayersMap.observeDeep((events, transactions) => {
+            self.handleYjsLayersEvents(events, transactions);
+        });
+
         this.editor.addEventListener("elementAdded", (event) =>
             self.handleElementAdded(event as ElementAddedEvent)
         );
         this.editor.addEventListener("elementMutated", (event) =>
             self.handleElementMutated(event as ElementMuatedEvent)
         );
+        this.editor.addEventListener("layerAdded", (event) => {
+            self.handleLayerAdded(event);
+        });
     }
 
-    handleYjsEvents(events: Y.YEvent<any>[], transaction: Y.Transaction) {
+    handleYjsElementsEvents(
+        events: Y.YEvent<any>[],
+        transaction: Y.Transaction
+    ) {
         // ! 如果不是local，那么处理events
         if (!transaction.local) {
             console.log("remote transaction is received");
@@ -100,6 +114,39 @@ export class BindingYjs {
                 const value = update[key];
                 this.sharedElementsMap.get(event.detail.id).set(key, value);
             }
+        }
+    }
+
+    handleYjsLayersEvents(events: Y.YEvent<any>[], transaction: Y.Transaction) {
+        if (!transaction.local) {
+            console.log("remote transaction is received");
+            events.map((e) => {
+                console.log("event is ", e);
+                // @ts-ignore
+                e.changes.keys.forEach((change, key) => {
+                    console.log(`this change's key is ${key}`);
+                    if (change.action === "add") {
+                        const remoteLayer = this.sharedLayersMap
+                            .get(key)
+                            .toJSON();
+                        this.editor.addLayer(remoteLayer, false);
+                    } else if (change.action === "update") {
+                    } else if (change.action === "delete") {
+                    }
+                });
+            });
+        }
+    }
+
+    handleLayerAdded(event: any) {
+        if (event.detail.local) {
+            const layer = new Y.Map();
+            for (const key in event.detail.layer) {
+                // @ts-ignore
+                const value = event.detail.layer[key];
+                layer.set(key, value);
+            }
+            this.sharedLayersMap.set(event.detail.layer.id, layer);
         }
     }
 }

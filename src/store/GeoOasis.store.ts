@@ -10,11 +10,13 @@ export const useGeoOasisStore = defineStore("viewer", () => {
     const editor = new Editor();
     const isElementPanel = ref<Boolean>(false);
     const selectedElement = ref<Element | undefined>();
+    const selectedBaseLayer = ref("Bing");
 
     return {
         viewerRef,
         editor,
         isElementPanel,
-        selectedElement
+        selectedElement,
+        selectedBaseLayer
     };
 });

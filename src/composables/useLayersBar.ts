@@ -6,14 +6,13 @@ import { GeoOasisLayer } from "../layer/layer";
 import { Element } from "../element/element";
 
 export const useLayersBar = () => {
-    const selectedLayer = ref("Bing");
     const elementsRef = reactive<Element[]>([]);
     const baseLayersRef = reactive<GeoOasisLayer[]>([]);
     const layersRef = reactive<GeoOasisLayer[]>([]);
 
     // store
     const store = useGeoOasisStore();
-    const { viewerRef } = storeToRefs(store);
+    const { viewerRef, selectedBaseLayer } = storeToRefs(store);
     const { editor } = store;
 
     // mounted
@@ -37,13 +36,13 @@ export const useLayersBar = () => {
         setupLayers();
     });
 
-    watch(selectedLayer, () => {
+    watch(selectedBaseLayer, () => {
         // 预设底图的索引始终为0
         // 在初始化的时候，默认已经底图了
         const activeLayer = viewerRef.value.imageryLayers.get(0);
         viewerRef.value.imageryLayers.remove(activeLayer, false);
 
-        const baseLayer = editor.getBaseLayer(selectedLayer.value);
+        const baseLayer = editor.getBaseLayer(selectedBaseLayer.value);
         if (baseLayer) {
             console.log("basemap changed");
             viewerRef.value.imageryLayers.add(baseLayer, 0);
@@ -108,7 +107,7 @@ export const useLayersBar = () => {
     };
 
     return {
-        selectedLayer,
+        selectedBaseLayer,
         elementsRef,
         baseLayersRef,
         layersRef,

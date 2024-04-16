@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { useLayersBar } from '../composables/useLayersBar';
 
-const { selectedLayer, elementsRef, layersRef, add3dtilesTest } = useLayersBar();
+const { selectedBaseLayer, elementsRef, layersRef, add3dtilesTest } = useLayersBar();
 
 const pointElements = computed(() => {
     // @ts-ignore
@@ -51,7 +51,7 @@ const options = [
                 </template>
             </el-table-column>
         </el-table>
-        <el-select v-model="selectedLayer" placeholder="Select">
+        <el-select v-model="selectedBaseLayer" placeholder="Select">
             <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
         <el-button type="primary" @click="add3dtilesTest">updateLayerList</el-button>
