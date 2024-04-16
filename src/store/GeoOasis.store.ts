@@ -4,7 +4,7 @@ import { Viewer } from "cesium";
 import { Editor } from "../editor/editor";
 import { Element } from "../element/element";
 
-export const useViewerStore = defineStore("viewer", () => {
+export const useGeoOasisStore = defineStore("viewer", () => {
     // use pinia to store viewer
     const viewerRef = shallowRef<Viewer>({} as Viewer);
     const editor = new Editor();

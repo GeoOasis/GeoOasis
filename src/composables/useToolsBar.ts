@@ -1,6 +1,6 @@
 import { onMounted, ref } from "vue";
 import { storeToRefs } from "pinia";
-import { useViewerStore } from "../store/viewer-store";
+import { useGeoOasisStore } from "../store/GeoOasis.store";
 import {
     Cartesian3,
     ScreenSpaceEventHandler,
@@ -27,12 +27,11 @@ export const useToolsBar = () => {
     // const isEditting = computed(() => activeTool.value !== "default");
 
     // store
-    const viewerStore = useViewerStore();
+    const store = useGeoOasisStore();
     // 解构store中的state
-    const { viewerRef, isElementPanel, selectedElement } =
-        storeToRefs(viewerStore);
+    const { viewerRef, isElementPanel, selectedElement } = storeToRefs(store);
     // 解构store中的普通变量
-    const { editor } = viewerStore;
+    const { editor } = store;
 
     // hooks
     onMounted(() => {

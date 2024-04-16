@@ -9,7 +9,7 @@ import {
     HeadingPitchRange,
     Transforms
 } from "cesium";
-import { useViewerStore } from "../store/viewer-store";
+import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { User } from "../core/collab/User";
 import { SERVER_URL } from "../contants";
 
@@ -32,8 +32,8 @@ export const useCollabBar = () => {
     let cameraPosWCOld: Cartesian3;
 
     // store
-    const viewerStore = useViewerStore();
-    const { viewerRef } = storeToRefs(viewerStore);
+    const store = useGeoOasisStore();
+    const { viewerRef } = storeToRefs(store);
 
     // * 所有组件挂载完之后 socket.on("connect",)才被触发
     // @ts-ignore

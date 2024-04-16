@@ -1,9 +1,9 @@
 import { onMounted, shallowRef } from "vue";
 import { BindingYjs } from "../editor/bindingYjs";
-import { useViewerStore } from "../store/viewer-store";
+import { useGeoOasisStore } from "../store/GeoOasis.store";
 
 export const useYjs = () => {
-    const { editor } = useViewerStore();
+    const { editor } = useGeoOasisStore();
     // @ts-ignore
     const yjsBinding = shallowRef<BindingYjs>(new BindingYjs(editor));
 

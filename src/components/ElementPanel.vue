@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { reactive, watch } from 'vue'
 import { storeToRefs } from 'pinia';
-import { useViewerStore } from '../store/viewer-store';
+import { useGeoOasisStore } from '../store/GeoOasis.store';
 
-const store = useViewerStore();
+const store = useGeoOasisStore();
 const { selectedElement } = storeToRefs(store);
 const { editor } = store;
 

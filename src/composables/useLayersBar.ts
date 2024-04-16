@@ -1,7 +1,7 @@
 import { onMounted, reactive, ref, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { nanoid } from "nanoid";
-import { useViewerStore } from "../store/viewer-store";
+import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { GeoOasisLayer } from "../layer/layer";
 import { Element } from "../element/element";
 
@@ -12,9 +12,9 @@ export const useLayersBar = () => {
     const layersRef = reactive<GeoOasisLayer[]>([]);
 
     // store
-    const viewerStore = useViewerStore();
-    const { viewerRef } = storeToRefs(viewerStore);
-    const { editor } = viewerStore;
+    const store = useGeoOasisStore();
+    const { viewerRef } = storeToRefs(store);
+    const { editor } = store;
 
     // mounted
     onMounted(() => {
@@ -67,7 +67,16 @@ export const useLayersBar = () => {
             url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer",
             show: true
         });
+    };
 
+    const add3dtilesTest = () => {
+        editor.addLayer({
+            id: nanoid(),
+            name: "3dTiles",
+            type: "3dtiles",
+            url: "http://127.0.0.1:5500/tileset.json",
+            show: true
+        });
         editor.addLayer({
             id: nanoid(),
             name: "United States Weather Radar",
@@ -95,16 +104,6 @@ export const useLayersBar = () => {
                 transparent: "true",
                 format: "image/png"
             }
-        });
-    };
-
-    const add3dtilesTest = () => {
-        editor.addLayer({
-            id: nanoid(),
-            name: "3dTiles",
-            type: "3dtiles",
-            url: "http://127.0.0.1:5500/tileset.json",
-            show: true
         });
     };
 

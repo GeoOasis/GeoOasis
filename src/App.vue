@@ -4,10 +4,10 @@ import AppHeader from './components/AppHeader.vue';
 import FooterBar from './components/FooterBar.vue';
 import LayersBar from './components/LayersBar.vue';
 import ElementPanel from './components/ElementPanel.vue';
-import { useViewerStore } from './store/viewer-store';
+import { useGeoOasisStore } from './store/GeoOasis.store';
 import { storeToRefs } from 'pinia';
 
-const store = useViewerStore();
+const store = useGeoOasisStore();
 const { isElementPanel } = storeToRefs(store);
 
 </script>
