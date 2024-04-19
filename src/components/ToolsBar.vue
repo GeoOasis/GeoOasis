@@ -2,6 +2,12 @@
 import { useToolsBar } from '../composables/useToolsBar';
 import { useYjs } from "../composables/useYjs";
 
+import { useGeoOasisStore } from "../store/GeoOasis.store";
+import { storeToRefs } from 'pinia';
+
+const store = useGeoOasisStore();
+const { dialogVisible } = storeToRefs(store);
+
 //@ts-ignore
 const { yjsBinding } = useYjs();
 const { activeTool } = useToolsBar();
@@ -24,7 +30,6 @@ const items = [{
     label: 'model',
     icon: 'model'
 }];
-// TODO 添加layer的btn
 </script>
 
 <template>
@@ -33,6 +38,8 @@ const items = [{
             <el-radio-button class="custom-el-radio-button" v-for="item in items" :key="item.label"
                 :label="item.label"></el-radio-button>
         </el-radio-group>
+        <el-button type="primary">Upload</el-button>
+        <el-button type="primary" @click="dialogVisible = true">Url</el-button>
     </div>
 </template>
 

@@ -11,12 +11,14 @@ export const useGeoOasisStore = defineStore("viewer", () => {
     const isElementPanel = ref<Boolean>(false);
     const selectedElement = ref<Element | undefined>();
     const selectedBaseLayer = ref("Bing");
+    const dialogVisible = ref(false);
 
     return {
         viewerRef,
         editor,
         isElementPanel,
         selectedElement,
-        selectedBaseLayer
+        selectedBaseLayer,
+        dialogVisible
     };
 });

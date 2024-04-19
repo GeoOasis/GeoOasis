@@ -4,6 +4,7 @@ import AppHeader from './components/AppHeader.vue';
 import FooterBar from './components/FooterBar.vue';
 import LayersBar from './components/LayersBar.vue';
 import ElementPanel from './components/ElementPanel.vue';
+import Dialog from "./components/Dialog.vue";
 import { useGeoOasisStore } from './store/GeoOasis.store';
 import { storeToRefs } from 'pinia';
 
@@ -19,6 +20,7 @@ const { isElementPanel } = storeToRefs(store);
     <LayersBar />
     <FooterBar />
     <ElementPanel v-show="isElementPanel" />
+    <Dialog></Dialog>
   </div>
 </template>
 
