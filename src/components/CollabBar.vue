@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import './CollabBar.css'
+import { AvatarFallback, AvatarImage, AvatarRoot } from 'radix-vue'
 import { onMounted } from 'vue';
 import { useCollabBar } from '../composables/useCollabBar';
 
@@ -11,19 +13,18 @@ onMounted(() => {
 
 <template>
     <div class="collabbar">
-        <el-avatar class="avatar" :size="35" v-for="user in usersList" :key="user[0]">{{ user[1].name }}</el-avatar>
+        <AvatarRoot class="AvatarRoot">
+            <AvatarImage class="AvatarImage"
+                src="https://images.unsplash.com/photo-1492633423870-43d1cd2775eb?&w=128&h=128&dpr=2&q=80"
+                alt="Colm Tuite" />
+            <AvatarFallback class="AvatarFallback" :delay-ms="600">
+                CT
+            </AvatarFallback>
+        </AvatarRoot>
+        <AvatarRoot class="AvatarRoot" v-for="user in usersList" :key="user[0]">
+            <AvatarFallback class="AvatarFallback">
+                {{ user[1].name }}
+            </AvatarFallback>
+        </AvatarRoot>
     </div>
 </template>
-
-<style scoped>
-.collabbar {
-    background-color: #E1F0DA;
-    box-shadow: 0 0 10px;
-    border-radius: 5px;
-    padding: 0 15px;
-}
-
-.avatar {
-    background-color: #99BC85;
-}
-</style>

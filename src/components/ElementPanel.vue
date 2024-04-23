@@ -62,6 +62,4 @@ watch(form, () => {
     border-radius: 10px;
     padding: 30px;
 }
-
-.element-panel-item {}
 </style>

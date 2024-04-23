@@ -24,6 +24,6 @@ import CollabBar from './CollabBar.vue';
     top: 30px;
     left: 30px;
     right: 30px;
-    padding: 0 15px;
+    /* padding: 0 15px; */
 }
 </style>

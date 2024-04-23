@@ -1,9 +1,21 @@
 <script setup lang="ts">
+import './ToolsBar.css';
+import {
+    ToolbarButton,
+    ToolbarRoot,
+    ToolbarSeparator,
+    ToolbarToggleGroup,
+    ToolbarToggleItem
+} from "radix-vue";
+import { Icon } from '@iconify/vue'
+import { ref } from 'vue'
+import { storeToRefs } from 'pinia';
 import { useToolsBar } from '../composables/useToolsBar';
 import { useYjs } from "../composables/useYjs";
-
 import { useGeoOasisStore } from "../store/GeoOasis.store";
-import { storeToRefs } from 'pinia';
+
+// for test
+const toggleStateMultiple = ref([])
 
 const store = useGeoOasisStore();
 const { dialogVisible } = storeToRefs(store);
@@ -13,44 +25,52 @@ const { yjsBinding } = useYjs();
 const { activeTool } = useToolsBar();
 const items = [{
     label: 'default',
-    icon: 'default'
+    icon: 'gis:arrow-o'
 }, {
     label: 'marker',
-    icon: 'marker'
+    icon: 'gis:poi-alt'
 }, {
     label: 'point',
-    icon: 'point',
+    icon: 'gis:point',
 }, {
     label: 'polyline',
-    icon: 'polyline',
+    icon: 'gis:polyline-pt',
 }, {
     label: 'polygon',
-    icon: 'polygon',
+    icon: 'gis:polygon-pt',
 }, {
     label: 'model',
-    icon: 'model'
+    icon: 'gis:shape-file'
 }];
 </script>
 
 <template>
-    <div class="toolsbar">
-        <el-radio-group v-model="activeTool" fill="#99BC85" style="height: 35px;">
-            <el-radio-button class="custom-el-radio-button" v-for="item in items" :key="item.label"
-                :label="item.label"></el-radio-button>
-        </el-radio-group>
-        <el-button type="primary">Upload</el-button>
-        <el-button type="primary" @click="dialogVisible = true">Url</el-button>
-    </div>
+    <ToolbarRoot class="ToolbarRoot">
+        <ToolbarToggleGroup v-model="toggleStateMultiple" type="multiple">
+            <ToolbarToggleItem class="ToolbarToggleItem" value="point">
+                <Icon icon="gis:poi" />
+            </ToolbarToggleItem>
+            <ToolbarToggleItem class="ToolbarToggleItem" value="strikethrough">
+                <Icon icon="radix-icons:strikethrough" />
+            </ToolbarToggleItem>
+        </ToolbarToggleGroup>
+        <ToolbarSeparator class="ToolbarSeparator" />
+        <ToolbarToggleGroup v-model="activeTool" type="single">
+            <ToolbarToggleItem class="ToolbarToggleItem" v-for="item in items" :value="item.label">
+                <Icon :icon="item.icon" />
+            </ToolbarToggleItem>
+        </ToolbarToggleGroup>
+        <ToolbarSeparator class="ToolbarSeparator" />
+        <ToolbarButton class="ToolbarButton">
+            Upload
+            <Icon icon="gis:3dtiles-file" />
+        </ToolbarButton>
+        <ToolbarButton class="ToolbarButton" style="margin-left: 10px" @click="dialogVisible = true">
+            <span>Url</span>
+            <Icon icon="gis:search-feature" />
+        </ToolbarButton>
+        <ToolbarButton class="ToolbarButton" style="margin-left: auto">
+            Share
+        </ToolbarButton>
+    </ToolbarRoot>
 </template>
-
-<style scoped>
-.toolsbar {
-    background-color: #E1F0DA;
-    box-shadow: 0 0 10px;
-    border-radius: 5px;
-    padding: 0 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-</style>

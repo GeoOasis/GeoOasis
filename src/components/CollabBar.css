@@ -1,0 +1,44 @@
+@import '@radix-ui/colors/black-alpha.css';
+@import '@radix-ui/colors/grass.css';
+
+.collabbar {
+    display: flex;
+    gap: 10px;
+    background-color: var(--grass-1);
+    box-shadow: 0 0 10px;
+    border-radius: 5px;
+    padding: 5px 10px;
+}
+
+.AvatarRoot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    overflow: hidden;
+    user-select: none;
+    width: 35px;
+    height: 35px;
+    border-radius: 100%;
+    background-color: var(--black-a3);
+}
+
+.AvatarImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+}
+
+.AvatarFallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--grass-8);
+    color: white;
+    font-size: 10px;
+    line-height: 1;
+    font-weight: 500;
+}

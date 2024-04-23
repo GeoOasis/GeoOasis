@@ -71,6 +71,7 @@ const options = [
 
     width: 300px;
     height: calc(100% - 300px);
+    overflow-y: scroll;
 
     background-color: #E1F0DA;
     box-shadow: 0 0 10px;
