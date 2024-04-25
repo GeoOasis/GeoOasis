@@ -6,13 +6,13 @@ import CollabBar from './CollabBar.vue';
 
 <template>
     <el-row :gutter="20">
-        <el-col :span="3">
+        <el-col :span="5">
             <BoardBar />
         </el-col>
-        <el-col :span="18">
+        <el-col :span="14">
             <ToolsBar />
         </el-col>
-        <el-col :span="3">
+        <el-col :span="5">
             <CollabBar />
         </el-col>
     </el-row>
