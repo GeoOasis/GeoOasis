@@ -35,5 +35,13 @@ export const useYjs = () => {
         { immediate: true }
     );
 
-    return { yjsBinding };
+    const undo = () => {
+        yjsBinding.value.undoManager.undo();
+    };
+
+    const redo = () => {
+        yjsBinding.value.undoManager.redo();
+    };
+
+    return { yjsBinding, undo, redo };
 };

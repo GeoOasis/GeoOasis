@@ -102,6 +102,30 @@ export class Editor extends EventTarget {
         }
     }
 
+    deleteElement(elementId: Element["id"], local: boolean = true) {
+        this.dispatchEvent(
+            new CustomEvent("elementDeleted", {
+                detail: {
+                    elementId: elementId,
+                    local: local
+                }
+            })
+        );
+        const deletedElement = this.elementsMap.get(elementId);
+        const deletedEntity = this.entitiesMap.get(elementId);
+        if (deletedElement && deletedEntity) {
+            let eles = this.elements;
+            eles.splice(eles.indexOf(deletedElement), 1);
+            this.elementsMap.delete(deletedElement.id);
+
+            let entis = this.entities;
+            entis.splice(entis.indexOf(deletedEntity), 1);
+            this.entitiesMap.delete(deletedElement.id);
+
+            this.viewer.entities.remove(deletedEntity);
+        }
+    }
+
     startEdit(id: string, type: string) {
         let entity = this.entitiesMap.get(id);
         switch (type) {

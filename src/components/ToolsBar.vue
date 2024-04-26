@@ -21,7 +21,7 @@ const store = useGeoOasisStore();
 const { dialogVisible } = storeToRefs(store);
 
 //@ts-ignore
-const { yjsBinding } = useYjs();
+const { yjsBinding, undo, redo } = useYjs();
 const { activeTool } = useToolsBar();
 const items = [{
     label: 'default',
@@ -71,6 +71,12 @@ const items = [{
         </ToolbarButton>
         <ToolbarButton class="ToolbarButton" style="margin-left: auto">
             Share
+        </ToolbarButton>
+        <ToolbarButton class="ToolbarButton" style="margin-left: 10px" @click="undo">
+            Undo
+        </ToolbarButton>
+        <ToolbarButton class="ToolbarButton" style="margin-left: 10px" @click="redo">
+            Redo
         </ToolbarButton>
     </ToolbarRoot>
 </template>

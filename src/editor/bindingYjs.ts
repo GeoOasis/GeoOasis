@@ -11,6 +11,7 @@ export class BindingYjs {
     private sharedElementsMap: Y.Map<any>;
     private sharedLayersMap: Y.Map<any>;
     sharedAppStateMap: Y.Map<any>;
+    undoManager: Y.UndoManager;
 
     constructor(editor: Editor) {
         let self = this;
@@ -30,6 +31,7 @@ export class BindingYjs {
         this.sharedElementsMap = this.doc.getMap("yjsElementsMap");
         this.sharedLayersMap = this.doc.getMap("yjsLayersMap");
         this.sharedAppStateMap = this.doc.getMap("yjsAppStateMap");
+        this.undoManager = new Y.UndoManager(this.sharedElementsMap);
     }
 
     init() {
@@ -56,37 +58,59 @@ export class BindingYjs {
         events: Y.YEvent<any>[],
         transaction: Y.Transaction
     ) {
-        // ! 如果不是local，那么处理events
+        console.log("TRANSACTION is: ", transaction);
+        // * if transaction is form local undoManager, then handle event.
+        if (transaction.origin === this.undoManager) {
+            events.map((e) => {
+                e.changes.keys.forEach((change, key) => {
+                    console.log(
+                        `From UndoManager, this change 's key is ${key}`
+                    );
+                    if (change.action === "add") {
+                        console.log("add");
+                        handleAddFromYjs(
+                            this.editor,
+                            this.sharedElementsMap,
+                            key
+                        );
+                    } else if (change.action === "delete") {
+                        console.log("delete");
+                        handleDeleteFromYjs(this.editor, key);
+                    } else if (change.action === "update") {
+                        console.log("update");
+                        handleUpdateFromYjs(
+                            this.editor,
+                            this.sharedElementsMap,
+                            key,
+                            e
+                        );
+                    }
+                });
+            });
+        }
+        // * if transaciton is from remote client, then handle event.
         if (!transaction.local) {
-            console.log("remote transaction is received");
+            console.log("Yjs Elements remote transaction is received");
             events.map((e) => {
                 console.log("event is ", e);
                 // @ts-ignore
                 e.changes.keys.forEach((change, key) => {
                     console.log(`this change's key is ${key}`);
                     if (change.action === "add") {
-                        const remoteElement = this.sharedElementsMap
-                            .get(key)
-                            .toJSON();
-                        // ! 给addElment传递一个参数，listener可以通过该布尔值决定是否修改ydoc
-                        this.editor.addElement(remoteElement, false);
+                        handleAddFromYjs(
+                            this.editor,
+                            this.sharedElementsMap,
+                            key
+                        );
                     } else if (change.action === "update") {
-                        console.log("update", this.sharedElementsMap.get(key));
-                        const element = {
-                            id: e.target.get("id"),
-                            type: e.target.get("type")
-                        };
-                        const update = {
-                            [key]: e.target.get(key)
-                        };
-                        this.editor.mutateElement(
-                            element as any,
-                            update,
-                            false
+                        handleUpdateFromYjs(
+                            this.editor,
+                            this.sharedElementsMap,
+                            key,
+                            e
                         );
                     } else if (change.action === "delete") {
-                        // applyDeleteEventToEditor();
-                        console.log("delete", this.sharedElementsMap.get(key));
+                        handleDeleteFromYjs(this.editor, key);
                     }
                 });
             });
@@ -119,7 +143,7 @@ export class BindingYjs {
 
     handleYjsLayersEvents(events: Y.YEvent<any>[], transaction: Y.Transaction) {
         if (!transaction.local) {
-            console.log("remote transaction is received");
+            console.log("Yjs Layers remote transaction is received");
             events.map((e) => {
                 console.log("event is ", e);
                 // @ts-ignore
@@ -150,3 +174,35 @@ export class BindingYjs {
         }
     }
 }
+
+// 根据Yjs Event的信息，调用editor的函数来执行命令
+const handleAddFromYjs = (
+    editor: Editor,
+    sharedType: Y.Map<any>,
+    key: string
+) => {
+    const remoteElement = sharedType.get(key).toJSON();
+    // ! 给addElment传递一个参数，listener可以通过该布尔值决定是否修改ydoc
+    editor.addElement(remoteElement, false);
+};
+
+const handleUpdateFromYjs = (
+    editor: Editor,
+    sharedType: Y.Map<any>,
+    key: string,
+    e: Y.YEvent<any>
+) => {
+    console.log("update", sharedType.get(key));
+    const element = {
+        id: e.target.get("id"),
+        type: e.target.get("type")
+    };
+    const update = {
+        [key]: e.target.get(key)
+    };
+    editor.mutateElement(element as any, update, false);
+};
+
+const handleDeleteFromYjs = (editor: Editor, key: string) => {
+    editor.deleteElement(key, false);
+};
