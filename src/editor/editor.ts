@@ -165,7 +165,11 @@ export class Editor extends EventTarget {
         return this.entitiesMap.get(id);
     }
 
-    mutateElement(element: Element, update: {}, local: boolean = true) {
+    mutateElement(
+        element: Element,
+        update: Partial<Element>,
+        local: boolean = true
+    ) {
         // * update里的值 一定是被改变的。
         // console.log("mutateElement func!");
         const mutatedElement = this.elementsMap.get(element.id);

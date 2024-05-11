@@ -3,12 +3,11 @@ button {
 }
 
 .brand {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 15px;
-    color: black;
-
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 15px;
+  color: black;
 }
 
 .MenubarRoot {
