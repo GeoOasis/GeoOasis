@@ -39,9 +39,9 @@ export interface GeoOasisBaseTerrainLayer extends GeoOasisBaseLayer {
 
 // 非Base类型的Layer可以用来做空间分析
 export interface GeoOasisServiceLayer extends GeoOasisBaseLayer {
-    // "gpx|kml|geojson|czml"
     type: "service";
-    url: string;
+    provider: "geojson" | "gpx" | "kml" | " czml" | "custom";
+    url: string | Object;
     show: boolean;
 }
 

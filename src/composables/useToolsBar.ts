@@ -274,5 +274,27 @@ export const useToolsBar = () => {
         }
     };
 
-    return { activeTool };
+    let fileContent;
+    const handleLoadFile = (file: File) => {
+        const reader = new FileReader();
+        reader.addEventListener("load", (e) => {
+            try {
+                const jsonObj = JSON.parse(e.target!.result as string);
+                fileContent = jsonObj;
+                editor.addLayer({
+                    id: "1234",
+                    name: "Geojsontest",
+                    type: "service",
+                    provider: "geojson",
+                    url: fileContent,
+                    show: true
+                });
+            } catch (e) {
+                console.error("file format isn't vivid JSON format", e);
+            }
+        });
+        reader.readAsText(file); // 读取文件内容为文本
+    };
+
+    return { activeTool, handleLoadFile };
 };

@@ -7,8 +7,9 @@ import {
     ToolbarToggleGroup,
     ToolbarToggleItem
 } from "radix-vue";
+import ToolbarUploadButton from "./UploadButton.vue";
 import { Icon } from '@iconify/vue'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { storeToRefs } from 'pinia';
 import { useToolsBar } from '../composables/useToolsBar';
 import { useYjs } from "../composables/useYjs";
@@ -22,7 +23,7 @@ const { dialogVisible } = storeToRefs(store);
 
 //@ts-ignore
 const { yjsBinding, undo, redo } = useYjs();
-const { activeTool } = useToolsBar();
+const { activeTool, handleLoadFile } = useToolsBar();
 const items = [{
     label: 'default',
     icon: 'gis:arrow-o'
@@ -42,6 +43,15 @@ const items = [{
     label: 'model',
     icon: 'gis:shape-file'
 }];
+
+const selectedFile = ref<File>();
+watch(selectedFile, () => {
+    if (selectedFile.value !== undefined) {
+        handleLoadFile(selectedFile.value);
+        selectedFile.value = undefined;
+    }
+})
+
 </script>
 
 <template>
@@ -61,10 +71,7 @@ const items = [{
             </ToolbarToggleItem>
         </ToolbarToggleGroup>
         <ToolbarSeparator class="ToolbarSeparator" />
-        <ToolbarButton class="ToolbarButton">
-            Upload
-            <Icon icon="gis:3dtiles-file" />
-        </ToolbarButton>
+        <ToolbarUploadButton v-model="selectedFile" />
         <ToolbarButton class="ToolbarButton" style="margin-left: 10px" @click="dialogVisible = true">
             <span>Url</span>
             <Icon icon="gis:search-feature" />

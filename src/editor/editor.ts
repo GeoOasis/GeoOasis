@@ -7,7 +7,8 @@ import {
     ImageryLayer,
     DataSource,
     Primitive,
-    Cesium3DTileset
+    Cesium3DTileset,
+    GeoJsonDataSource
 } from "cesium";
 import {
     Element,
@@ -288,6 +289,11 @@ export class Editor extends EventTarget {
                 }
                 break;
             case "service":
+                layerTmp = await this.addServiceLayer(layer);
+                if (layerTmp) {
+                    this.viewer.dataSources.add(layerTmp);
+                    this.serviceLayersMap.set(layer.id, layerTmp);
+                }
                 break;
             case "3dtiles":
                 layerTmp = await this.add3dtilesLayer(
@@ -353,10 +359,24 @@ export class Editor extends EventTarget {
         }
     }
 
-    async addServiceLayer(layer: GeoOasisServiceLayer) {}
+    async addServiceLayer(layer: GeoOasisServiceLayer) {
+        switch (layer.provider) {
+            // TODO 优化
+            case "geojson":
+                const geojsonDataSource = await GeoJsonDataSource.load(
+                    layer.url
+                );
+                return geojsonDataSource;
+            case "gpx":
+            case "kml":
+            case " czml":
+            case "custom":
+        }
+    }
 
     async add3dtilesLayer(layer: GeoOasis3DTilesLayer) {
         try {
+            // TODO 优化
             const tileset = await Cesium3DTileset.fromUrl(layer.url);
             return tileset;
         } catch (error) {
