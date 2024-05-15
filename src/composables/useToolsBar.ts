@@ -10,7 +10,8 @@ import { Element } from "../element/element";
 import {
     newPointElement,
     newPolylineElement,
-    newModelElement
+    newModelElement,
+    newPolygonElement
 } from "../element/newElement";
 import { point3FromCartesian3 } from "../element/utils";
 
@@ -134,6 +135,18 @@ export const useToolsBar = () => {
                 editor.addElement(ModelElement);
                 edittingElement = ModelElement;
                 break;
+            case "polygon":
+                if (edittingElement === null) {
+                    const polygonElement = newPolygonElement(
+                        "test",
+                        "mypolygon",
+                        true,
+                        [startPoint]
+                    );
+                    editor.addElement(polygonElement);
+                    edittingElement = polygonElement;
+                }
+                break;
             default:
                 break;
         }
@@ -151,6 +164,14 @@ export const useToolsBar = () => {
                     });
                     break;
                 case "model":
+                    break;
+                case "polygon":
+                    editor.mutateElement(edittingElement, {
+                        // @ts-ignore
+                        positions: edittingElement.positions.concat(
+                            point3FromCartesian3(startPoint)
+                        )
+                    });
                     break;
                 default:
                     break;
@@ -215,20 +236,27 @@ export const useToolsBar = () => {
         if (!cartesian) return;
         endPoint = cartesian;
         if (edittingElement !== null) {
+            let update;
             switch (activeTool.value) {
                 // TODO 目前默认point不会触发mousemove事件
                 case "point":
                     break;
                 case "polyline":
                     // TODO 优化手段：减少对象创建
-                    // @ts-ignore
-                    const update = [...edittingElement.positions];
+                    update = [...edittingElement.positions];
                     update[update.length - 1] = point3FromCartesian3(endPoint);
                     editor.mutateElement(edittingElement, {
                         positions: update
                     });
                     break;
                 case "model":
+                    break;
+                case "polygon":
+                    update = [...edittingElement.positions];
+                    update[update.length - 1] = point3FromCartesian3(endPoint);
+                    editor.mutateElement(edittingElement, {
+                        positions: update
+                    });
                     break;
                 default:
                     break;
@@ -256,6 +284,8 @@ export const useToolsBar = () => {
                     edittingElement = null;
                     activeTool.value = "default";
                     break;
+                case "polygon":
+                    break;
                 default:
                     break;
             }
@@ -266,8 +296,13 @@ export const useToolsBar = () => {
         console.log("right click");
         if (edittingElement !== null) {
             if (activeTool.value === "polyline") {
-                console.log("double click, polyline finish");
+                console.log("right click, polyline finish");
                 // stopEdit();
+                edittingElement = null;
+                activeTool.value = "default";
+            } else if (activeTool.value === "polygon") {
+                console.log("right click, polygon finish");
+                console.log(edittingElement);
                 edittingElement = null;
                 activeTool.value = "default";
             }

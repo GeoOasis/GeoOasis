@@ -3,7 +3,8 @@ import { Cartesian3 } from "cesium";
 import {
     GeoOasisPointElement,
     GeoOasisPolylineElement,
-    GeoOasisModelElement
+    GeoOasisModelElement,
+    GeoOasisPolygonElement
 } from "./element";
 import { point3FromCartesian3 } from "./utils";
 
@@ -45,6 +46,22 @@ export const newPolylineElement = (
         show,
         description: "",
         width: 5,
+        positions: positions.map((p) => point3FromCartesian3(p))
+    };
+};
+
+export const newPolygonElement = (
+    id: string,
+    name: string,
+    show: boolean,
+    positions: Cartesian3[]
+): GeoOasisPolygonElement => {
+    return {
+        id: nanoid(),
+        type: "polygon",
+        name,
+        show,
+        description: "",
         positions: positions.map((p) => point3FromCartesian3(p))
     };
 };

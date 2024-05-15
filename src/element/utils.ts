@@ -1,8 +1,9 @@
-import { Cartesian3, Entity } from "cesium";
+import { Cartesian3, Color, Entity } from "cesium";
 import {
     GeoOasisPointElement,
     GeoOasisPolylineElement,
-    GeoOasisModelElement
+    GeoOasisModelElement,
+    GeoOasisPolygonElement
 } from "./element";
 import { Point3 } from "./point";
 
@@ -31,6 +32,20 @@ export const generatePolylineEntityfromElement = (
         polyline: {
             width: element.width,
             positions: element.positions.map((p) => cartesian3FromPoint3(p))
+        }
+    });
+};
+
+export const generatePolygonEntityfromElement = (
+    element: GeoOasisPolygonElement
+): Entity => {
+    return new Entity({
+        id: element.id,
+        name: element.name,
+        show: element.show,
+        polygon: {
+            hierarchy: element.positions.map((p) => cartesian3FromPoint3(p)),
+            material: Color.WHITE
         }
     });
 };

@@ -8,18 +8,21 @@ import {
     DataSource,
     Primitive,
     Cesium3DTileset,
-    GeoJsonDataSource
+    GeoJsonDataSource,
+    PolygonHierarchy
 } from "cesium";
 import {
     Element,
     GeoOasisPointElement,
     GeoOasisPolylineElement,
-    GeoOasisModelElement
+    GeoOasisModelElement,
+    GeoOasisPolygonElement
 } from "../element/element";
 import {
     cartesian3FromPoint3,
     generatePointEntityfromElement,
     generatePolylineEntityfromElement,
+    generatePolygonEntityfromElement,
     generateModelEntityfromElement
 } from "../element/utils";
 import {
@@ -87,6 +90,9 @@ export class Editor extends EventTarget {
                 );
                 break;
             case "polygon":
+                entity = generatePolygonEntityfromElement(
+                    element as GeoOasisPolygonElement
+                );
                 break;
             case "model":
                 entity = generateModelEntityfromElement(
@@ -149,6 +155,13 @@ export class Editor extends EventTarget {
                 }, false);
                 break;
             case "polygon":
+                // @ts-ignore
+                entity.polygon.hierarchy = new CallbackProperty(() => {
+                    let acitvePoints = this.elementsMap
+                        .get(id)
+                        ?.positions.map((p) => cartesian3FromPoint3(p));
+                    return new PolygonHierarchy(acitvePoints);
+                }, false);
                 break;
             case "model":
                 break;
@@ -176,6 +189,12 @@ export class Editor extends EventTarget {
                     });
                 break;
             case "polygon":
+                // @ts-ignore
+                entity.polygon.hierarchy = new PolygonHierarchy(
+                    this.elementsMap.get(id)?.positions.map((p) => {
+                        return cartesian3FromPoint3(p);
+                    })
+                );
                 break;
             case "model":
                 break;
@@ -242,6 +261,15 @@ export class Editor extends EventTarget {
                 }
             }
         } else if (element.type === "polyline") {
+            for (const key in update) {
+                const value = (update as any)[key];
+                console.log("Key: ", key, " Value: ", value);
+                if (typeof value !== "undefined") {
+                    // @ts-ignore
+                    mutatedElement[key] = value;
+                }
+            }
+        } else if (element.type === "polygon") {
             for (const key in update) {
                 const value = (update as any)[key];
                 console.log("Key: ", key, " Value: ", value);
