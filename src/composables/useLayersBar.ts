@@ -12,7 +12,8 @@ export const useLayersBar = () => {
 
     // store
     const store = useGeoOasisStore();
-    const { viewerRef, selectedBaseLayer } = storeToRefs(store);
+    const { viewerRef, selectedBaseLayer, selectedElement, isElementPanel } =
+        storeToRefs(store);
     const { editor } = store;
 
     // mounted
@@ -106,11 +107,18 @@ export const useLayersBar = () => {
         });
     };
 
+    const handleSelect = (id: string) => {
+        selectedElement.value = editor.getElement(id);
+        console.log(selectedElement.value);
+        isElementPanel.value = selectedElement.value ? true : false;
+    };
+
     return {
         selectedBaseLayer,
         elementsRef,
         baseLayersRef,
         layersRef,
-        add3dtilesTest
+        add3dtilesTest,
+        handleSelect
     };
 };
