@@ -94,6 +94,7 @@ const options = [
     box-shadow: 0 0 3px;
     padding: 5px;
     margin: 5px;
+    user-select: none;
 }
 
 .element:hover {
