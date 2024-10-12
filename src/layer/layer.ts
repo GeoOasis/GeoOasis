@@ -1,6 +1,6 @@
 export type GeoOasisLayer =
-    | GeoOasisBaseImageryLayer
-    | GeoOasisBaseTerrainLayer
+    | GeoOasisImageryLayer
+    | GeoOasisTerrainLayer
     | GeoOasisImageryLayer
     | GeoOasisServiceLayer
     | GeoOasis3DTilesLayer;
@@ -28,11 +28,7 @@ export interface GeoOasisImageryLayer extends GeoOasisBaseLayer {
     parameters?: any;
 }
 
-export interface GeoOasisBaseImageryLayer extends GeoOasisImageryLayer {
-    provider: "bing" | "arcgis" | "osm" | "wmts" | "tms" | "custom";
-}
-
-export interface GeoOasisBaseTerrainLayer extends GeoOasisBaseLayer {
+export interface GeoOasisTerrainLayer extends GeoOasisBaseLayer {
     type: "terrain";
     show: boolean;
 }

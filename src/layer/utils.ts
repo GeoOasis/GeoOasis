@@ -5,17 +5,17 @@ import {
     WebMapTileServiceImageryProvider,
     createWorldImageryAsync
 } from "cesium";
-import { GeoOasisBaseImageryLayer, GeoOasisImageryLayer } from "./layer";
+import { GeoOasisImageryLayer } from "./layer";
 
 export async function generateBingImageryFromLayer(
-    layer: GeoOasisBaseImageryLayer
+    layer: GeoOasisImageryLayer
 ) {
     const bingImageryProvider = await createWorldImageryAsync();
     return new ImageryLayer(bingImageryProvider);
 }
 
 export async function generateArcgisImageryFromLayer(
-    layer: GeoOasisBaseImageryLayer
+    layer: GeoOasisImageryLayer
 ) {
     const arcgisImageryProvider = await ArcGisMapServerImageryProvider.fromUrl(
         layer.url as string
@@ -23,7 +23,7 @@ export async function generateArcgisImageryFromLayer(
     return new ImageryLayer(arcgisImageryProvider);
 }
 
-export function generateWMTSImageryFromLayer(layer: GeoOasisBaseImageryLayer) {
+export function generateWMTSImageryFromLayer(layer: GeoOasisImageryLayer) {
     const wmtsImageryProvider = new WebMapTileServiceImageryProvider({
         url: layer.url as string,
         layer: "USGSShadedReliefOnly",

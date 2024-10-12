@@ -27,7 +27,6 @@ import {
 } from "../element/utils";
 import {
     GeoOasis3DTilesLayer,
-    GeoOasisBaseImageryLayer,
     GeoOasisImageryLayer,
     GeoOasisLayer,
     GeoOasisServiceLayer
@@ -52,7 +51,7 @@ export class Editor extends EventTarget {
     private layersMap: Map<GeoOasisLayer["id"], GeoOasisLayer> = new Map();
 
     // TODO type TrueLayer = ImageryLayer | DataSource | Primitive
-    private baseLayerArray: Array<GeoOasisBaseImageryLayer> = new Array();
+    private baseLayerArray: Array<GeoOasisImageryLayer> = new Array();
     private imageryLayersMap: Map<GeoOasisLayer["id"], ImageryLayer> =
         new Map();
     private serviceLayersMap: Map<GeoOasisLayer["id"], DataSource> = new Map();
@@ -338,7 +337,7 @@ export class Editor extends EventTarget {
         }
     }
 
-    async addBaseLayerOption(layer: GeoOasisBaseImageryLayer) {
+    async addBaseLayerOption(layer: GeoOasisImageryLayer) {
         try {
             this.dispatchEvent(
                 new CustomEvent("baseLayerAdded", {
