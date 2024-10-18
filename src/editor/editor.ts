@@ -28,7 +28,7 @@ import {
 import {
     GeoOasis3DTilesLayer,
     GeoOasisImageryLayer,
-    GeoOasisLayer,
+    Layer,
     GeoOasisServiceLayer
 } from "../layer/layer";
 import {
@@ -48,15 +48,13 @@ export class Editor extends EventTarget {
     private elementsMap: Map<Element["id"], Element> = new Map();
     private entitiesMap: Map<Element["id"], Entity> = new Map();
 
-    private layersMap: Map<GeoOasisLayer["id"], GeoOasisLayer> = new Map();
+    private layersMap: Map<Layer["id"], Layer> = new Map();
 
     // TODO type TrueLayer = ImageryLayer | DataSource | Primitive
     private baseLayerArray: Array<GeoOasisImageryLayer> = new Array();
-    private imageryLayersMap: Map<GeoOasisLayer["id"], ImageryLayer> =
-        new Map();
-    private serviceLayersMap: Map<GeoOasisLayer["id"], DataSource> = new Map();
-    private cesium3dtilesLayersMap: Map<GeoOasisLayer["id"], Primitive> =
-        new Map();
+    private imageryLayersMap: Map<Layer["id"], ImageryLayer> = new Map();
+    private serviceLayersMap: Map<Layer["id"], DataSource> = new Map();
+    private cesium3dtilesLayersMap: Map<Layer["id"], Primitive> = new Map();
 
     viewer: Viewer = {} as Viewer;
 
@@ -293,7 +291,7 @@ export class Editor extends EventTarget {
     }
 
     // Layers logic
-    async addLayer(layer: GeoOasisLayer, local: boolean = true) {
+    async addLayer(layer: Layer, local: boolean = true) {
         this.dispatchEvent(
             new CustomEvent("layerAdded", {
                 detail: {

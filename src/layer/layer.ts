@@ -1,4 +1,4 @@
-export type GeoOasisLayer =
+export type Layer =
     | GeoOasisImageryLayer
     | GeoOasisTerrainLayer
     | GeoOasisImageryLayer

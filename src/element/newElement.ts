@@ -8,7 +8,7 @@ import {
 } from "./element";
 import { point3FromCartesian3 } from "./utils";
 
-// TODO defaultValue 设置
+// TODO defaultValue 设置, use option style
 export const newPointElement = (
     id: string,
     name: string,

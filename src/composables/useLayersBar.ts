@@ -2,13 +2,13 @@ import { onMounted, reactive, ref, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { nanoid } from "nanoid";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
-import { GeoOasisLayer } from "../layer/layer";
+import { Layer } from "../layer/layer";
 import { Element } from "../element/element";
 
 export const useLayersBar = () => {
     const elementsRef = reactive<Element[]>([]);
-    const baseLayersRef = reactive<GeoOasisLayer[]>([]);
-    const layersRef = reactive<GeoOasisLayer[]>([]);
+    const baseLayersRef = reactive<Layer[]>([]);
+    const layersRef = reactive<Layer[]>([]);
 
     // store
     const store = useGeoOasisStore();
