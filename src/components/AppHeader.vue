@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import BoardBar from './BoardBar.vue';
-import ToolsBar from './ToolsBar.vue';
-import CollabBar from './CollabBar.vue';
+import BoardBar from "./BoardBar.vue";
+import ToolsBar from "./ToolsBar.vue";
+import CollabBar from "./CollabBar.vue";
 </script>
 
 <template>

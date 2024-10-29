@@ -15,6 +15,7 @@
     "@radix-ui/colors": "^3.0.0",
     "cesium": "^1.113.0",
     "element-plus": "^2.4.4",
+    "lib0": "^0.2.98",
     "nanoid": "^5.0.4",
     "pinia": "^2.1.7",
     "radix-vue": "^1.7.1",

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import './ToolsBar.css';
+import "./ToolsBar.css";
 import {
     ToolbarButton,
     ToolbarRoot,
@@ -8,41 +8,47 @@ import {
     ToolbarToggleItem
 } from "radix-vue";
 import ToolbarUploadButton from "./UploadButton.vue";
-import { Icon } from '@iconify/vue'
-import { ref, watch } from 'vue'
-import { storeToRefs } from 'pinia';
-import { useToolsBar } from '../composables/useToolsBar';
+import { Icon } from "@iconify/vue";
+import { ref, watch } from "vue";
+import { storeToRefs } from "pinia";
+import { useToolsBar } from "../composables/useToolsBar";
 import { useYjs } from "../composables/useYjs";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 
 // for test
-const toggleStateMultiple = ref([])
+const toggleStateMultiple = ref([]);
 
 const store = useGeoOasisStore();
 const { dialogVisible } = storeToRefs(store);
 
-//@ts-ignore
-const { yjsBinding, undo, redo } = useYjs();
+const { undo, redo } = useYjs();
 const { activeTool, handleLoadFile } = useToolsBar();
-const items = [{
-    label: 'default',
-    icon: 'gis:arrow-o'
-}, {
-    label: 'marker',
-    icon: 'gis:poi-alt'
-}, {
-    label: 'point',
-    icon: 'gis:point',
-}, {
-    label: 'polyline',
-    icon: 'gis:polyline-pt',
-}, {
-    label: 'polygon',
-    icon: 'gis:polygon-pt',
-}, {
-    label: 'model',
-    icon: 'gis:shape-file'
-}];
+const items = [
+    {
+        label: "default",
+        icon: "gis:arrow-o"
+    },
+    {
+        label: "marker",
+        icon: "gis:poi-alt"
+    },
+    {
+        label: "point",
+        icon: "gis:point"
+    },
+    {
+        label: "polyline",
+        icon: "gis:polyline-pt"
+    },
+    {
+        label: "polygon",
+        icon: "gis:polygon-pt"
+    },
+    {
+        label: "model",
+        icon: "gis:shape-file"
+    }
+];
 
 const selectedFile = ref<File>();
 watch(selectedFile, () => {
@@ -50,8 +56,7 @@ watch(selectedFile, () => {
         handleLoadFile(selectedFile.value);
         selectedFile.value = undefined;
     }
-})
-
+});
 </script>
 
 <template>
@@ -66,23 +71,39 @@ watch(selectedFile, () => {
         </ToolbarToggleGroup>
         <ToolbarSeparator class="ToolbarSeparator" />
         <ToolbarToggleGroup v-model="activeTool" type="single">
-            <ToolbarToggleItem class="ToolbarToggleItem" v-for="item in items" :value="item.label">
+            <ToolbarToggleItem
+                class="ToolbarToggleItem"
+                v-for="item in items"
+                :value="item.label"
+            >
                 <Icon :icon="item.icon" />
             </ToolbarToggleItem>
         </ToolbarToggleGroup>
         <ToolbarSeparator class="ToolbarSeparator" />
         <ToolbarUploadButton v-model="selectedFile" />
-        <ToolbarButton class="ToolbarButton" style="margin-left: 10px" @click="dialogVisible = true">
+        <ToolbarButton
+            class="ToolbarButton"
+            style="margin-left: 10px"
+            @click="dialogVisible = true"
+        >
             <span>Url</span>
             <Icon icon="gis:search-feature" />
         </ToolbarButton>
         <ToolbarButton class="ToolbarButton" style="margin-left: auto">
             Share
         </ToolbarButton>
-        <ToolbarButton class="ToolbarButton" style="margin-left: 10px" @click="undo">
+        <ToolbarButton
+            class="ToolbarButton"
+            style="margin-left: 10px"
+            @click="undo"
+        >
             Undo
         </ToolbarButton>
-        <ToolbarButton class="ToolbarButton" style="margin-left: 10px" @click="redo">
+        <ToolbarButton
+            class="ToolbarButton"
+            style="margin-left: 10px"
+            @click="redo"
+        >
             Redo
         </ToolbarButton>
     </ToolbarRoot>

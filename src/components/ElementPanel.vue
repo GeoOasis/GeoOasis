@@ -1,18 +1,17 @@
 <script setup lang="ts">
-import { reactive, watch } from 'vue'
-import { storeToRefs } from 'pinia';
-import { useGeoOasisStore } from '../store/GeoOasis.store';
+import { reactive, watch } from "vue";
+import { storeToRefs } from "pinia";
+import { useGeoOasisStore } from "../store/GeoOasis.store";
 
 const store = useGeoOasisStore();
 const { selectedElement } = storeToRefs(store);
 const { editor } = store;
 
-
 const form = reactive({
-    color: 'rgb(255, 255, 255)',
+    color: "rgb(255, 255, 255)",
     pixelSize: 1,
-    description: '',
-})
+    description: ""
+});
 
 watch(selectedElement, () => {
     if (selectedElement.value) {
@@ -22,15 +21,13 @@ watch(selectedElement, () => {
             form.description = selectedElement.value.description;
         }
     }
-})
+});
 
 watch(form, () => {
     if (selectedElement.value) {
-        editor.mutateElement(selectedElement.value, form);
-        console.log("mutate", form);
+        editor.mutateElement(selectedElement.value.id, form);
     }
-})
-
+});
 </script>
 
 <template>
@@ -57,7 +54,7 @@ watch(form, () => {
     top: 50%;
     transform: translateY(-50%);
 
-    background-color: #E1F0DA;
+    background-color: #e1f0da;
     box-shadow: 0 0 10px;
     border-radius: 10px;
     padding: 30px;

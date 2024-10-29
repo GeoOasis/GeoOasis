@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { ref } from 'vue'
+import { Icon } from "@iconify/vue";
+import { ref } from "vue";
 import {
     MenubarCheckboxItem,
     MenubarContent,
@@ -13,15 +13,15 @@ import {
     MenubarSub,
     MenubarSubContent,
     MenubarSubTrigger,
-    MenubarTrigger,
-} from 'radix-vue'
-import './BoardBar.css'
+    MenubarTrigger
+} from "radix-vue";
+import "./BoardBar.css";
 
-const currentMenu = ref('')
-const checkboxOne = ref(false)
-const checkboxTwo = ref(false)
+const currentMenu = ref("");
+const checkboxOne = ref(false);
+const checkboxTwo = ref(false);
 function handleClick() {
-    alert('hello!')
+    alert("hello!");
     console.log(currentMenu.value);
 }
 </script>
@@ -30,22 +30,21 @@ function handleClick() {
     <MenubarRoot v-model="currentMenu" class="MenubarRoot">
         <div class="brand">GeoOasis</div>
         <MenubarMenu value="file">
-            <MenubarTrigger class="MenubarTrigger">
-                File
-            </MenubarTrigger>
+            <MenubarTrigger class="MenubarTrigger">File</MenubarTrigger>
             <MenubarPortal>
-                <MenubarContent class="MenubarContent" align="start" :side-offset="5" :align-offset="-3">
+                <MenubarContent
+                    class="MenubarContent"
+                    align="start"
+                    :side-offset="5"
+                    :align-offset="-3"
+                >
                     <MenubarItem class="MenubarItem">
                         New Tab
-                        <div class="RightSlot">
-                            ⌘ T
-                        </div>
+                        <div class="RightSlot">⌘ T</div>
                     </MenubarItem>
                     <MenubarItem class="MenubarItem">
                         New Window
-                        <div class="RightSlot">
-                            ⌘ N
-                        </div>
+                        <div class="RightSlot">⌘ N</div>
                     </MenubarItem>
                     <MenubarItem class="MenubarItem" disabled>
                         New Incognito Window
@@ -59,7 +58,10 @@ function handleClick() {
                             </div>
                         </MenubarSubTrigger>
                         <MenubarPortal>
-                            <MenubarSubContent class="MenubarContent" :align-offset="-5">
+                            <MenubarSubContent
+                                class="MenubarContent"
+                                :align-offset="-5"
+                            >
                                 <MenubarItem class="MenubarItem">
                                     Email Link
                                 </MenubarItem>
@@ -75,31 +77,28 @@ function handleClick() {
                     <MenubarSeparator class="MenubarSeparator" />
                     <MenubarItem class="MenubarItem" @click="handleClick">
                         Print…
-                        <div class="RightSlot">
-                            ⌘ P
-                        </div>
+                        <div class="RightSlot">⌘ P</div>
                     </MenubarItem>
                 </MenubarContent>
             </MenubarPortal>
         </MenubarMenu>
 
         <MenubarMenu>
-            <MenubarTrigger class="MenubarTrigger">
-                Edit
-            </MenubarTrigger>
+            <MenubarTrigger class="MenubarTrigger">Edit</MenubarTrigger>
             <MenubarPortal>
-                <MenubarContent class="MenubarContent" align="start" :side-offset="5" :align-offset="-3">
+                <MenubarContent
+                    class="MenubarContent"
+                    align="start"
+                    :side-offset="5"
+                    :align-offset="-3"
+                >
                     <MenubarItem class="MenubarItem">
                         Undo
-                        <div class="RightSlot">
-                            ⌘ Z
-                        </div>
+                        <div class="RightSlot">⌘ Z</div>
                     </MenubarItem>
                     <MenubarItem class="MenubarItem">
                         Redo
-                        <div class="RightSlot">
-                            ⇧ ⌘ Z
-                        </div>
+                        <div class="RightSlot">⇧ ⌘ Z</div>
                     </MenubarItem>
                     <MenubarSeparator class="MenubarSeparator" />
                     <MenubarSub>
@@ -111,7 +110,10 @@ function handleClick() {
                         </MenubarSubTrigger>
 
                         <MenubarPortal>
-                            <MenubarSubContent class="MenubarContent" :align-offset="-5">
+                            <MenubarSubContent
+                                class="MenubarContent"
+                                :align-offset="-5"
+                            >
                                 <MenubarItem class="group MenubarItem">
                                     Search the web…
                                 </MenubarItem>
@@ -129,35 +131,36 @@ function handleClick() {
                         </MenubarPortal>
                     </MenubarSub>
                     <MenubarSeparator class="MenubarSeparator" />
-                    <MenubarItem class="MenubarItem">
-                        Cut
-                    </MenubarItem>
-                    <MenubarItem class="MenubarItem">
-                        Copy
-                    </MenubarItem>
-                    <MenubarItem class="MenubarItem">
-                        Paste
-                    </MenubarItem>
+                    <MenubarItem class="MenubarItem">Cut</MenubarItem>
+                    <MenubarItem class="MenubarItem">Copy</MenubarItem>
+                    <MenubarItem class="MenubarItem">Paste</MenubarItem>
                 </MenubarContent>
             </MenubarPortal>
         </MenubarMenu>
 
         <MenubarMenu>
-            <MenubarTrigger class="MenubarTrigger">
-                View
-            </MenubarTrigger>
+            <MenubarTrigger class="MenubarTrigger">View</MenubarTrigger>
             <MenubarPortal>
-                <MenubarContent class="MenubarContent" align="start" :side-offset="5" :align-offset="-14">
-                    <MenubarCheckboxItem v-model="checkboxOne" class="MenubarCheckboxItem">
+                <MenubarContent
+                    class="MenubarContent"
+                    align="start"
+                    :side-offset="5"
+                    :align-offset="-14"
+                >
+                    <MenubarCheckboxItem
+                        v-model="checkboxOne"
+                        class="MenubarCheckboxItem"
+                    >
                         <MenubarItemIndicator class="MenubarItemIndicator">
                             <Icon icon="radix-icons:check" />
                         </MenubarItemIndicator>
                         Show Bookmarks
-                        <div class="RightSlot">
-                            ⌘+B
-                        </div>
+                        <div class="RightSlot">⌘+B</div>
                     </MenubarCheckboxItem>
-                    <MenubarCheckboxItem v-model="checkboxTwo" class="MenubarCheckboxItem">
+                    <MenubarCheckboxItem
+                        v-model="checkboxTwo"
+                        class="MenubarCheckboxItem"
+                    >
                         <MenubarItemIndicator class="MenubarItemIndicator">
                             <Icon icon="radix-icons:check" />
                         </MenubarItemIndicator>
@@ -166,24 +169,18 @@ function handleClick() {
                     <MenubarSeparator class="MenubarSeparator" />
                     <MenubarItem class="MenubarItem">
                         Reload
-                        <div class="RightSlot">
-                            ⌘ R
-                        </div>
+                        <div class="RightSlot">⌘ R</div>
                     </MenubarItem>
                     <MenubarItem class="MenubarItem" disabled>
                         Force Reload
-                        <div class="RightSlot">
-                            ⇧ ⌘ R
-                        </div>
+                        <div class="RightSlot">⇧ ⌘ R</div>
                     </MenubarItem>
                     <MenubarSeparator class="MenubarSeparator" />
                     <MenubarItem class="MenubarItem">
                         Toggle Fullscreen
                     </MenubarItem>
                     <MenubarSeparator class="MenubarSeparator" />
-                    <MenubarItem class="MenubarItem">
-                        Hide Sidebar
-                    </MenubarItem>
+                    <MenubarItem class="MenubarItem">Hide Sidebar</MenubarItem>
                 </MenubarContent>
             </MenubarPortal>
         </MenubarMenu>
