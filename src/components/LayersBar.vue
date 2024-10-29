@@ -11,12 +11,10 @@ const {
 } = useLayersBar();
 
 const pointElements = computed(() => {
-    // @ts-ignore
-    return elementsRef.filter((e) => e.type === "point");
+    return elementsRef.value.filter((e) => e.type === "point");
 });
 const polylineElements = computed(() => {
-    // @ts-ignore
-    return elementsRef.filter((e) => e.type === "polyline");
+    return elementsRef.value.filter((e) => e.type === "polyline");
 });
 
 const options = [
@@ -55,17 +53,30 @@ const options = [
             </el-table-column>
         </el-table>
         <el-select v-model="selectedBaseLayer" placeholder="Select">
-            <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value" />
+            <el-option
+                v-for="item in options"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+            />
         </el-select>
         <el-button type="primary" @click="add3dtilesTest">
             add3dtilesTest
         </el-button>
         <el-divider></el-divider>
         <h3>Elements</h3>
-        <div class="element" v-for="e in pointElements" @click="handleSelect(e.id)">
+        <div
+            class="element"
+            v-for="e in pointElements"
+            @click="handleSelect(e.id)"
+        >
             id: {{ e.id.slice(0, 3) }}, type: {{ e.type }}
         </div>
-        <div class="element" v-for="e in polylineElements" @click="handleSelect(e.id)">
+        <div
+            class="element"
+            v-for="e in polylineElements"
+            @click="handleSelect(e.id)"
+        >
             id: {{ e.id.slice(0, 3) }}, type:
             {{ e.type }}
         </div>

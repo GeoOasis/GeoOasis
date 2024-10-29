@@ -11,6 +11,9 @@ import {
     GeoJsonDataSource,
     PolygonHierarchy
 } from "cesium";
+import * as Y from "yjs";
+import { ObservableV2 } from "lib0/observable.js";
+import { HocuspocusProvider } from "@hocuspocus/provider";
 import {
     Element,
     GeoOasisPointElement,
@@ -25,6 +28,7 @@ import {
     generatePolygonEntityfromElement,
     generateModelEntityfromElement
 } from "../element/utils";
+import { Point3 } from "../element/point";
 import {
     GeoOasis3DTilesLayer,
     GeoOasisImageryLayer,
@@ -36,128 +40,102 @@ import {
     generateBingImageryFromLayer,
     generateWMSImageryFromLayer
 } from "../layer/utils";
+import { Hocuspocus_URL } from "../contants";
+
+export type EditorEvent = {
+    "element:add": (key: string) => void;
+    "element:update": () => void;
+    "element:delete": () => void;
+};
+
+export interface Editor {
+    pickElement(position: Cartesian2): Element | undefined;
+    getElement(id: Element["id"]): Element | undefined;
+    addElement(element: Element): void;
+    deleteElement(id: Element["id"]): void;
+    mutateElement(id: Element["id"], update: { [key: string]: any }): void;
+    addLayer(layer: Layer): void;
+    startEdit(id: Element["id"], type: Element["type"]): void;
+    stopEdit(id: Element["id"], type: Element["type"]): void;
+}
 
 // Editor is singleton
-export class Editor extends EventTarget {
-    // TODO 考虑是否还需要数组保存elements和entities，似乎原生的entityCollection已经可以替代了
-    // elements 保存所有的元素 在APP中相当于响应式状态
-    private elements: Element[] = [];
-    // entities 保存元素对应的实体
-    private entities: Entity[] = [];
+export class Editor extends ObservableV2<EditorEvent> implements Editor {
+    private yjsProvider: HocuspocusProvider;
+    private doc: Y.Doc;
+    public elements: Y.Map<Y.Map<any>>; // how to use correct type? don't use Map
+    public layers: Y.Map<Y.Map<any>>;
+    public baseLayers: Y.Map<Y.Map<any>>;
+    private entities: Map<string, Entity> = new Map();
+    public viewer: Viewer | undefined;
+    public undoManager: Y.UndoManager;
 
-    private elementsMap: Map<Element["id"], Element> = new Map();
-    private entitiesMap: Map<Element["id"], Entity> = new Map();
-
-    private layersMap: Map<Layer["id"], Layer> = new Map();
-
-    // TODO type TrueLayer = ImageryLayer | DataSource | Primitive
-    private baseLayerArray: Array<GeoOasisImageryLayer> = new Array();
+    // TODO：type TrueLayer = ImageryLayer | DataSource | Primitive
+    // TODO: 减少状态
+    private baseLayersArray: Array<GeoOasisImageryLayer> = new Array();
     private imageryLayersMap: Map<Layer["id"], ImageryLayer> = new Map();
     private serviceLayersMap: Map<Layer["id"], DataSource> = new Map();
     private cesium3dtilesLayersMap: Map<Layer["id"], Primitive> = new Map();
 
-    viewer: Viewer = {} as Viewer;
-
     constructor() {
         super();
+        this.yjsProvider = new HocuspocusProvider({
+            url: Hocuspocus_URL,
+            name: "GeoOasisDoc",
+            onOpen() {
+                console.log("hocuspocus open successfully");
+            },
+            onConnect() {
+                console.log("provider connect to the server successfully");
+            }
+        });
+        this.doc = this.yjsProvider.document;
+        this.elements = this.doc.getMap("ElementsMap");
+        this.layers = this.doc.getMap("LayersMap");
+        this.baseLayers = this.doc.getMap("BaseLayersMap");
+        this.undoManager = new Y.UndoManager([this.elements, this.layers]);
+        this.init();
     }
 
-    // Elements logic
-    addElement(element: Element, local: boolean = true) {
-        this.dispatchEvent(
-            new CustomEvent("elementAdded", {
-                detail: {
-                    element: element,
-                    local: local
-                }
-            })
-        );
-        this.elements.push(element);
-        this.elementsMap.set(element.id, element);
-        let entity;
-        switch (element.type) {
-            case "point":
-                entity = generatePointEntityfromElement(
-                    element as GeoOasisPointElement
-                );
-                break;
-            case "polyline":
-                entity = generatePolylineEntityfromElement(
-                    element as GeoOasisPolylineElement
-                );
-                break;
-            case "polygon":
-                entity = generatePolygonEntityfromElement(
-                    element as GeoOasisPolygonElement
-                );
-                break;
-            case "model":
-                entity = generateModelEntityfromElement(
-                    element as GeoOasisModelElement
-                );
-                break;
-        }
-        if (entity) {
-            this.viewer.entities.add(entity);
-            this.entitiesMap.set(element.id, entity);
-            this.entities.push(entity);
-            // * 默认开启callbackProperty
-            this.startEdit(element.id, element.type);
-        }
+    init() {
+        const self = this;
+        // the source of truth
+        this.elements.observeDeep((events, transactions) => {
+            self.handleYjsElementsEvents(events, transactions);
+        });
+        this.layers.observeDeep((events, transactions) => {
+            self.handleYjsLayersEvents(events, transactions);
+        });
     }
 
-    deleteElement(elementId: Element["id"], local: boolean = true) {
-        this.dispatchEvent(
-            new CustomEvent("elementDeleted", {
-                detail: {
-                    elementId: elementId,
-                    local: local
-                }
-            })
-        );
-        const deletedElement = this.elementsMap.get(elementId);
-        const deletedEntity = this.entitiesMap.get(elementId);
-        if (deletedElement && deletedEntity) {
-            let eles = this.elements;
-            eles.splice(eles.indexOf(deletedElement), 1);
-            this.elementsMap.delete(deletedElement.id);
-
-            let entis = this.entities;
-            entis.splice(entis.indexOf(deletedEntity), 1);
-            this.entitiesMap.delete(deletedElement.id);
-
-            this.viewer.entities.remove(deletedEntity);
-        }
-    }
-
-    startEdit(id: string, type: string) {
-        let entity = this.entitiesMap.get(id);
+    startEdit(id: Element["id"], type: Element["type"]): void {
+        const entity = this.entities.get(id) as Entity;
         switch (type) {
             case "point":
                 // @ts-ignore
                 entity.position = new CallbackProperty(() => {
                     return cartesian3FromPoint3(
-                        // @ts-ignore
-                        this.elementsMap.get(id).positions[0]
+                        this.elements.get(id)?.get("positions")[0]
                     );
                 }, false);
                 break;
             case "polyline":
-                //@ts-ignore
+                // @ts-ignore
                 entity.polyline.positions = new CallbackProperty(() => {
-                    //@ts-ignore
-                    return this.elementsMap.get(id).positions.map((p) => {
-                        return cartesian3FromPoint3(p);
-                    });
+                    return this.elements
+                        .get(id)
+                        ?.get("positions")
+                        .map((p: Point3) => cartesian3FromPoint3(p));
                 }, false);
                 break;
             case "polygon":
                 // @ts-ignore
                 entity.polygon.hierarchy = new CallbackProperty(() => {
-                    let acitvePoints = this.elementsMap
+                    let activePoinst = this.elements
                         .get(id)
-                        ?.positions.map((p) => cartesian3FromPoint3(p));
-                    return new PolygonHierarchy(acitvePoints);
+                        ?.get("positions")
+                        .map((p: Point3) => cartesian3FromPoint3(p));
+                    return new PolygonHierarchy(activePoinst);
                 }, false);
                 break;
             case "model":
@@ -165,32 +143,30 @@ export class Editor extends EventTarget {
         }
     }
 
-    stopEdit(id: string, type: string) {
-        let entity = this.entitiesMap.get(id);
+    stopEdit(id: Element["id"], type: Element["type"]): void {
+        const entity = this.entities.get(id) as Entity;
         switch (type) {
             case "point":
                 // @ts-ignore
                 entity.position = cartesian3FromPoint3(
-                    // @ts-ignore
-                    this.elementsMap.get(id).positions[0]
+                    this.elements.get(id)?.get("positions")[0]
                 );
                 break;
             case "polyline":
                 // 若要阻止闪烁，可能需要再渲染一个entity
                 //@ts-ignore
-                entity.polyline.positions = this.elementsMap
+                entity.polyline.positions = this.elements
                     .get(id)
-                    // @ts-ignore
-                    .positions.map((p) => {
-                        return cartesian3FromPoint3(p);
-                    });
+                    ?.get("positions")
+                    .map((p: Point3) => cartesian3FromPoint3(p));
                 break;
             case "polygon":
                 // @ts-ignore
                 entity.polygon.hierarchy = new PolygonHierarchy(
-                    this.elementsMap.get(id)?.positions.map((p) => {
-                        return cartesian3FromPoint3(p);
-                    })
+                    this.elements
+                        .get(id)
+                        ?.get("positions")
+                        .map((p: Point3) => cartesian3FromPoint3(p))
                 );
                 break;
             case "model":
@@ -198,153 +174,67 @@ export class Editor extends EventTarget {
         }
     }
 
-    getElement(id: string) {
-        return this.elementsMap.get(id);
+    // TODO: Does it need to be converted to JOSN format?
+    getElement(id: Element["id"]): Element | undefined {
+        return this.elements.get(id)?.toJSON() as Element;
     }
 
-    getEntity(id: string) {
-        return this.entitiesMap.get(id);
-    }
-
-    mutateElement(
-        element: Element,
-        update: Partial<Element>,
-        local: boolean = true
-    ) {
-        // * update里的值 一定是被改变的。
-        // console.log("mutateElement func!");
-        const mutatedElement = this.elementsMap.get(element.id);
-        if (!mutatedElement) {
-            console.log("element not found");
-            return;
+    addElement(element: Element): void {
+        const elementYMap = new Y.Map();
+        for (const [key, value] of Object.entries(element)) {
+            elementYMap.set(key, value);
         }
-        // dispatch mutate info event
-        this.dispatchEvent(
-            new CustomEvent("elementMutated", {
-                detail: {
-                    id: element.id,
-                    update: update,
-                    local: local
-                }
-            })
-        );
-        const mutatedEntity = this.entitiesMap.get(element.id);
-        // mutate element and entity
-        if (element.type === "point") {
-            for (const key in update) {
-                const value = (update as any)[key];
-                console.log("Key: ", key, " Value: ", value);
-                if (typeof value !== "undefined") {
-                    // TODO 下面这个element其实就是selectedElement。
-                    // TODO 如果参数相同可以不修改
-                    //@ts-ignore
-                    mutatedElement[key] = value;
-                    // 特殊的key要特殊处理
-                    if (key === "description") {
-                        // @ts-ignore
-                        mutatedEntity[key] = value;
-                    } else if (key === "color") {
-                        // @ts-ignore
-                        mutatedEntity.point[key] =
-                            Color.fromCssColorString(value);
-                    } else if (key === "positions") {
-                        // positions属性不要赋值给mutatedEntity,因为由于callbackproperty
-                        // 只需要修改mutatedElement就可以。
-                        continue;
-                    } else {
-                        // @ts-ignore
-                        mutatedEntity.point[key] = value;
-                    }
-                }
-            }
-        } else if (element.type === "polyline") {
-            for (const key in update) {
-                const value = (update as any)[key];
-                console.log("Key: ", key, " Value: ", value);
-                if (typeof value !== "undefined") {
-                    // @ts-ignore
-                    mutatedElement[key] = value;
-                }
-            }
-        } else if (element.type === "polygon") {
-            for (const key in update) {
-                const value = (update as any)[key];
-                console.log("Key: ", key, " Value: ", value);
-                if (typeof value !== "undefined") {
-                    // @ts-ignore
-                    mutatedElement[key] = value;
-                }
-            }
+        this.elements.set(element.id, elementYMap);
+    }
+
+    deleteElement(id: Element["id"]): void {
+        this.elements.delete(id);
+    }
+
+    mutateElement(id: Element["id"], update: { [key: string]: any }): void {
+        const element = this.elements.get(id);
+        for (const [key, value] of Object.entries(update)) {
+            element?.set(key, value);
         }
     }
 
-    getSelectedElement(position: Cartesian2): Element | undefined {
-        const pickedEntity = this.viewer.scene.pick(position);
-        console.log("picked Entity is: ", pickedEntity);
-
+    pickElement(position: Cartesian2) {
+        const pickedEntity = this.viewer?.scene.pick(position);
         if (pickedEntity) {
-            console.log(this.elementsMap.get(pickedEntity.id.id));
-
-            return this.elementsMap.get(pickedEntity.id.id);
+            return this.elements.get(pickedEntity.id.id)?.toJSON() as Element;
         }
         return undefined;
     }
 
-    // Layers logic
-    async addLayer(layer: Layer, local: boolean = true) {
-        this.dispatchEvent(
-            new CustomEvent("layerAdded", {
-                detail: {
-                    layer: layer,
-                    local: local
+    addLayer(layer: Layer) {
+        const layerMap = new Y.Map();
+        for (const [key, value] of Object.entries(layer)) {
+            layerMap.set(key, value);
+        }
+        this.layers.set(layer.id, layerMap);
+    }
+
+    setBaseLayer(name: string) {
+        // 预设底图的索引始终为0
+        // 在初始化的时候，默认已经有底图了
+        if (this.viewer) {
+            const activeBaseLayer = this.viewer.imageryLayers.get(0);
+            this.viewer.imageryLayers.remove(activeBaseLayer, false);
+
+            const baseLayerOption = this.baseLayersArray.find(
+                (layer) => layer.name === name
+            );
+            if (baseLayerOption) {
+                const baseLayer = this.imageryLayersMap.get(baseLayerOption.id);
+                if (baseLayer) {
+                    this.viewer.imageryLayers.add(baseLayer, 0);
                 }
-            })
-        );
-        this.layersMap.set(layer.id, layer);
-        let layerTmp;
-        switch (layer.type) {
-            case "imagery":
-                layerTmp = await this.addImageryLayer(
-                    layer as GeoOasisImageryLayer
-                );
-                if (layerTmp) {
-                    layerTmp.alpha = 0.5;
-                    this.viewer.imageryLayers.add(layerTmp);
-                    this.imageryLayersMap.set(layer.id, layerTmp);
-                }
-                break;
-            case "service":
-                layerTmp = await this.addServiceLayer(layer);
-                if (layerTmp) {
-                    this.viewer.dataSources.add(layerTmp);
-                    this.serviceLayersMap.set(layer.id, layerTmp);
-                }
-                break;
-            case "3dtiles":
-                layerTmp = await this.add3dtilesLayer(
-                    layer as GeoOasis3DTilesLayer
-                );
-                if (layerTmp) {
-                    this.viewer.scene.primitives.add(layerTmp);
-                    this.cesium3dtilesLayersMap.set(layer.id, layerTmp as any);
-                    await this.viewer.zoomTo(layerTmp);
-                }
-                break;
-            default:
-                break;
+            }
         }
     }
 
-    async addBaseLayerOption(layer: GeoOasisImageryLayer) {
-        try {
-            this.dispatchEvent(
-                new CustomEvent("baseLayerAdded", {
-                    detail: {
-                        layer: layer
-                    }
-                })
-            );
-            this.baseLayerArray.push(layer);
+    async addBaseLayer(layer: GeoOasisImageryLayer, origin: Boolean) {
+        if (origin) {
             let cesiumLayer;
             switch (layer.provider) {
                 case "arcgis":
@@ -358,16 +248,52 @@ export class Editor extends EventTarget {
             }
             if (cesiumLayer) {
                 this.imageryLayersMap.set(layer.id, cesiumLayer);
+                this.baseLayersArray.push(layer);
                 console.log("Add baseLayer option success");
             }
-        } catch (error) {
-            console.error(
-                `There was an error while creating ${layer.name}. ${error}`
-            );
+            return;
+        }
+        const layerMap = new Y.Map();
+        for (const [key, value] of Object.entries(layer)) {
+            layerMap.set(key, value);
+        }
+        this.baseLayers.set(layer.id, layerMap);
+    }
+
+    private async addLayerToCesium(layerAdded: Layer) {
+        let layer;
+        switch (layerAdded.type) {
+            case "imagery":
+                layer = await this.addImageryLayer(layerAdded);
+                if (layer) {
+                    layer.alpha = 0.5;
+                    this.viewer?.imageryLayers.add(layer);
+                    this.imageryLayersMap.set(layerAdded.id, layer);
+                }
+                break;
+            case "service":
+                layer = await this.addServiceLayer(layerAdded);
+                if (layer) {
+                    this.viewer?.dataSources.add(layer);
+                    this.serviceLayersMap.set(layerAdded.id, layer);
+                }
+                break;
+            case "3dtiles":
+                layer = await this.add3dtilesLayer(layerAdded);
+                if (layer) {
+                    this.viewer?.scene.primitives.add(layer);
+                    this.cesium3dtilesLayersMap.set(
+                        layerAdded.id,
+                        layer as any
+                    );
+                    await this.viewer?.zoomTo(layer);
+                }
+                break;
+            case "terrain":
         }
     }
 
-    async addImageryLayer(layer: GeoOasisImageryLayer) {
+    private async addImageryLayer(layer: GeoOasisImageryLayer) {
         try {
             switch (layer.provider) {
                 case "wmts":
@@ -384,7 +310,7 @@ export class Editor extends EventTarget {
         }
     }
 
-    async addServiceLayer(layer: GeoOasisServiceLayer) {
+    private async addServiceLayer(layer: GeoOasisServiceLayer) {
         switch (layer.provider) {
             // TODO 优化
             case "geojson":
@@ -399,7 +325,7 @@ export class Editor extends EventTarget {
         }
     }
 
-    async add3dtilesLayer(layer: GeoOasis3DTilesLayer) {
+    private async add3dtilesLayer(layer: GeoOasis3DTilesLayer) {
         try {
             // TODO 优化
             const tileset = await Cesium3DTileset.fromUrl(layer.url);
@@ -409,12 +335,114 @@ export class Editor extends EventTarget {
         }
     }
 
-    getBaseLayer(name: string) {
-        const baseLayer = this.baseLayerArray.find(
-            (layer) => layer.name === name
-        );
-        if (baseLayer) {
-            return this.imageryLayersMap.get(baseLayer.id);
-        }
+    handleYjsElementsEvents(
+        events: Y.YEvent<any>[],
+        transactions: Y.Transaction
+    ) {
+        // change cesium entity
+        console.log("TRANSACTION is: ", transactions);
+        events.map((e) => {
+            console.log("Events is: ", e);
+            e.changes.keys.forEach((change, key) => {
+                console.log(
+                    "This change's key: ",
+                    key,
+                    "value: ",
+                    e.target.get(key),
+                    "action: ",
+                    change.action
+                );
+                if (change.action === "add") {
+                    // this.emit("element:add", [key]);
+                    const elementAdded = this.elements
+                        .get(key)
+                        ?.toJSON() as Element; // 应该有更好的获取方法
+                    let entity;
+                    switch (elementAdded.type) {
+                        case "point":
+                            entity = generatePointEntityfromElement(
+                                elementAdded as GeoOasisPointElement
+                            );
+                            break;
+                        case "polyline":
+                            entity = generatePolylineEntityfromElement(
+                                elementAdded as GeoOasisPolylineElement
+                            );
+                            break;
+                        case "polygon":
+                            entity = generatePolygonEntityfromElement(
+                                elementAdded as GeoOasisPolygonElement
+                            );
+                            break;
+                        case "model":
+                            entity = generateModelEntityfromElement(
+                                elementAdded as GeoOasisModelElement
+                            );
+                            break;
+                    }
+                    if (entity) {
+                        this.viewer?.entities.add(entity);
+                        this.entities.set(entity.id, entity);
+                        // * 默认开启callback property
+                        this.startEdit(elementAdded.id, elementAdded.type);
+                    }
+                } else if (change.action === "delete") {
+                    this.entities.delete(key);
+                    this.viewer?.entities.removeById(key);
+                } else if (change.action === "update") {
+                    const elementMutated = e.target;
+                    const updateVal = elementMutated.get(key);
+                    const entityMutated = this.entities.get(
+                        elementMutated.get("id")
+                    ) as Entity;
+                    switch (elementMutated.get("type")) {
+                        case "point":
+                            // TODO 类型系统
+                            if (key === "description") {
+                                entityMutated[key] = updateVal;
+                            } else if (key === "color") {
+                                // @ts-ignore
+                                entityMutated.point[key] =
+                                    Color.fromCssColorString(updateVal);
+                            } else if (key === "positions") {
+                                // positions属性不要修改给entityMutated，因为callbackproperty和Y.Map关联
+                            } else {
+                                // @ts-ignore
+                                entityMutated.point[key] = updateVal;
+                            }
+                            break;
+                        case "polyline":
+                            // @ts-ignore
+                            // positions属性不要修改给entityMutated，因为callbackproperty和Y.Map关联
+                            // entityMutated.polyline[key] = updateVal;
+                            break;
+                        case "polygon":
+                            // polygon与polyline类似
+                            break;
+                        case "model":
+                            break;
+                    }
+                }
+            });
+        });
+    }
+
+    handleYjsLayersEvents(
+        events: Y.YEvent<any>[],
+        transactions: Y.Transaction
+    ) {
+        events.map((e) => {
+            console.log("Events is: ", e);
+            e.changes.keys.forEach((change, key) => {
+                console.log(`this change's key is ${key}`);
+                if (change.action === "add") {
+                    this.addLayerToCesium(
+                        this.layers.get(key)?.toJSON() as Layer
+                    );
+                } else if (change.action === "update") {
+                } else if (change.action === "delete") {
+                }
+            });
+        });
     }
 }

@@ -8,16 +8,21 @@ import { Layer } from "../layer/layer";
 export const useGeoOasisStore = defineStore("viewer", () => {
     // use pinia to store viewer
     const viewerRef = shallowRef<Viewer>({} as Viewer);
-    const editor = new Editor();
+    const editor = shallowRef(new Editor());
     const isElementPanel = ref<Boolean>(false);
     const selectedElement = ref<Element | undefined>();
     const selectedLayer = ref<Layer | undefined>();
     const selectedBaseLayer = ref("Bing");
     const dialogVisible = ref(false);
 
+    const elementState = shallowRef(editor.value.elements.toJSON());
+    const layerState = shallowRef(editor.value.layers.toJSON());
+
     return {
         viewerRef,
         editor,
+        elementState,
+        layerState,
         isElementPanel,
         selectedElement,
         selectedLayer,

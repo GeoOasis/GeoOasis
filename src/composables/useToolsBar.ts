@@ -29,9 +29,7 @@ export const useToolsBar = () => {
 
     // store
     const store = useGeoOasisStore();
-    // 解构store中的state
     const { viewerRef, isElementPanel, selectedElement } = storeToRefs(store);
-    // 解构store中的普通变量
     const { editor } = store;
 
     // hooks
@@ -61,13 +59,12 @@ export const useToolsBar = () => {
         positionedEvent: ScreenSpaceEventHandler.PositionedEvent
     ) => {
         console.log("left down!");
-
         let cartesian = viewerRef.value.camera.pickEllipsoid(
             positionedEvent.position,
             viewerRef.value.scene.globe.ellipsoid
         );
-        // TODO 当LeftDown的时候，未选中地球时，LeftUp和MouseMove应该怎样处理
         if (!cartesian) {
+            // TODO 当LeftDown的时候，未选中地球时，LeftUp和MouseMove应该怎样处理
             draggingElement = undefined;
             selectedElement.value = undefined;
             isElementPanel.value = false;
@@ -79,10 +76,7 @@ export const useToolsBar = () => {
 
         // * if the active tool is default, then can drag&edit the selected element
         if (activeTool.value === "default") {
-            // TODO 这里的逻辑还可以优化，draggingElement, selectedElement变量等等
-            draggingElement = editor.getSelectedElement(
-                positionedEvent.position
-            );
+            draggingElement = editor.pickElement(positionedEvent.position);
             selectedElement.value = draggingElement;
             isElementPanel.value = selectedElement.value ? true : false;
             if (draggingElement) {
@@ -156,21 +150,19 @@ export const useToolsBar = () => {
                 case "point":
                     break;
                 case "polyline":
-                    editor.mutateElement(edittingElement, {
-                        // @ts-ignore
-                        positions: edittingElement.positions.concat(
-                            point3FromCartesian3(startPoint)
-                        )
+                    editor.mutateElement(edittingElement.id, {
+                        positions: editor
+                            .getElement(edittingElement.id)
+                            ?.positions.concat(point3FromCartesian3(startPoint))
                     });
                     break;
                 case "model":
                     break;
                 case "polygon":
-                    editor.mutateElement(edittingElement, {
-                        // @ts-ignore
-                        positions: edittingElement.positions.concat(
-                            point3FromCartesian3(startPoint)
-                        )
+                    editor.mutateElement(edittingElement.id, {
+                        positions: editor
+                            .getElement(edittingElement.id)
+                            ?.positions.concat(point3FromCartesian3(startPoint))
                     });
                     break;
                 default:
@@ -200,7 +192,7 @@ export const useToolsBar = () => {
             const delta_z = motionEndPosition.z - motionStartPosition.z;
             switch (draggingElement.type) {
                 case "point":
-                    editor.mutateElement(draggingElement, {
+                    editor.mutateElement(draggingElement.id, {
                         positions: [
                             {
                                 x: motionEndPosition.x,
@@ -218,7 +210,7 @@ export const useToolsBar = () => {
                             z: pos.z + delta_z
                         };
                     });
-                    editor.mutateElement(draggingElement, {
+                    editor.mutateElement(draggingElement.id, {
                         positions: updatedPos
                     });
                     break;
@@ -238,23 +230,29 @@ export const useToolsBar = () => {
         if (edittingElement !== null) {
             let update;
             switch (activeTool.value) {
-                // TODO 目前默认point不会触发mousemove事件
                 case "point":
+                    // 目前默认绘制point不会触发mousemove事件
                     break;
                 case "polyline":
                     // TODO 优化手段：减少对象创建
-                    update = [...edittingElement.positions];
+                    update = [
+                        // @ts-ignore
+                        ...editor.getElement(edittingElement.id)?.positions
+                    ];
                     update[update.length - 1] = point3FromCartesian3(endPoint);
-                    editor.mutateElement(edittingElement, {
+                    editor.mutateElement(edittingElement.id, {
                         positions: update
                     });
                     break;
                 case "model":
                     break;
                 case "polygon":
-                    update = [...edittingElement.positions];
+                    update = [
+                        // @ts-ignore
+                        ...editor.getElement(edittingElement.id)?.positions
+                    ];
                     update[update.length - 1] = point3FromCartesian3(endPoint);
-                    editor.mutateElement(edittingElement, {
+                    editor.mutateElement(edittingElement.id, {
                         positions: update
                     });
                     break;
@@ -302,7 +300,6 @@ export const useToolsBar = () => {
                 activeTool.value = "default";
             } else if (activeTool.value === "polygon") {
                 console.log("right click, polygon finish");
-                console.log(edittingElement);
                 edittingElement = null;
                 activeTool.value = "default";
             }
