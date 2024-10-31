@@ -9,7 +9,7 @@ export const useGeoOasisStore = defineStore("viewer", () => {
     // use pinia to store viewer
     const viewerRef = shallowRef<Viewer>({} as Viewer);
     const editor = shallowRef(new Editor());
-    const isElementPanel = ref<Boolean>(false);
+    const isPanelVisible = ref<Boolean>(false);
     const selectedElement = ref<Element | undefined>();
     const selectedLayer = ref<Layer | undefined>();
     const selectedBaseLayer = ref("Bing");
@@ -23,7 +23,7 @@ export const useGeoOasisStore = defineStore("viewer", () => {
         editor,
         elementState,
         layerState,
-        isElementPanel,
+        isPanelVisible,
         selectedElement,
         selectedLayer,
         selectedBaseLayer,

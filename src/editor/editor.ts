@@ -74,7 +74,8 @@ export class Editor extends ObservableV2<EditorEvent> implements Editor {
     // TODO: 减少状态
     private baseLayersArray: Array<GeoOasisImageryLayer> = new Array();
     private imageryLayersMap: Map<Layer["id"], ImageryLayer> = new Map();
-    private serviceLayersMap: Map<Layer["id"], DataSource> = new Map();
+    private serviceLayersMap: Map<Layer["id"], DataSource> = new Map(); // use Array?
+    private serviceLayersArray: [Layer["id"], DataSource][] = new Array();
     private cesium3dtilesLayersMap: Map<Layer["id"], Primitive> = new Map();
 
     constructor() {
@@ -206,6 +207,29 @@ export class Editor extends ObservableV2<EditorEvent> implements Editor {
         return undefined;
     }
 
+    pickLayer(position: Cartesian2) {
+        const pickedEntity = this.viewer?.scene.pick(position);
+        if (pickedEntity) {
+            console.log(pickedEntity);
+            const entity = pickedEntity.id;
+            const entityCollection = entity.entityCollection;
+            const owner = entityCollection.owner;
+            console.log("ower:", owner);
+            const found = this.serviceLayersArray.find(
+                ([layerId, dataSource]) => {
+                    return dataSource === owner;
+                }
+            );
+            console.log("found", found);
+            const pickedId = found?.[0];
+            if (pickedId) {
+                console.log(this.layers.get(pickedId)?.toJSON());
+                return this.layers.get(pickedId)?.toJSON() as Layer;
+            }
+        }
+        return undefined;
+    }
+
     addLayer(layer: Layer) {
         const layerMap = new Y.Map();
         for (const [key, value] of Object.entries(layer)) {
@@ -276,6 +300,7 @@ export class Editor extends ObservableV2<EditorEvent> implements Editor {
                 if (layer) {
                     this.viewer?.dataSources.add(layer);
                     this.serviceLayersMap.set(layerAdded.id, layer);
+                    this.serviceLayersArray.push([layerAdded.id, layer]);
                 }
                 break;
             case "3dtiles":

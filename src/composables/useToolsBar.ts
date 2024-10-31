@@ -14,6 +14,7 @@ import {
     newPolygonElement
 } from "../element/newElement";
 import { point3FromCartesian3 } from "../element/utils";
+import { nanoid } from "nanoid";
 
 export const useToolsBar = () => {
     // data or model or state
@@ -29,7 +30,8 @@ export const useToolsBar = () => {
 
     // store
     const store = useGeoOasisStore();
-    const { viewerRef, isElementPanel, selectedElement } = storeToRefs(store);
+    const { viewerRef, isPanelVisible, selectedElement, selectedLayer } =
+        storeToRefs(store);
     const { editor } = store;
 
     // hooks
@@ -67,7 +69,8 @@ export const useToolsBar = () => {
             // TODO 当LeftDown的时候，未选中地球时，LeftUp和MouseMove应该怎样处理
             draggingElement = undefined;
             selectedElement.value = undefined;
-            isElementPanel.value = false;
+            selectedLayer.value = undefined;
+            isPanelVisible.value = false;
             return;
         }
 
@@ -78,7 +81,9 @@ export const useToolsBar = () => {
         if (activeTool.value === "default") {
             draggingElement = editor.pickElement(positionedEvent.position);
             selectedElement.value = draggingElement;
-            isElementPanel.value = selectedElement.value ? true : false;
+            selectedLayer.value = editor.pickLayer(positionedEvent.position);
+            isPanelVisible.value =
+                selectedElement.value || selectedLayer.value ? true : false;
             if (draggingElement) {
                 // 锁定相机
                 viewerRef.value.scene.screenSpaceCameraController.enableRotate =
@@ -314,7 +319,7 @@ export const useToolsBar = () => {
                 const jsonObj = JSON.parse(e.target!.result as string);
                 fileContent = jsonObj;
                 editor.addLayer({
-                    id: "1234",
+                    id: nanoid(),
                     name: "Geojsontest",
                     type: "service",
                     provider: "geojson",

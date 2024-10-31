@@ -94,7 +94,7 @@ const options = [
     height: calc(100% - 300px);
     overflow-y: scroll;
 
-    background-color: #e1f0da;
+    background-color: var(--grass-1);
     box-shadow: 0 0 10px;
     border-radius: 10px;
     padding: 30px;
