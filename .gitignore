@@ -12,6 +12,7 @@ dist
 dist-ssr
 *.local
 pnpm-lock.yaml
+trash
 
 # Editor directories and files
 .vscode/*
