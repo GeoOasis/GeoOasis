@@ -7,7 +7,7 @@ import {
     ToolbarToggleGroup,
     ToolbarToggleItem
 } from "radix-vue";
-import ToolbarUploadButton from "./UploadButton.vue";
+import ToolbarUploadButton from "./button/UploadButton.vue";
 import { Icon } from "@iconify/vue";
 import { ref, watch } from "vue";
 import { storeToRefs } from "pinia";
@@ -80,7 +80,10 @@ watch(selectedFile, () => {
             </ToolbarToggleItem>
         </ToolbarToggleGroup>
         <ToolbarSeparator class="ToolbarSeparator" />
-        <ToolbarUploadButton v-model="selectedFile" />
+        <ToolbarUploadButton v-model="selectedFile">
+            Upload
+            <Icon icon="gis:3dtiles-file" />
+        </ToolbarUploadButton>
         <ToolbarButton
             class="ToolbarButton"
             style="margin-left: 10px"

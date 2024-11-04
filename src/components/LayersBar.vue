@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useLayersBar } from "../composables/useLayersBar";
+import Button from "./button/Button.vue";
 
 const {
     selectedBaseLayer,
@@ -60,9 +61,7 @@ const options = [
                 :value="item.value"
             />
         </el-select>
-        <el-button type="primary" @click="add3dtilesTest">
-            add3dtilesTest
-        </el-button>
+        <Button @click="add3dtilesTest">add3dtilesTest</Button>
         <el-divider></el-divider>
         <h3>Elements</h3>
         <div
@@ -87,12 +86,11 @@ const options = [
 .layersbar {
     position: fixed;
     left: 30px;
-    top: 50%;
-    transform: translateY(-50%);
+    top: 100px;
 
-    width: 300px;
+    width: 250px;
     height: calc(100% - 300px);
-    overflow-y: scroll;
+    overflow-y: auto;
 
     background-color: var(--grass-1);
     box-shadow: 0 0 10px;
@@ -102,13 +100,13 @@ const options = [
 
 .element {
     border-radius: 5px;
-    box-shadow: 0 0 3px;
+    box-shadow: 0 0 2px;
     padding: 5px;
     margin: 5px;
     user-select: none;
 }
 
 .element:hover {
-    background-color: aqua;
+    background-color: var(--grass-4);
 }
 </style>

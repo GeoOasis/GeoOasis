@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import "./ToolsBar.css";
-import { ToolbarButton } from "radix-vue";
-import { Icon } from "@iconify/vue";
+import Button from "./Button.vue";
 import { ref } from "vue";
 
 const emit = defineEmits<{
@@ -23,14 +21,13 @@ const handleChange = (event: Event) => {
 </script>
 
 <template>
-    <ToolbarButton class="ToolbarButton" @click="handleUploadBtn">
-        Upload
-        <Icon icon="gis:3dtiles-file" />
+    <Button @click="handleUploadBtn">
+        <slot></slot>
         <input
             ref="uploadRef"
             type="file"
             @change="handleChange"
             style="display: none"
         />
-    </ToolbarButton>
+    </Button>
 </template>
