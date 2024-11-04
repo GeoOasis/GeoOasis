@@ -48,19 +48,20 @@ export type EditorEvent = {
     "element:delete": () => void;
 };
 
-export interface Editor {
+export interface BaseEditor {
     pickElement(position: Cartesian2): Element | undefined;
     getElement(id: Element["id"]): Element | undefined;
     addElement(element: Element): void;
     deleteElement(id: Element["id"]): void;
     mutateElement(id: Element["id"], update: { [key: string]: any }): void;
     addLayer(layer: Layer): void;
+    getLayerData(id: Layer["id"]): any;
     startEdit(id: Element["id"], type: Element["type"]): void;
     stopEdit(id: Element["id"], type: Element["type"]): void;
 }
 
 // Editor is singleton
-export class Editor extends ObservableV2<EditorEvent> implements Editor {
+export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
     private yjsProvider: HocuspocusProvider;
     private doc: Y.Doc;
     public elements: Y.Map<Y.Map<any>>; // how to use correct type? don't use Map
@@ -228,6 +229,11 @@ export class Editor extends ObservableV2<EditorEvent> implements Editor {
             }
         }
         return undefined;
+    }
+
+    getLayerData(id: Layer["id"]) {
+        // TODO
+        return this.layers.get(id)?.get("url");
     }
 
     addLayer(layer: Layer) {

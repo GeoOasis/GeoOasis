@@ -6,6 +6,8 @@ export type Element =
     | GeoOasisPolygonElement
     | GeoOasisModelElement;
 
+export type ElementProperties = [keyof Element, Element[keyof Element]][];
+
 export interface GeoOasisBaseElement {
     id: string;
     name: string;

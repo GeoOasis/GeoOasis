@@ -4,6 +4,7 @@ import { Viewer, Ion } from "cesium";
 import { ElNotification } from "element-plus";
 import "cesium/Build/CesiumUnminified/Widgets/widgets.css";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
+import { BufferTool } from "../tool/buffer";
 
 window.CESIUM_BASE_URL = "node_modules/cesium/Build/CesiumUnminified/";
 
@@ -31,6 +32,8 @@ onMounted(() => {
     });
     store.editor.viewer = store.viewerRef;
     window.cesiumViewer = store.viewerRef;
+    store.toolBox.registerTool(new BufferTool());
+
     console.log("Map container mounted");
     // For test
     ElNotification({
