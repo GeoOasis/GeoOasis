@@ -1,9 +1,16 @@
-import { Cartesian3, Color, Entity } from "cesium";
+import {
+    Cartesian3,
+    Color,
+    Entity,
+    ImageMaterialProperty,
+    Rectangle
+} from "cesium";
 import {
     GeoOasisPointElement,
     GeoOasisPolylineElement,
     GeoOasisModelElement,
-    GeoOasisPolygonElement
+    GeoOasisPolygonElement,
+    GeoOasisImageElement
 } from "./element";
 import { Point3 } from "./point";
 
@@ -63,6 +70,39 @@ export const generateModelEntityfromElement = (
             uri: element.url,
             minimumPixelSize: 128,
             maximumScale: 20000
+        }
+    });
+};
+
+export const generateRectangleEntityfromElement = (
+    element: GeoOasisImageElement
+): Entity => {
+    let material;
+    if (typeof element.url === "string") {
+        material = element.url;
+    } else {
+        // @ts-ignore
+        const blob = new Blob([element.url.buffer], { type: "image/png" });
+        const url = URL.createObjectURL(blob);
+        const imageHTMLElement = document.createElement("img");
+        imageHTMLElement.src = url;
+        imageHTMLElement.onload = () => {
+            URL.revokeObjectURL(url);
+        };
+        material = new ImageMaterialProperty({
+            image: imageHTMLElement
+        });
+    }
+    return new Entity({
+        id: element.id,
+        name: element.name,
+        show: element.show,
+        rectangle: {
+            coordinates: Rectangle.fromCartesianArray(
+                element.positions.map((p) => cartesian3FromPoint3(p))
+            ),
+            // @ts-ignore
+            material: material
         }
     });
 };

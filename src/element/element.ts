@@ -4,7 +4,8 @@ export type Element =
     | GeoOasisPointElement
     | GeoOasisPolylineElement
     | GeoOasisPolygonElement
-    | GeoOasisModelElement;
+    | GeoOasisModelElement
+    | GeoOasisImageElement;
 
 export type ElementProperties = [keyof Element, Element[keyof Element]][];
 
@@ -44,9 +45,10 @@ export interface GeoOasisRectangleElement extends GeoOasisBaseElement {
     type: "rectangle";
 }
 
+// YMap 's value cannot be ArrayBuffer
 export interface GeoOasisImageElement extends GeoOasisBaseElement {
     type: "image";
-    url: string;
+    url: string | Uint8Array;
 }
 
 // model可以扩展自point，使用orientation和scale来控制

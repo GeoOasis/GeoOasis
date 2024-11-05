@@ -19,14 +19,16 @@ import {
     GeoOasisPointElement,
     GeoOasisPolylineElement,
     GeoOasisModelElement,
-    GeoOasisPolygonElement
+    GeoOasisPolygonElement,
+    GeoOasisImageElement
 } from "../element/element";
 import {
     cartesian3FromPoint3,
     generatePointEntityfromElement,
     generatePolylineEntityfromElement,
     generatePolygonEntityfromElement,
-    generateModelEntityfromElement
+    generateModelEntityfromElement,
+    generateRectangleEntityfromElement
 } from "../element/utils";
 import { Point3 } from "../element/point";
 import {
@@ -141,6 +143,8 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                 }, false);
                 break;
             case "model":
+                break;
+            case "image":
                 break;
         }
     }
@@ -410,6 +414,11 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                                 elementAdded as GeoOasisModelElement
                             );
                             break;
+                        case "image":
+                            entity = generateRectangleEntityfromElement(
+                                elementAdded as GeoOasisImageElement
+                            );
+                            break;
                     }
                     if (entity) {
                         this.viewer?.entities.add(entity);
@@ -451,6 +460,8 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                             // polygon与polyline类似
                             break;
                         case "model":
+                            break;
+                        case "image":
                             break;
                     }
                 }
