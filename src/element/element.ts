@@ -48,7 +48,7 @@ export interface GeoOasisRectangleElement extends GeoOasisBaseElement {
 // YMap 's value cannot be ArrayBuffer
 export interface GeoOasisImageElement extends GeoOasisBaseElement {
     type: "image";
-    url: string | Uint8Array;
+    url: string | Uint8Array; //image/png base64/Uint8Array
 }
 
 // model可以扩展自point，使用orientation和scale来控制

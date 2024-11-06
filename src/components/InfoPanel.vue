@@ -5,7 +5,6 @@ import { nanoid } from "nanoid";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import {
     Label,
-    Separator,
     SelectRoot,
     SelectTrigger,
     SelectValue,
@@ -19,8 +18,10 @@ import {
     SelectItemText
 } from "radix-vue";
 import Button from "./button/Button.vue";
+import Separator from "./button/Separator.vue";
 import { Icon } from "@iconify/vue";
 import "./ToolsBar.css";
+import { newImageElement } from "../element/newElement";
 
 const store = useGeoOasisStore();
 const { selectedElement, selectedLayer, toolBox } = storeToRefs(store);
@@ -50,29 +51,92 @@ const handleElementChange = (update: { [key: string]: any }) => {
     }
 };
 
-const handleBufferBtn = () => {
-    if (selectedLayer.value) {
-        const inputData = editor.getLayerData(selectedLayer.value.id);
-        toolBox.value
-            .runTool("buffer", inputData, {
-                mode: "js",
-                size: 100
-            })
-            .then((result) => {
-                editor.addLayer({
-                    id: nanoid(),
-                    name: "bufferResult",
-                    type: "service",
-                    provider: "geojson",
-                    url: result as Object,
-                    show: true
-                });
-            });
-    }
-};
-
 const selectedTool = ref();
 const tools = ["buffer", "heatmap", "interplation"];
+const handleExecuteBtn = (tool: string) => {
+    if (!selectedLayer.value) return;
+    const geojsonData = editor.getLayerData(selectedLayer.value.id);
+    let data: any;
+    let option: any; // option应该是是state，而且是动态的
+    if (tool === "buffer") {
+        option = { mode: "js", size: 100 };
+        data = geojsonData;
+    } else if (tool === "heatmap") {
+        // only for point geojosn
+        // prepare data
+        const extent = {
+            minLng: Infinity,
+            minLat: Infinity,
+            maxLng: -Infinity,
+            maxLat: -Infinity
+        };
+        data = [];
+        geojsonData.features.forEach((feature: any) => {
+            const coord = feature.geometry.coordinates;
+            extent.minLng = Math.min(extent.minLng, coord[0]);
+            extent.minLat = Math.min(extent.minLat, coord[1]);
+            extent.maxLng = Math.max(extent.maxLng, coord[0]);
+            extent.maxLat = Math.max(extent.maxLat, coord[1]);
+            data.push({
+                lat: feature.geometry.coordinates[1],
+                lng: feature.geometry.coordinates[0],
+                heat: feature.properties.heat
+            });
+        });
+
+        option = {
+            size: 256,
+            radius: 10,
+            maxHeat: 20,
+            gradient: ["00AAFF", "00FF00", "FFFF00", "FF8800", "FF0000"],
+            extent: extent
+        };
+        console.log(extent);
+    }
+
+    toolBox.value.runTool(tool, data, option).then((result) => {
+        // add result to editor
+        if (tool === "buffer") {
+            editor.addLayer({
+                id: nanoid(),
+                name: "bufferResult",
+                type: "service",
+                provider: "geojson",
+                url: result as Object,
+                show: true
+            });
+        } else if (tool === "heatmap") {
+            const canvas = document.createElement("canvas");
+            canvas.width = result.width;
+            canvas.height = result.height;
+            const ctx = canvas.getContext("2d");
+            const bitmap = createImageBitmap(result, {
+                imageOrientation: "flipY"
+            });
+            bitmap.then((bitmap) => {
+                ctx?.drawImage(bitmap, 0, 0);
+                canvas.toBlob(
+                    (blob) => {
+                        blob?.arrayBuffer().then((buffer) => {
+                            const imageArr = new Uint8Array(buffer);
+                            const heatmap = newImageElement({
+                                id: nanoid(),
+                                type: "image",
+                                name: "heatMap",
+                                show: true,
+                                url: imageArr,
+                                extent: option.extent
+                            });
+                            editor.addElement(heatmap);
+                        });
+                    },
+                    "image/png",
+                    1.0
+                );
+            });
+        }
+    });
+};
 </script>
 
 <template>
@@ -140,10 +204,10 @@ const tools = ["buffer", "heatmap", "interplation"];
             </div>
         </div>
         <div v-show="isToolBoxVisible">
-            <Separator class="SeparatorRoot" />
+            <Separator />
             <SelectRoot v-model="selectedTool">
                 <SelectTrigger class="SelectTrigger">
-                    <SelectValue placeholder="Select a Tool..." />
+                    <SelectValue placeholder="Select a Tool" />
                     <Icon icon="radix-icons:chevron-down" />
                 </SelectTrigger>
                 <SelectPortal>
@@ -188,12 +252,10 @@ const tools = ["buffer", "heatmap", "interplation"];
                     </SelectContent>
                 </SelectPortal>
             </SelectRoot>
-            <div v-if="selectedTool === 'buffer'">
-                <Button @click="handleBufferBtn">
-                    Execute
-                    <Icon icon="radix-icons:strikethrough" />
-                </Button>
-            </div>
+            <Button @click="handleExecuteBtn(selectedTool)">
+                Execute
+                <Icon icon="radix-icons:strikethrough" />
+            </Button>
         </div>
     </div>
 </template>
@@ -215,13 +277,6 @@ const tools = ["buffer", "heatmap", "interplation"];
 .info-panel-toolbar {
     margin: 5px;
     display: flex;
-}
-
-.SeparatorRoot {
-    background-color: var(--grass-6);
-    height: 1px;
-    width: 100%;
-    margin: 5px 0;
 }
 
 /* reset */

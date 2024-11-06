@@ -92,6 +92,20 @@ export const newModelElement = (
 };
 
 export const newImageElement = (option: any): GeoOasisImageElement => {
+    // TODO: calculate from center
+    const extent: {
+        minLng: number;
+        minLat: number;
+        maxLng: number;
+        maxLat: number;
+    } = option.extent
+        ? option.extent
+        : {
+              minLng: 0.0,
+              minLat: 0.0,
+              maxLng: 10.0,
+              maxLat: 10.0
+          };
     return {
         id: nanoid(),
         type: "image",
@@ -99,9 +113,12 @@ export const newImageElement = (option: any): GeoOasisImageElement => {
         show: option.show,
         description: "",
         positions: [
-            // TODO: calculate from center
-            point3FromCartesian3(Cartesian3.fromDegrees(-92.0, 30.0)),
-            point3FromCartesian3(Cartesian3.fromDegrees(-76.0, 40.0))
+            point3FromCartesian3(
+                Cartesian3.fromDegrees(extent.minLng, extent.minLat)
+            ),
+            point3FromCartesian3(
+                Cartesian3.fromDegrees(extent.maxLng, extent.maxLat)
+            )
         ],
         url: option.url
     };
