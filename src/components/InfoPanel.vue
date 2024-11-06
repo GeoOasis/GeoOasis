@@ -22,6 +22,7 @@ import Separator from "./button/Separator.vue";
 import { Icon } from "@iconify/vue";
 import "./ToolsBar.css";
 import { newImageElement } from "../element/newElement";
+import Switch from "./button/Switch.vue";
 
 const store = useGeoOasisStore();
 const { selectedElement, selectedLayer, toolBox } = storeToRefs(store);
@@ -53,6 +54,9 @@ const handleElementChange = (update: { [key: string]: any }) => {
 
 const selectedTool = ref();
 const tools = ["buffer", "heatmap", "interplation"];
+// part of form
+const isWasm = ref(true);
+
 const handleExecuteBtn = (tool: string) => {
     if (!selectedLayer.value) return;
     const geojsonData = editor.getLayerData(selectedLayer.value.id);
@@ -203,8 +207,8 @@ const handleExecuteBtn = (tool: string) => {
                 </div>
             </div>
         </div>
+        <Separator />
         <div v-show="isToolBoxVisible">
-            <Separator />
             <SelectRoot v-model="selectedTool">
                 <SelectTrigger class="SelectTrigger">
                     <SelectValue placeholder="Select a Tool" />
@@ -252,6 +256,13 @@ const handleExecuteBtn = (tool: string) => {
                     </SelectContent>
                 </SelectPortal>
             </SelectRoot>
+            <Separator />
+            <Switch
+                :checked="isWasm"
+                name="wasm mode:"
+                @update:checked="(checked) => (isWasm = checked)"
+            />
+            <Separator />
             <Button @click="handleExecuteBtn(selectedTool)">
                 Execute
                 <Icon icon="radix-icons:strikethrough" />
