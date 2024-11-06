@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { useLayersBar } from "../composables/useLayersBar";
 import Button from "./button/Button.vue";
+import Separator from "./button/Separator.vue";
 
 const {
     selectedBaseLayer,
@@ -33,26 +34,11 @@ const options = [
 <template>
     <div class="layersbar">
         <h3>Layers</h3>
-        <el-table :data="layersRef" size="small">
-            <!-- <el-table-column label="Index" width="50">
-                <template #default="scope">
-                    <span>{{ scope.row.index }}</span>
-                </template>
-</el-table-column> -->
-            <el-table-column label="LayerName">
-                <template #default="scope">
-                    <span>{{ scope.row.name }}</span>
-                </template>
-            </el-table-column>
-            <el-table-column label="Operations">
-                <template #default="scope">
-                    <el-button type="danger" size="small">删除</el-button>
-                    <!-- <el-button size="small" type="danger" @click="handleDelete(scope.$index, scope.row)">
-                        Delete
-                    </el-button> -->
-                </template>
-            </el-table-column>
-        </el-table>
+        <div class="element" v-for="e in layersRef">
+            id: {{ e.id.slice(0, 3) }}, type: {{ e.type }}
+        </div>
+        <Separator />
+        <p>BaseMap</p>
         <el-select v-model="selectedBaseLayer" placeholder="Select">
             <el-option
                 v-for="item in options"
@@ -61,10 +47,17 @@ const options = [
                 :value="item.value"
             />
         </el-select>
+        <Separator />
         <Button @click="add3dtilesTest">add3dtilesTest</Button>
-        <el-divider></el-divider>
         <h3>Elements</h3>
         <div
+            class="element"
+            v-for="e in elementsRef"
+            @click="handleSelect(e.id)"
+        >
+            id: {{ e.id.slice(0, 3) }}, type: {{ e.type }}
+        </div>
+        <!-- <div
             class="element"
             v-for="e in pointElements"
             @click="handleSelect(e.id)"
@@ -78,7 +71,7 @@ const options = [
         >
             id: {{ e.id.slice(0, 3) }}, type:
             {{ e.type }}
-        </div>
+        </div> -->
     </div>
 </template>
 
