@@ -7,13 +7,15 @@ import {
     ToolbarToggleGroup,
     ToolbarToggleItem
 } from "radix-vue";
-import ToolbarUploadButton from "./button/UploadButton.vue";
+import ToolbarUploadButton from "./internals/UploadButton.vue";
 import { Icon } from "@iconify/vue";
 import { ref, watch } from "vue";
 import { storeToRefs } from "pinia";
+import { nanoid } from "nanoid";
 import { useToolsBar } from "../composables/useToolsBar";
 import { useYjs } from "../composables/useYjs";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
+import { randomGeoJsonPoint } from "../mock";
 
 // for test
 const toggleStateMultiple = ref([]);
@@ -57,6 +59,18 @@ watch(selectedFile, () => {
         selectedFile.value = undefined;
     }
 });
+
+const mockData = () => {
+    const mockData = randomGeoJsonPoint(100);
+    store.editor.addLayer({
+        id: nanoid(),
+        name: "HeatMapMockData",
+        type: "service",
+        provider: "geojson",
+        show: true,
+        url: mockData
+    });
+};
 </script>
 
 <template>
@@ -108,6 +122,13 @@ watch(selectedFile, () => {
             @click="redo"
         >
             Redo
+        </ToolbarButton>
+        <ToolbarButton
+            class="ToolbarButton"
+            style="margin-left: 10px"
+            @click="mockData"
+        >
+            Mock
         </ToolbarButton>
     </ToolbarRoot>
 </template>

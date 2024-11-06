@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import Button from "./internals/Button.vue";
+import Separator from "./internals/Separator.vue";
 import { computed } from "vue";
 import { useLayersBar } from "../composables/useLayersBar";
-import Button from "./button/Button.vue";
-import Separator from "./button/Separator.vue";
 
 const {
     selectedBaseLayer,

@@ -17,12 +17,12 @@ import {
     SelectItemIndicator,
     SelectItemText
 } from "radix-vue";
-import Button from "./button/Button.vue";
-import Separator from "./button/Separator.vue";
+import Button from "./internals/Button.vue";
+import Separator from "./internals/Separator.vue";
+import Switch from "./internals/Switch.vue";
 import { Icon } from "@iconify/vue";
 import "./ToolsBar.css";
 import { newImageElement } from "../element/newElement";
-import Switch from "./button/Switch.vue";
 
 const store = useGeoOasisStore();
 const { selectedElement, selectedLayer, toolBox } = storeToRefs(store);
