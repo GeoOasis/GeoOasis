@@ -19,14 +19,16 @@ import {
     GeoOasisPointElement,
     GeoOasisPolylineElement,
     GeoOasisModelElement,
-    GeoOasisPolygonElement
+    GeoOasisPolygonElement,
+    GeoOasisImageElement
 } from "../element/element";
 import {
     cartesian3FromPoint3,
     generatePointEntityfromElement,
     generatePolylineEntityfromElement,
     generatePolygonEntityfromElement,
-    generateModelEntityfromElement
+    generateModelEntityfromElement,
+    generateRectangleEntityfromElement
 } from "../element/utils";
 import { Point3 } from "../element/point";
 import {
@@ -38,7 +40,8 @@ import {
 import {
     generateArcgisImageryFromLayer,
     generateBingImageryFromLayer,
-    generateWMSImageryFromLayer
+    generateWMSImageryFromLayer,
+    generateSingleTileImageryFromLayer
 } from "../layer/utils";
 import { Hocuspocus_URL } from "../contants";
 
@@ -48,19 +51,20 @@ export type EditorEvent = {
     "element:delete": () => void;
 };
 
-export interface Editor {
+export interface BaseEditor {
     pickElement(position: Cartesian2): Element | undefined;
     getElement(id: Element["id"]): Element | undefined;
     addElement(element: Element): void;
     deleteElement(id: Element["id"]): void;
     mutateElement(id: Element["id"], update: { [key: string]: any }): void;
     addLayer(layer: Layer): void;
+    getLayerData(id: Layer["id"]): any;
     startEdit(id: Element["id"], type: Element["type"]): void;
     stopEdit(id: Element["id"], type: Element["type"]): void;
 }
 
 // Editor is singleton
-export class Editor extends ObservableV2<EditorEvent> implements Editor {
+export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
     private yjsProvider: HocuspocusProvider;
     private doc: Y.Doc;
     public elements: Y.Map<Y.Map<any>>; // how to use correct type? don't use Map
@@ -74,7 +78,8 @@ export class Editor extends ObservableV2<EditorEvent> implements Editor {
     // TODO: 减少状态
     private baseLayersArray: Array<GeoOasisImageryLayer> = new Array();
     private imageryLayersMap: Map<Layer["id"], ImageryLayer> = new Map();
-    private serviceLayersMap: Map<Layer["id"], DataSource> = new Map();
+    private serviceLayersMap: Map<Layer["id"], DataSource> = new Map(); // use Array?
+    private serviceLayersArray: [Layer["id"], DataSource][] = new Array();
     private cesium3dtilesLayersMap: Map<Layer["id"], Primitive> = new Map();
 
     constructor() {
@@ -140,6 +145,8 @@ export class Editor extends ObservableV2<EditorEvent> implements Editor {
                 break;
             case "model":
                 break;
+            case "image":
+                break;
         }
     }
 
@@ -204,6 +211,34 @@ export class Editor extends ObservableV2<EditorEvent> implements Editor {
             return this.elements.get(pickedEntity.id.id)?.toJSON() as Element;
         }
         return undefined;
+    }
+
+    pickLayer(position: Cartesian2) {
+        const pickedEntity = this.viewer?.scene.pick(position);
+        if (pickedEntity) {
+            console.log(pickedEntity);
+            const entity = pickedEntity.id;
+            const entityCollection = entity.entityCollection;
+            const owner = entityCollection.owner;
+            console.log("ower:", owner);
+            const found = this.serviceLayersArray.find(
+                ([layerId, dataSource]) => {
+                    return dataSource === owner;
+                }
+            );
+            console.log("found", found);
+            const pickedId = found?.[0];
+            if (pickedId) {
+                console.log(this.layers.get(pickedId)?.toJSON());
+                return this.layers.get(pickedId)?.toJSON() as Layer;
+            }
+        }
+        return undefined;
+    }
+
+    getLayerData(id: Layer["id"]) {
+        // TODO
+        return this.layers.get(id)?.get("url");
     }
 
     addLayer(layer: Layer) {
@@ -276,6 +311,7 @@ export class Editor extends ObservableV2<EditorEvent> implements Editor {
                 if (layer) {
                     this.viewer?.dataSources.add(layer);
                     this.serviceLayersMap.set(layerAdded.id, layer);
+                    this.serviceLayersArray.push([layerAdded.id, layer]);
                 }
                 break;
             case "3dtiles":
@@ -300,6 +336,8 @@ export class Editor extends ObservableV2<EditorEvent> implements Editor {
                     break;
                 case "wms":
                     return generateWMSImageryFromLayer(layer);
+                case "singleTile":
+                    return await generateSingleTileImageryFromLayer(layer);
                 default:
                     break;
             }
@@ -379,6 +417,11 @@ export class Editor extends ObservableV2<EditorEvent> implements Editor {
                                 elementAdded as GeoOasisModelElement
                             );
                             break;
+                        case "image":
+                            entity = generateRectangleEntityfromElement(
+                                elementAdded as GeoOasisImageElement
+                            );
+                            break;
                     }
                     if (entity) {
                         this.viewer?.entities.add(entity);
@@ -420,6 +463,8 @@ export class Editor extends ObservableV2<EditorEvent> implements Editor {
                             // polygon与polyline类似
                             break;
                         case "model":
+                            break;
+                        case "image":
                             break;
                     }
                 }

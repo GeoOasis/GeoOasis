@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import Button from "./internals/Button.vue";
+import Separator from "./internals/Separator.vue";
+import Select from "./internals/Select.vue";
 import { computed } from "vue";
 import { useLayersBar } from "../composables/useLayersBar";
 
@@ -17,55 +20,33 @@ const polylineElements = computed(() => {
     return elementsRef.value.filter((e) => e.type === "polyline");
 });
 
-const options = [
-    {
-        value: "Bing",
-        label: "Bing"
-    },
-    {
-        value: "ArcGIS",
-        label: "ArcGIS"
-    }
-];
+const baseMapOptions = ["Bing", "ArcGIS"];
 </script>
 
 <template>
     <div class="layersbar">
         <h3>Layers</h3>
-        <el-table :data="layersRef" size="small">
-            <!-- <el-table-column label="Index" width="50">
-                <template #default="scope">
-                    <span>{{ scope.row.index }}</span>
-                </template>
-</el-table-column> -->
-            <el-table-column label="LayerName">
-                <template #default="scope">
-                    <span>{{ scope.row.name }}</span>
-                </template>
-            </el-table-column>
-            <el-table-column label="Operations">
-                <template #default="scope">
-                    <el-button type="danger" size="small">删除</el-button>
-                    <!-- <el-button size="small" type="danger" @click="handleDelete(scope.$index, scope.row)">
-                        Delete
-                    </el-button> -->
-                </template>
-            </el-table-column>
-        </el-table>
-        <el-select v-model="selectedBaseLayer" placeholder="Select">
-            <el-option
-                v-for="item in options"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-            />
-        </el-select>
-        <el-button type="primary" @click="add3dtilesTest">
-            add3dtilesTest
-        </el-button>
-        <el-divider></el-divider>
+        <div class="element" v-for="e in layersRef">
+            id: {{ e.id.slice(0, 3) }}, type: {{ e.type }}
+        </div>
+        <Separator />
+        <Select
+            title="BaseMap"
+            :selected="selectedBaseLayer"
+            :select-options="baseMapOptions"
+            @update:model-value="selectedBaseLayer = $event"
+        ></Select>
+        <Separator />
+        <Button @click="add3dtilesTest">add3dtilesTest</Button>
         <h3>Elements</h3>
         <div
+            class="element"
+            v-for="e in elementsRef"
+            @click="handleSelect(e.id)"
+        >
+            id: {{ e.id.slice(0, 3) }}, type: {{ e.type }}
+        </div>
+        <!-- <div
             class="element"
             v-for="e in pointElements"
             @click="handleSelect(e.id)"
@@ -79,7 +60,7 @@ const options = [
         >
             id: {{ e.id.slice(0, 3) }}, type:
             {{ e.type }}
-        </div>
+        </div> -->
     </div>
 </template>
 
@@ -87,28 +68,27 @@ const options = [
 .layersbar {
     position: fixed;
     left: 30px;
-    top: 50%;
-    transform: translateY(-50%);
+    top: 100px;
 
-    width: 300px;
+    width: 250px;
     height: calc(100% - 300px);
-    overflow-y: scroll;
+    overflow-y: auto;
 
-    background-color: #e1f0da;
+    background-color: var(--grass-1);
     box-shadow: 0 0 10px;
     border-radius: 10px;
-    padding: 30px;
+    padding: 15px;
 }
 
 .element {
     border-radius: 5px;
-    box-shadow: 0 0 3px;
+    box-shadow: 0 0 2px;
     padding: 5px;
     margin: 5px;
     user-select: none;
 }
 
 .element:hover {
-    background-color: aqua;
+    background-color: var(--grass-4);
 }
 </style>

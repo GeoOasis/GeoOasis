@@ -11,7 +11,7 @@ export const useLayersBar = () => {
         viewerRef,
         selectedBaseLayer,
         selectedElement,
-        isElementPanel,
+        isPanelVisible,
         elementState,
         layerState
     } = storeToRefs(store);
@@ -63,20 +63,6 @@ export const useLayersBar = () => {
     };
 
     const add3dtilesTest = () => {
-        // editor.addLayer({
-        //     id: nanoid(),
-        //     name: "United States Weather Radar",
-        //     type: "imagery",
-        //     provider: "wms",
-        //     show: true,
-        //     url: "https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r.cgi?",
-        //     credit: "Radar data courtesy Iowa Environmental Mesonet",
-        //     layer: "nexrad-n0r",
-        //     parameters: {
-        //         transparent: "true",
-        //         format: "image/png"
-        //     }
-        // });
         editor.addLayer({
             id: nanoid(),
             name: "United States GOES Infrared",
@@ -96,7 +82,7 @@ export const useLayersBar = () => {
     const handleSelect = (id: string) => {
         selectedElement.value = editor.getElement(id);
         console.log(selectedElement.value);
-        isElementPanel.value = selectedElement.value ? true : false;
+        isPanelVisible.value = selectedElement.value ? true : false;
     };
 
     return {

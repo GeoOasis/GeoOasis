@@ -20,6 +20,7 @@ export interface GeoOasisImageryLayer extends GeoOasisBaseLayer {
         | "tms"
         | "wms"
         | "wmts"
+        | "singleTile"
         | "custom";
     show: boolean;
     url?: string;

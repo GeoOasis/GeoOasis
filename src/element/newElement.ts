@@ -4,7 +4,8 @@ import {
     GeoOasisPointElement,
     GeoOasisPolylineElement,
     GeoOasisModelElement,
-    GeoOasisPolygonElement
+    GeoOasisPolygonElement,
+    GeoOasisImageElement
 } from "./element";
 import { point3FromCartesian3 } from "./utils";
 
@@ -29,7 +30,7 @@ export const newPointElement = (
             }
         ],
         pixelSize: 10,
-        color: "white"
+        color: "#FFFFFF"
     };
 };
 
@@ -87,5 +88,38 @@ export const newModelElement = (
             }
         ],
         url
+    };
+};
+
+export const newImageElement = (option: any): GeoOasisImageElement => {
+    // TODO: calculate from center
+    const extent: {
+        minLng: number;
+        minLat: number;
+        maxLng: number;
+        maxLat: number;
+    } = option.extent
+        ? option.extent
+        : {
+              minLng: 0.0,
+              minLat: 0.0,
+              maxLng: 10.0,
+              maxLat: 10.0
+          };
+    return {
+        id: nanoid(),
+        type: "image",
+        name: option.name,
+        show: option.show,
+        description: "",
+        positions: [
+            point3FromCartesian3(
+                Cartesian3.fromDegrees(extent.minLng, extent.minLat)
+            ),
+            point3FromCartesian3(
+                Cartesian3.fromDegrees(extent.maxLng, extent.maxLat)
+            )
+        ],
+        url: option.url
     };
 };

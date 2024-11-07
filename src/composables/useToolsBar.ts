@@ -11,9 +11,12 @@ import {
     newPointElement,
     newPolylineElement,
     newModelElement,
-    newPolygonElement
+    newPolygonElement,
+    newImageElement
 } from "../element/newElement";
 import { point3FromCartesian3 } from "../element/utils";
+import { nanoid } from "nanoid";
+import { FileType, getFileType } from "../utils";
 
 export const useToolsBar = () => {
     // data or model or state
@@ -29,7 +32,8 @@ export const useToolsBar = () => {
 
     // store
     const store = useGeoOasisStore();
-    const { viewerRef, isElementPanel, selectedElement } = storeToRefs(store);
+    const { viewerRef, isPanelVisible, selectedElement, selectedLayer } =
+        storeToRefs(store);
     const { editor } = store;
 
     // hooks
@@ -67,7 +71,8 @@ export const useToolsBar = () => {
             // TODO 当LeftDown的时候，未选中地球时，LeftUp和MouseMove应该怎样处理
             draggingElement = undefined;
             selectedElement.value = undefined;
-            isElementPanel.value = false;
+            selectedLayer.value = undefined;
+            isPanelVisible.value = false;
             return;
         }
 
@@ -78,7 +83,9 @@ export const useToolsBar = () => {
         if (activeTool.value === "default") {
             draggingElement = editor.pickElement(positionedEvent.position);
             selectedElement.value = draggingElement;
-            isElementPanel.value = selectedElement.value ? true : false;
+            selectedLayer.value = editor.pickLayer(positionedEvent.position);
+            isPanelVisible.value =
+                selectedElement.value || selectedLayer.value ? true : false;
             if (draggingElement) {
                 // 锁定相机
                 viewerRef.value.scene.screenSpaceCameraController.enableRotate =
@@ -308,24 +315,46 @@ export const useToolsBar = () => {
 
     let fileContent;
     const handleLoadFile = (file: File) => {
+        const fileType = getFileType(file.name);
+        if (!fileType) {
+            throw new Error("unknown file type");
+        }
         const reader = new FileReader();
         reader.addEventListener("load", (e) => {
-            try {
-                const jsonObj = JSON.parse(e.target!.result as string);
-                fileContent = jsonObj;
-                editor.addLayer({
-                    id: "1234",
-                    name: "Geojsontest",
-                    type: "service",
-                    provider: "geojson",
-                    url: fileContent,
-                    show: true
+            if (fileType === FileType.GEOJSON || fileType === FileType.JSON) {
+                try {
+                    const jsonObj = JSON.parse(e.target!.result as string);
+                    fileContent = jsonObj;
+                    editor.addLayer({
+                        id: nanoid(),
+                        name: "Geojsontest",
+                        type: "service",
+                        provider: "geojson",
+                        url: fileContent,
+                        show: true
+                    });
+                } catch (e) {
+                    console.error("file format isn't vivid JSON format", e);
+                }
+            } else if (fileType === FileType.PNGImage) {
+                const imageArr = new Uint8Array(
+                    e.target?.result as ArrayBuffer
+                );
+                const imageElement = newImageElement({
+                    name: "",
+                    show: "true",
+                    url: imageArr
+                    // url: e.target?.result
                 });
-            } catch (e) {
-                console.error("file format isn't vivid JSON format", e);
+                editor.addElement(imageElement);
             }
         });
-        reader.readAsText(file); // 读取文件内容为文本
+        if (fileType === FileType.GEOJSON || fileType === FileType.JSON) {
+            reader.readAsText(file); // 读取文件内容为文本
+        } else if (fileType === FileType.PNGImage) {
+            // reader.readAsDataURL(file);
+            reader.readAsArrayBuffer(file);
+        }
     };
 
     return { activeTool, handleLoadFile };

@@ -6,12 +6,14 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+.VSCodeCounter
 
 node_modules
 dist
 dist-ssr
 *.local
 pnpm-lock.yaml
+trash
 
 # Editor directories and files
 .vscode/*
