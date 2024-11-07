@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Button from "./internals/Button.vue";
 import Separator from "./internals/Separator.vue";
+import Select from "./internals/Select.vue";
 import { computed } from "vue";
 import { useLayersBar } from "../composables/useLayersBar";
 
@@ -19,16 +20,7 @@ const polylineElements = computed(() => {
     return elementsRef.value.filter((e) => e.type === "polyline");
 });
 
-const options = [
-    {
-        value: "Bing",
-        label: "Bing"
-    },
-    {
-        value: "ArcGIS",
-        label: "ArcGIS"
-    }
-];
+const baseMapOptions = ["Bing", "ArcGIS"];
 </script>
 
 <template>
@@ -38,15 +30,12 @@ const options = [
             id: {{ e.id.slice(0, 3) }}, type: {{ e.type }}
         </div>
         <Separator />
-        <p>BaseMap</p>
-        <el-select v-model="selectedBaseLayer" placeholder="Select">
-            <el-option
-                v-for="item in options"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-            />
-        </el-select>
+        <Select
+            title="BaseMap"
+            :selected="selectedBaseLayer"
+            :select-options="baseMapOptions"
+            @update:model-value="selectedBaseLayer = $event"
+        ></Select>
         <Separator />
         <Button @click="add3dtilesTest">add3dtilesTest</Button>
         <h3>Elements</h3>

@@ -30,7 +30,7 @@ export const newPointElement = (
             }
         ],
         pixelSize: 10,
-        color: "white"
+        color: "#FFFFFF"
     };
 };
 
