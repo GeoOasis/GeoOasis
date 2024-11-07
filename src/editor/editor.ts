@@ -40,7 +40,8 @@ import {
 import {
     generateArcgisImageryFromLayer,
     generateBingImageryFromLayer,
-    generateWMSImageryFromLayer
+    generateWMSImageryFromLayer,
+    generateSingleTileImageryFromLayer
 } from "../layer/utils";
 import { Hocuspocus_URL } from "../contants";
 
@@ -335,6 +336,8 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                     break;
                 case "wms":
                     return generateWMSImageryFromLayer(layer);
+                case "singleTile":
+                    return await generateSingleTileImageryFromLayer(layer);
                 default:
                     break;
             }

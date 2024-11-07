@@ -1,6 +1,9 @@
 import {
     ArcGisMapServerImageryProvider,
+    Cartographic,
     ImageryLayer,
+    Rectangle,
+    SingleTileImageryProvider,
     WebMapServiceImageryProvider,
     WebMapTileServiceImageryProvider,
     createWorldImageryAsync
@@ -45,4 +48,26 @@ export function generateWMSImageryFromLayer(layer: GeoOasisImageryLayer) {
         parameters: layer.parameters
     });
     return new ImageryLayer(wmsImageryProvider);
+}
+
+export async function generateSingleTileImageryFromLayer(
+    layer: GeoOasisImageryLayer
+) {
+    console.log("singleTIle", layer);
+    const singleTileImageryProvider = await SingleTileImageryProvider.fromUrl(
+        layer.url as string,
+        {
+            rectangle: Rectangle.fromCartographicArray([
+                Cartographic.fromDegrees(
+                    layer.parameters.extent.minLng,
+                    layer.parameters.extent.minLat
+                ),
+                Cartographic.fromDegrees(
+                    layer.parameters.extent.maxLng,
+                    layer.parameters.extent.maxLat
+                )
+            ])
+        }
+    );
+    return new ImageryLayer(singleTileImageryProvider);
 }

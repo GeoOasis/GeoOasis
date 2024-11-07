@@ -119,24 +119,36 @@ const handleExecuteBtn = (tool: string) => {
             });
             bitmap.then((bitmap) => {
                 ctx?.drawImage(bitmap, 0, 0);
-                canvas.toBlob(
-                    (blob) => {
-                        blob?.arrayBuffer().then((buffer) => {
-                            const imageArr = new Uint8Array(buffer);
-                            const heatmap = newImageElement({
-                                id: nanoid(),
-                                type: "image",
-                                name: "heatMap",
-                                show: true,
-                                url: imageArr,
-                                extent: option.extent
-                            });
-                            editor.addElement(heatmap);
-                        });
-                    },
-                    "image/png",
-                    1.0
-                );
+                // canvas.toBlob(
+                //     (blob) => {
+                //         blob?.arrayBuffer().then((buffer) => {
+                //             const imageArr = new Uint8Array(buffer);
+                //             const heatmap = newImageElement({
+                //                 id: nanoid(),
+                //                 type: "image",
+                //                 name: "heatMap",
+                //                 show: true,
+                //                 url: imageArr,
+                //                 extent: option.extent
+                //             });
+                //             editor.addElement(heatmap);
+                //         });
+                //     },
+                //     "image/png",
+                //     1.0
+                // );
+                const pngDataUrl = canvas.toDataURL("image/png", 1.0);
+                editor.addLayer({
+                    id: nanoid(),
+                    name: "heatMap",
+                    type: "imagery",
+                    provider: "singleTile",
+                    show: true,
+                    url: pngDataUrl,
+                    parameters: {
+                        extent: option.extent
+                    }
+                });
             });
         }
     });
