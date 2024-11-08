@@ -4,7 +4,6 @@ import AppHeader from "./components/AppHeader.vue";
 import FooterBar from "./components/FooterBar.vue";
 import LayersBar from "./components/LayersBar.vue";
 import InfoPanel from "./components/InfoPanel.vue";
-import Dialog from "./components/Dialog.vue";
 import { useGeoOasisStore } from "./store/GeoOasis.store";
 import { storeToRefs } from "pinia";
 
@@ -19,7 +18,6 @@ const { isPanelVisible } = storeToRefs(store);
         <LayersBar />
         <FooterBar />
         <InfoPanel v-show="isPanelVisible" />
-        <Dialog></Dialog>
     </div>
 </template>
 

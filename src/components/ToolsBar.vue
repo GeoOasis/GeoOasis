@@ -8,9 +8,9 @@ import {
     ToolbarToggleItem
 } from "radix-vue";
 import ToolbarUploadButton from "./internals/UploadButton.vue";
+import Dialog from "./Dialog.vue";
 import { Icon } from "@iconify/vue";
 import { ref, watch } from "vue";
-import { storeToRefs } from "pinia";
 import { nanoid } from "nanoid";
 import { useToolsBar } from "../composables/useToolsBar";
 import { useYjs } from "../composables/useYjs";
@@ -21,7 +21,6 @@ import { randomGeoJsonPoint } from "../mock";
 const toggleStateMultiple = ref([]);
 
 const store = useGeoOasisStore();
-const { dialogVisible } = storeToRefs(store);
 
 const { undo, redo } = useYjs();
 const { activeTool, handleLoadFile } = useToolsBar();
@@ -98,14 +97,12 @@ const mockData = () => {
             Upload
             <Icon icon="gis:3dtiles-file" />
         </ToolbarUploadButton>
-        <ToolbarButton
-            class="ToolbarButton"
-            style="margin-left: 10px"
-            @click="dialogVisible = true"
-        >
-            <span>Url</span>
-            <Icon icon="gis:search-feature" />
-        </ToolbarButton>
+        <Dialog>
+            <template #trigger>
+                <span>Url</span>
+                <Icon icon="gis:search-feature" />
+            </template>
+        </Dialog>
         <ToolbarButton class="ToolbarButton" style="margin-left: auto">
             Share
         </ToolbarButton>

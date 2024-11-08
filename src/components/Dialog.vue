@@ -1,17 +1,27 @@
 <script setup lang="ts">
+import {
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogOverlay,
+    DialogPortal,
+    DialogRoot,
+    DialogTitle,
+    DialogTrigger
+} from "radix-vue";
+import { Icon } from "@iconify/vue";
 import { ref } from "vue";
+import { nanoid } from "nanoid";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
-import { storeToRefs } from "pinia";
+import "./Dialog.css";
 
 const store = useGeoOasisStore();
-const { dialogVisible } = storeToRefs(store);
 const { editor } = store;
 const input = ref("");
 const handleUpload = () => {
-    dialogVisible.value = false;
     editor.addLayer({
-        id: "for test use",
-        name: "3dTiles",
+        id: nanoid(),
+        name: "test 3dTiles",
         type: "3dtiles",
         url: input.value,
         show: true
@@ -20,24 +30,45 @@ const handleUpload = () => {
 </script>
 
 <template>
-    <el-dialog
-        v-model="dialogVisible"
-        title="Upload from Url"
-        width="30%"
-        align-center
-        :show-close="false"
-    >
-        <el-space fill direction="vertical" style="width: 100%">
-            <span>从Url上传3d tiles</span>
-            <el-input v-model="input" placeholder="please input 3D Tiles Url" />
-        </el-space>
-        <template #footer>
-            <div class="dialog-footer">
-                <el-button @click="dialogVisible = false">Cancel</el-button>
-                <el-button @click="handleUpload">Add to map</el-button>
-            </div>
-        </template>
-    </el-dialog>
+    <DialogRoot>
+        <DialogTrigger class="btn" style="margin-left: 10px">
+            <slot name="trigger"></slot>
+        </DialogTrigger>
+        <DialogPortal>
+            <DialogOverlay class="DialogOverlay" />
+            <DialogContent class="DialogContent">
+                <DialogTitle class="DialogTitle">Upload from Url</DialogTitle>
+                <DialogDescription class="DialogDescription">
+                    从Url上传3d tiles
+                </DialogDescription>
+                <fieldset class="Fieldset">
+                    <label class="Label" for="url">Url</label>
+                    <input
+                        id="url"
+                        class="Input"
+                        placeholder="please input 3D Tiles Url"
+                        v-model="input"
+                    />
+                </fieldset>
+                <div
+                    :style="{
+                        display: 'flex',
+                        marginTop: 25,
+                        justifyContent: 'flex-end'
+                    }"
+                >
+                    <DialogClose as-child>
+                        <button class="Button green" @click="handleUpload">
+                            Add to map
+                        </button>
+                    </DialogClose>
+                </div>
+                <DialogClose class="IconButton" aria-label="Close">
+                    <Icon icon="lucide:x" />
+                </DialogClose>
+            </DialogContent>
+        </DialogPortal>
+    </DialogRoot>
 </template>
 
 <style scoped></style>

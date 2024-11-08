@@ -15,7 +15,6 @@ export const useGeoOasisStore = defineStore("viewer", () => {
     const selectedElement = ref<Element | undefined>();
     const selectedLayer = ref<Layer | undefined>();
     const selectedBaseLayer = ref("Bing");
-    const dialogVisible = ref(false);
 
     const elementState = shallowRef(editor.value.elements.toJSON());
     const layerState = shallowRef(editor.value.layers.toJSON());
@@ -29,7 +28,6 @@ export const useGeoOasisStore = defineStore("viewer", () => {
         isPanelVisible,
         selectedElement,
         selectedLayer,
-        selectedBaseLayer,
-        dialogVisible
+        selectedBaseLayer
     };
 });
