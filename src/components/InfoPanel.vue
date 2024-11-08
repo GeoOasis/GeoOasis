@@ -9,7 +9,6 @@ import Separator from "./internals/Separator.vue";
 import Switch from "./internals/Switch.vue";
 import Select from "./internals/Select.vue";
 import { Icon } from "@iconify/vue";
-import "./ToolsBar.css";
 import { newImageElement } from "../element/newElement";
 
 const store = useGeoOasisStore();
@@ -270,7 +269,37 @@ const handleExecuteBtn = (tool: string) => {
     display: flex;
 }
 
+/* reset */
+input {
+    all: unset;
+}
+
 .LabelRoot {
-    margin-right: 10px;
+    /* margin-right: 10px; */
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 35px;
+}
+
+.Input {
+    width: 200px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    padding: 0 10px;
+    height: 35px;
+    font-size: 15px;
+    line-height: 1;
+    /* color: white; */
+    /* background-color: var(--green-5); */
+    box-shadow: 0 0 0 1px var(--green-9);
+}
+.Input:focus {
+    box-shadow: 0 0 0 2px black;
+}
+.Input::selection {
+    background-color: var(--green-9);
+    color: white;
 }
 </style>

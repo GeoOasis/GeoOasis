@@ -28,6 +28,7 @@ export const useToolsBar = () => {
     let endPoint: Cartesian3;
 
     const activeTool = ref("default");
+    const drawMode = ref("ground"); // TODO: draw mode
     // const isEditting = computed(() => activeTool.value !== "default");
 
     // store
@@ -357,5 +358,5 @@ export const useToolsBar = () => {
         }
     };
 
-    return { activeTool, handleLoadFile };
+    return { activeTool, drawMode, handleLoadFile };
 };

@@ -17,13 +17,10 @@ import { useYjs } from "../composables/useYjs";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { randomGeoJsonPoint } from "../mock";
 
-// for test
-const toggleStateMultiple = ref([]);
-
 const store = useGeoOasisStore();
 
 const { undo, redo } = useYjs();
-const { activeTool, handleLoadFile } = useToolsBar();
+const { activeTool, drawMode, handleLoadFile } = useToolsBar();
 const items = [
     {
         label: "default",
@@ -74,12 +71,12 @@ const mockData = () => {
 
 <template>
     <ToolbarRoot class="ToolbarRoot">
-        <ToolbarToggleGroup v-model="toggleStateMultiple" type="multiple">
-            <ToolbarToggleItem class="ToolbarToggleItem" value="point">
-                <Icon icon="gis:poi" />
+        <ToolbarToggleGroup v-model="drawMode" type="single">
+            <ToolbarToggleItem class="ToolbarToggleItem" value="ground">
+                <Icon icon="gis:layer-alt-poi" />
             </ToolbarToggleItem>
-            <ToolbarToggleItem class="ToolbarToggleItem" value="strikethrough">
-                <Icon icon="radix-icons:strikethrough" />
+            <ToolbarToggleItem class="ToolbarToggleItem" value="space">
+                <Icon icon="gis:cube-3d" />
             </ToolbarToggleItem>
         </ToolbarToggleGroup>
         <ToolbarSeparator class="ToolbarSeparator" />

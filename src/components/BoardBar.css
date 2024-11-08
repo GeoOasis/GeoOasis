@@ -18,6 +18,7 @@ button {
   padding: 5px;
   border-radius: 6px;
   box-shadow: 0 2px 10px var(--black-a7);
+  overflow-x: hidden;
 }
 
 .MenubarTrigger {

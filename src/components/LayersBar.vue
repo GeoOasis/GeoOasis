@@ -46,21 +46,6 @@ const baseMapOptions = ["Bing", "ArcGIS"];
         >
             id: {{ e.id.slice(0, 3) }}, type: {{ e.type }}
         </div>
-        <!-- <div
-            class="element"
-            v-for="e in pointElements"
-            @click="handleSelect(e.id)"
-        >
-            id: {{ e.id.slice(0, 3) }}, type: {{ e.type }}
-        </div>
-        <div
-            class="element"
-            v-for="e in polylineElements"
-            @click="handleSelect(e.id)"
-        >
-            id: {{ e.id.slice(0, 3) }}, type:
-            {{ e.type }}
-        </div> -->
     </div>
 </template>
 
@@ -69,9 +54,10 @@ const baseMapOptions = ["Bing", "ArcGIS"];
     position: fixed;
     left: 30px;
     top: 100px;
+    bottom: 50px;
 
     width: 250px;
-    height: calc(100% - 300px);
+    /* height: calc(100% - 300px); */
     overflow-y: auto;
 
     background-color: var(--grass-1);
