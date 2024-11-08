@@ -3,6 +3,8 @@ import {
     Viewer,
     CallbackProperty,
     Cartesian2,
+    Cartesian3,
+    Matrix4,
     Color,
     ImageryLayer,
     DataSource,
@@ -315,6 +317,16 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                 }
                 break;
             case "3dtiles":
+                if (layerAdded.tileset) {
+                    const response = await fetch(layerAdded.url);
+                    const tilesetJsonData = await response.json();
+                    console.log(tilesetJsonData);
+                    this.renderBoundingVolume(tilesetJsonData);
+                    // TODO 优化: 本次会触发 Yjs addEvent
+                    this.layers
+                        .get(layerAdded.id)
+                        ?.set("tileset", tilesetJsonData);
+                }
                 layer = await this.add3dtilesLayer(layerAdded);
                 if (layer) {
                     this.viewer?.scene.primitives.add(layer);
@@ -326,6 +338,7 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                 }
                 break;
             case "terrain":
+                break;
         }
     }
 
@@ -371,6 +384,59 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
         } catch (error) {
             console.error(`Error creating tileset: ${error}`);
         }
+    }
+
+    private renderBoundingVolume(tilesetjson: any): Entity | undefined {
+        console.log(tilesetjson);
+        const rootBoundingVolume = tilesetjson.root.boundingVolume;
+        const rootTransform: number[] = tilesetjson.root.transform;
+        let boundingVolumeEntity: Entity | undefined;
+        if (rootBoundingVolume.box) {
+            const matrix4 = Matrix4.fromArray(rootTransform);
+            const globecenter = new Cartesian3(0.0, 0.0, 0.0);
+            const localcenter = Matrix4.multiplyByPoint(
+                matrix4,
+                globecenter,
+                globecenter
+            );
+
+            const boxcenter = new Cartesian3(
+                rootBoundingVolume.box[0],
+                rootBoundingVolume.box[1],
+                rootBoundingVolume.box[2]
+            );
+            const localboxcenter = Cartesian3.add(
+                localcenter,
+                boxcenter,
+                localcenter
+            );
+            const box = this.viewer?.entities.add({
+                id: "box",
+                position: localboxcenter,
+                box: {
+                    dimensions: new Cartesian3(
+                        rootBoundingVolume.box[3],
+                        rootBoundingVolume.box[7],
+                        rootBoundingVolume.box[11]
+                    ),
+                    material: Color.RED.withAlpha(0.5),
+                    outline: true,
+                    outlineColor: Color.BLACK
+                }
+            });
+
+            // const localcenterpoint = this.viewer?.entities.add({
+            //     id: "point",
+            //     position: localcenter,
+            //     point: {
+            //         color: Color.WHITE,
+            //         pixelSize: 10
+            //     }
+            // });
+            boundingVolumeEntity = box;
+            this.viewer?.flyTo(box as Entity);
+        }
+        return boundingVolumeEntity;
     }
 
     handleYjsElementsEvents(

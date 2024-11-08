@@ -45,5 +45,6 @@ export interface GeoOasisServiceLayer extends GeoOasisBaseLayer {
 export interface GeoOasis3DTilesLayer extends GeoOasisBaseLayer {
     type: "3dtiles";
     url: string;
+    tileset?: Object;
     show: boolean;
 }
