@@ -12,7 +12,7 @@ import Dialog from "./Dialog.vue";
 import { Icon } from "@iconify/vue";
 import { ref, watch } from "vue";
 import { nanoid } from "nanoid";
-import { useToolsBar } from "../composables/useToolsBar";
+import { useToolsBar, DrawMode } from "../composables/useToolsBar";
 import { useYjs } from "../composables/useYjs";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { randomGeoJsonPoint } from "../mock";
@@ -20,7 +20,7 @@ import { randomGeoJsonPoint } from "../mock";
 const store = useGeoOasisStore();
 
 const { undo, redo } = useYjs();
-const { activeTool, drawMode, handleLoadFile } = useToolsBar();
+const { activeTool, toolsDisabled, drawMode, handleLoadFile } = useToolsBar();
 const items = [
     {
         label: "default",
@@ -72,15 +72,25 @@ const mockData = () => {
 <template>
     <ToolbarRoot class="ToolbarRoot">
         <ToolbarToggleGroup v-model="drawMode" type="single">
-            <ToolbarToggleItem class="ToolbarToggleItem" value="ground">
+            <ToolbarToggleItem
+                class="ToolbarToggleItem"
+                :value="DrawMode.SURFACE"
+            >
                 <Icon icon="gis:layer-alt-poi" />
             </ToolbarToggleItem>
-            <ToolbarToggleItem class="ToolbarToggleItem" value="space">
+            <ToolbarToggleItem
+                class="ToolbarToggleItem"
+                :value="DrawMode.SPACE"
+            >
                 <Icon icon="gis:cube-3d" />
             </ToolbarToggleItem>
         </ToolbarToggleGroup>
         <ToolbarSeparator class="ToolbarSeparator" />
-        <ToolbarToggleGroup v-model="activeTool" type="single">
+        <ToolbarToggleGroup
+            v-model="activeTool"
+            :disabled="toolsDisabled"
+            type="single"
+        >
             <ToolbarToggleItem
                 class="ToolbarToggleItem"
                 v-for="item in items"

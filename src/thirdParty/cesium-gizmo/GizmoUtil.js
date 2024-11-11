@@ -1,3 +1,5 @@
+import * as Cesium from "cesium";
+
 function getScaleInPixels(positionWC, radius, frameState) {
     const scratchBoundingSphere = new Cesium.BoundingSphere();
     scratchBoundingSphere.center = positionWC;

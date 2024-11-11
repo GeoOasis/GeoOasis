@@ -5,6 +5,8 @@
  *Copyright (c) 2023 ZHENG WENYI
  */
 
+import * as Cesium from "cesium";
+
 import {
   getScaleFromTransform,
   getScaleForMinimumSize,

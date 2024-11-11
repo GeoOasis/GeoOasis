@@ -1,4 +1,4 @@
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref, watchEffect } from "vue";
 import { storeToRefs } from "pinia";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import {
@@ -17,31 +17,45 @@ import {
 import { point3FromCartesian3 } from "../element/utils";
 import { nanoid } from "nanoid";
 import { FileType, getFileType } from "../utils";
+import { CesiumGizmo } from "../thirdParty/cesium-gizmo";
+
+export enum DrawMode {
+    SURFACE = "surface",
+    SPACE = "space"
+}
+
+enum GizmoMode {
+    TRANSLATE = "TRANSLATE",
+    ROTATE = "ROTATE",
+    SCALE = "SCALE",
+    UNIFORM_SCALE = "UNIFORM_SCALE"
+}
 
 export const useToolsBar = () => {
-    // data or model or state
     let handler: ScreenSpaceEventHandler;
-    // let isEditting: boolean = true;
+    let gizmo: CesiumGizmo;
     let edittingElement: Element | null = null;
     let draggingElement: Element | undefined = undefined;
     let startPoint: Cartesian3;
     let endPoint: Cartesian3;
 
+    const drawMode = ref(DrawMode.SURFACE);
     const activeTool = ref("default");
-    const drawMode = ref("ground"); // TODO: draw mode
-    // const isEditting = computed(() => activeTool.value !== "default");
+    const toolsDisabled = computed(() => drawMode.value === DrawMode.SPACE);
 
-    // store
     const store = useGeoOasisStore();
     const { viewerRef, isPanelVisible, selectedElement, selectedLayer } =
         storeToRefs(store);
     const { editor } = store;
 
-    // hooks
+    watchEffect(() => {
+        activeTool.value = toolsDisabled.value ? "default" : activeTool.value;
+        if (gizmo) gizmo.show = toolsDisabled.value;
+    });
+
     onMounted(() => {
         console.log("ToolsBar mounted");
-        const scene = viewerRef.value.scene;
-        handler = new ScreenSpaceEventHandler(scene.canvas);
+        handler = new ScreenSpaceEventHandler(viewerRef.value.scene.canvas);
         handler.setInputAction(
             handleCanvasLeftDown,
             ScreenSpaceEventType.LEFT_DOWN
@@ -58,7 +72,19 @@ export const useToolsBar = () => {
             handleCanvasRightClick,
             ScreenSpaceEventType.RIGHT_CLICK
         );
+
+        gizmo = new CesiumGizmo(viewerRef.value, {
+            show: drawMode.value === DrawMode.SPACE,
+            applyTransformation: false,
+            onDragMoving: (res: { mode: GizmoMode; result: any }) => {
+                handleGizmoDragMoving(res.mode, res.result);
+            }
+        });
     });
+
+    const handleGizmoDragMoving = (mode: GizmoMode, result: any) => {
+        console.log(mode, result);
+    };
 
     const handleCanvasLeftDown = (
         positionedEvent: ScreenSpaceEventHandler.PositionedEvent
@@ -95,6 +121,9 @@ export const useToolsBar = () => {
             return;
         }
 
+        // 如果是space模式，那么就不绘制元素
+        if (toolsDisabled.value) return;
+
         // 三种情况 point和polygon绘制的时候禁用mousemove，或者设置特定的mousemove
         // point: down up
         // line: down move up
@@ -128,8 +157,8 @@ export const useToolsBar = () => {
                 break;
             case "model":
                 const ModelElement = newModelElement(
-                    "1232434123432314",
-                    "myModel",
+                    nanoid(),
+                    "",
                     true,
                     startPoint,
                     "./Cesium_Air.glb"
@@ -182,6 +211,8 @@ export const useToolsBar = () => {
     const handleCanvasMouseMove = (
         motionEvent: ScreenSpaceEventHandler.MotionEvent
     ) => {
+        if (toolsDisabled.value) return;
+
         // drag element logic
         if (draggingElement !== undefined) {
             const motionStartPosition = viewerRef.value.camera.pickEllipsoid(
@@ -314,7 +345,6 @@ export const useToolsBar = () => {
         }
     };
 
-    let fileContent;
     const handleLoadFile = (file: File) => {
         const fileType = getFileType(file.name);
         if (!fileType) {
@@ -325,13 +355,12 @@ export const useToolsBar = () => {
             if (fileType === FileType.GEOJSON || fileType === FileType.JSON) {
                 try {
                     const jsonObj = JSON.parse(e.target!.result as string);
-                    fileContent = jsonObj;
                     editor.addLayer({
                         id: nanoid(),
                         name: "Geojsontest",
                         type: "service",
                         provider: "geojson",
-                        url: fileContent,
+                        url: jsonObj,
                         show: true
                     });
                 } catch (e) {
@@ -358,5 +387,5 @@ export const useToolsBar = () => {
         }
     };
 
-    return { activeTool, drawMode, handleLoadFile };
+    return { activeTool, toolsDisabled, drawMode, handleLoadFile };
 };
