@@ -1,4 +1,4 @@
-import { computed, onMounted, ref, watchEffect } from "vue";
+import { onMounted, ref, watchEffect } from "vue";
 import { storeToRefs } from "pinia";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import {
@@ -41,7 +41,6 @@ export const useToolsBar = () => {
 
     const drawMode = ref(DrawMode.SURFACE);
     const activeTool = ref("default");
-    const toolsDisabled = computed(() => drawMode.value === DrawMode.SPACE);
 
     const store = useGeoOasisStore();
     const { viewerRef, isPanelVisible, selectedElement, selectedLayer } =
@@ -49,8 +48,9 @@ export const useToolsBar = () => {
     const { editor } = store;
 
     watchEffect(() => {
-        activeTool.value = toolsDisabled.value ? "default" : activeTool.value;
-        if (gizmo) gizmo.show = toolsDisabled.value;
+        activeTool.value =
+            drawMode.value === DrawMode.SPACE ? "default" : activeTool.value;
+        if (gizmo) gizmo.show = drawMode.value === DrawMode.SPACE;
     });
 
     onMounted(() => {
@@ -80,10 +80,43 @@ export const useToolsBar = () => {
                 handleGizmoDragMoving(res.mode, res.result);
             }
         });
+
+        gizmo.mode = GizmoMode.TRANSLATE;
     });
 
+    // translate -> Cartesian3, 替换
+    // rotate -> Transforms.fixedFrameToHeadingPitchRoll(finalTransform), final transform替换
+    // scale uniform_scale -> [scaleX, scaleY, scaleZ]， transform替换
     const handleGizmoDragMoving = (mode: GizmoMode, result: any) => {
         console.log(mode, result);
+        if (draggingElement) {
+            switch (mode) {
+                case GizmoMode.TRANSLATE:
+                    editor.mutateElement(draggingElement.id, {
+                        positions: [
+                            {
+                                x: result.x,
+                                y: result.y,
+                                z: result.z
+                            }
+                        ]
+                    });
+                    break;
+                case GizmoMode.ROTATE:
+                    editor.mutateElement(draggingElement.id, {
+                        orientation: {
+                            heading: result.heading,
+                            pitch: result.pitch,
+                            roll: result.roll
+                        }
+                    });
+                    break;
+                case GizmoMode.SCALE:
+                    break;
+                case GizmoMode.UNIFORM_SCALE:
+                    break;
+            }
+        }
     };
 
     const handleCanvasLeftDown = (
@@ -106,29 +139,45 @@ export const useToolsBar = () => {
         startPoint = cartesian;
         console.log("left click on earth: ", cartesian);
 
-        // * if the active tool is default, then can drag&edit the selected element
+        // * if the active tool is default, then can drag the selected element
+        // * when drawMode is SPACE, the active tool is default
         if (activeTool.value === "default") {
-            draggingElement = editor.pickElement(positionedEvent.position);
-            selectedElement.value = draggingElement;
+            const pickedElement = editor.pickElement(positionedEvent.position);
+            if (drawMode.value === DrawMode.SURFACE) {
+                // 如果是surface模式, 照旧
+                draggingElement = pickedElement;
+                selectedElement.value = pickedElement;
+                if (draggingElement) {
+                    // 锁定相机
+                    viewerRef.value.scene.screenSpaceCameraController.enableRotate =
+                        false;
+                    viewerRef.value.scene.screenSpaceCameraController.enableTranslate =
+                        false;
+                }
+            } else {
+                // 如果是space模式，返回结果undefined意味着 【没选中任何primitive】 OR 【选中了Gizmo】
+                if (pickedElement) {
+                    draggingElement = pickedElement;
+                    selectedElement.value = pickedElement;
+                }
+            }
+
             selectedLayer.value = editor.pickLayer(positionedEvent.position);
             isPanelVisible.value =
                 selectedElement.value || selectedLayer.value ? true : false;
-            if (draggingElement) {
-                // 锁定相机
-                viewerRef.value.scene.screenSpaceCameraController.enableRotate =
-                    false;
-            }
+            console.log(
+                "selectedELement",
+                selectedElement.value,
+                "isPanelViseible",
+                isPanelVisible.value
+            );
             return;
         }
-
-        // 如果是space模式，那么就不绘制元素
-        if (toolsDisabled.value) return;
 
         // 三种情况 point和polygon绘制的时候禁用mousemove，或者设置特定的mousemove
         // point: down up
         // line: down move up
         // polygon: down move up down move up ... doubleclick
-        // TODO: id设置
         switch (activeTool.value) {
             case "point":
                 const PointElement = newPointElement(
@@ -211,7 +260,7 @@ export const useToolsBar = () => {
     const handleCanvasMouseMove = (
         motionEvent: ScreenSpaceEventHandler.MotionEvent
     ) => {
-        if (toolsDisabled.value) return;
+        if (drawMode.value === DrawMode.SPACE) return;
 
         // drag element logic
         if (draggingElement !== undefined) {
@@ -303,9 +352,13 @@ export const useToolsBar = () => {
 
     const handleCanvasLeftUp = () => {
         console.log("left up!");
+        if (drawMode.value === DrawMode.SPACE) return;
+
         if (draggingElement !== undefined) {
             draggingElement = undefined;
             viewerRef.value.scene.screenSpaceCameraController.enableRotate =
+                true;
+            viewerRef.value.scene.screenSpaceCameraController.enableTranslate =
                 true;
         }
 
@@ -387,5 +440,5 @@ export const useToolsBar = () => {
         }
     };
 
-    return { activeTool, toolsDisabled, drawMode, handleLoadFile };
+    return { activeTool, drawMode, handleLoadFile };
 };
