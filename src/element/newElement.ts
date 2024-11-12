@@ -87,7 +87,12 @@ export const newModelElement = (
                 z: position.z
             }
         ],
-        url
+        url,
+        orientation: {
+            heading: 0,
+            pitch: 0,
+            roll: 0
+        }
     };
 };
 

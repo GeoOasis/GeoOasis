@@ -20,7 +20,7 @@ import { randomGeoJsonPoint } from "../mock";
 const store = useGeoOasisStore();
 
 const { undo, redo } = useYjs();
-const { activeTool, toolsDisabled, drawMode, handleLoadFile } = useToolsBar();
+const { activeTool, drawMode, handleLoadFile } = useToolsBar();
 const items = [
     {
         label: "default",
@@ -88,7 +88,7 @@ const mockData = () => {
         <ToolbarSeparator class="ToolbarSeparator" />
         <ToolbarToggleGroup
             v-model="activeTool"
-            :disabled="toolsDisabled"
+            :disabled="activeTool === DrawMode.SPACE"
             type="single"
         >
             <ToolbarToggleItem

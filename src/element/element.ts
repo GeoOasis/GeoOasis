@@ -16,6 +16,11 @@ export interface GeoOasisBaseElement {
     type: string;
     description: string;
     positions: Point3[];
+    orientation?: {
+        heading: number,
+        pitch: number,
+        roll: number,
+    };
 }
 
 // points, billboards, labels

@@ -2,8 +2,10 @@ import {
     Cartesian3,
     Color,
     Entity,
+    HeadingPitchRoll,
     ImageMaterialProperty,
-    Rectangle
+    Rectangle,
+    Transforms
 } from "cesium";
 import {
     GeoOasisPointElement,
@@ -61,15 +63,24 @@ export const generateModelEntityfromElement = (
     element: GeoOasisModelElement
 ): Entity => {
     const poi = element.positions[0];
+    const center = Cartesian3.fromElements(poi.x, poi.y, poi.z);
     return new Entity({
         id: element.id,
         name: element.name,
         show: element.show,
-        position: Cartesian3.fromElements(poi.x, poi.y, poi.z),
+        position: center,
+        orientation: Transforms.headingPitchRollQuaternion(
+            center,
+            new HeadingPitchRoll(
+                element.orientation?.heading,
+                element.orientation?.pitch,
+                element.orientation?.roll
+            )
+        ),
         model: {
-            uri: element.url,
-            minimumPixelSize: 128,
-            maximumScale: 20000
+            uri: element.url
+            // minimumPixelSize: 128,
+            // maximumScale: 20000
         }
     });
 };

@@ -11,7 +11,9 @@ import {
     Primitive,
     Cesium3DTileset,
     GeoJsonDataSource,
-    PolygonHierarchy
+    PolygonHierarchy,
+    Transforms,
+    HeadingPitchRoll
 } from "cesium";
 import * as Y from "yjs";
 import { ObservableV2 } from "lib0/observable.js";
@@ -146,6 +148,22 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                 }, false);
                 break;
             case "model":
+                // @ts-ignore
+                entity.position = new CallbackProperty(() => {
+                    return cartesian3FromPoint3(
+                        this.elements.get(id)?.get("positions")[0]
+                    );
+                }, false);
+                entity.orientation = new CallbackProperty(() => {
+                    const pos = cartesian3FromPoint3(
+                        this.elements.get(id)?.get("positions")[0]
+                    );
+                    const { heading, pitch, roll } = this.elements
+                        .get(id)
+                        ?.get("orientation");
+                    const hpr = new HeadingPitchRoll(heading, pitch, roll);
+                    return Transforms.headingPitchRollQuaternion(pos, hpr);
+                }, false);
                 break;
             case "image":
                 break;
@@ -218,17 +236,16 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
     pickLayer(position: Cartesian2) {
         const pickedEntity = this.viewer?.scene.pick(position);
         if (pickedEntity) {
-            console.log(pickedEntity);
             const entity = pickedEntity.id;
             const entityCollection = entity.entityCollection;
             const owner = entityCollection.owner;
-            console.log("ower:", owner);
+            // console.log("ower:", owner);
             const found = this.serviceLayersArray.find(
                 ([layerId, dataSource]) => {
                     return dataSource === owner;
                 }
             );
-            console.log("found", found);
+            console.log("layerfound", found);
             const pickedId = found?.[0];
             if (pickedId) {
                 console.log(this.layers.get(pickedId)?.toJSON());
@@ -529,6 +546,8 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                             // polygon与polyline类似
                             break;
                         case "model":
+                            // positions属性不要修改给entityMutated，因为callbackproperty和Y.Map关联
+                            // orientation属不要修改给entityMutated，因为callbackproperty和Y.Map关联
                             break;
                         case "image":
                             break;
