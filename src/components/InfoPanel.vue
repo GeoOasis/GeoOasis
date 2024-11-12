@@ -2,13 +2,13 @@
 import { ref, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { nanoid } from "nanoid";
-import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { Label } from "radix-vue";
+import { Icon } from "@iconify/vue";
 import Button from "./internals/Button.vue";
 import Separator from "./internals/Separator.vue";
 import Switch from "./internals/Switch.vue";
 import Select from "./internals/Select.vue";
-import { Icon } from "@iconify/vue";
+import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { newImageElement } from "../element/newElement";
 
 const store = useGeoOasisStore();
@@ -20,10 +20,8 @@ const form = ref<any[]>([]);
 watch(selectedElement, () => {
     form.value = [];
     if (selectedElement.value) {
-        if (selectedElement.value.type === "point") {
-            for (const [key, value] of Object.entries(selectedElement.value)) {
-                form.value.push([key, value]);
-            }
+        for (const [key, value] of Object.entries(selectedElement.value)) {
+            form.value.push([key, value]);
         }
     }
 });
@@ -140,65 +138,73 @@ const handleExecuteBtn = (tool: string) => {
 <template>
     <div class="info-panel">
         <div v-show="selectedElement">
-            <div v-if="selectedElement?.type === 'point'">
-                <div v-for="(value, index) in form" class="info-panel-item">
-                    <div v-if="value[0] === 'name'">
-                        <Label class="LabelRoot" :for="value[0]">
-                            {{ value[0] }}
-                        </Label>
-                        <input
-                            :id="value[0]"
-                            class="Input"
-                            type="text"
-                            :value="value[1]"
-                            @change="
-                                (e: any) =>
-                                    handleElementChange({
-                                        name: e.target.value
-                                    })
-                            "
-                        />
-                    </div>
-                    <div v-else-if="value[0] === 'color'">
-                        <Label class="LabelRoot" :for="value[0]">
-                            {{ value[0] }}
-                        </Label>
-                        <el-color-picker
-                            v-model="value[1]"
-                            @change="
-                                (value: any) =>
-                                    handleElementChange({ color: value })
-                            "
-                        />
-                    </div>
-                    <div v-else-if="value[0] === 'pixelSize'">
-                        <Label class="LabelRoot" :for="value[0]">
-                            {{ value[0] }}
-                        </Label>
-                        <el-input-number
-                            v-model="value[1]"
-                            :min="1"
-                            :max="100"
-                            size="small"
-                            @change="
-                                (value: number) =>
-                                    handleElementChange({ pixelSize: value })
-                            "
-                        />
-                    </div>
-                    <div v-else-if="value[0] === 'description'">
-                        <Label class="LabelRoot" :for="value[0]">
-                            {{ value[0] }}
-                        </Label>
-                        <el-input
-                            type="textarea"
-                            v-model="value[1]"
-                            @change="
-                                (value: string) =>
-                                    handleElementChange({ description: value })
-                            "
-                        />
-                    </div>
+            <div v-for="(value, index) in form" class="info-panel-item">
+                <div v-if="value[0] === 'name'">
+                    <Label class="LabelRoot" :for="value[0]">
+                        {{ value[0] }}
+                    </Label>
+                    <input
+                        :id="value[0]"
+                        class="Input"
+                        type="text"
+                        :value="value[1]"
+                        @change="
+                            (e: any) =>
+                                handleElementChange({
+                                    name: e.target.value
+                                })
+                        "
+                    />
+                </div>
+                <div v-else-if="value[0] === 'description'">
+                    <Label class="LabelRoot" :for="value[0]">
+                        {{ value[0] }}
+                    </Label>
+                    <el-input
+                        type="textarea"
+                        v-model="value[1]"
+                        @change="
+                            (value: string) =>
+                                handleElementChange({ description: value })
+                        "
+                    />
+                </div>
+                <div
+                    v-else-if="
+                        selectedElement?.type === 'point' &&
+                        value[0] === 'color'
+                    "
+                >
+                    <Label class="LabelRoot" :for="value[0]">
+                        {{ value[0] }}
+                    </Label>
+                    <el-color-picker
+                        v-model="value[1]"
+                        @change="
+                            (value: any) =>
+                                handleElementChange({ color: value })
+                        "
+                    />
+                </div>
+                <div
+                    v-else-if="
+                        selectedElement?.type === 'point' &&
+                        value[0] === 'pixelSize'
+                    "
+                >
+                    <Label class="LabelRoot" :for="value[0]">
+                        {{ value[0] }}
+                    </Label>
+                    <el-input-number
+                        v-model="value[1]"
+                        :min="1"
+                        :max="100"
+                        size="small"
+                        @change="
+                            (value: number) =>
+                                handleElementChange({ pixelSize: value })
+                        "
+                    />
                 </div>
             </div>
         </div>

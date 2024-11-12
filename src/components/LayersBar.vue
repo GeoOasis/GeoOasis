@@ -26,7 +26,7 @@ const baseMapOptions = ["Bing", "ArcGIS"];
 <template>
     <div class="layersbar">
         <h3>Layers</h3>
-        <div class="element" v-for="e in layersRef">
+        <div class="element" v-for="e in layersRef" @click="handleSelect(e.id)">
             id: {{ e.id.slice(0, 3) }}, type: {{ e.type }}
         </div>
         <Separator />

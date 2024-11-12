@@ -61,6 +61,7 @@ export interface BaseEditor {
     addElement(element: Element): void;
     deleteElement(id: Element["id"]): void;
     mutateElement(id: Element["id"], update: { [key: string]: any }): void;
+    getLayer(id: Layer["id"]): Layer | undefined;
     addLayer(layer: Layer): void;
     getLayerData(id: Layer["id"]): any;
     startEdit(id: Element["id"], type: Element["type"]): void;
@@ -258,6 +259,13 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
     getLayerData(id: Layer["id"]) {
         // TODO
         return this.layers.get(id)?.get("url");
+    }
+
+    getLayer(id: Layer["id"]): Layer | undefined {
+        if (!this.layers.has(id)) return undefined;
+        // @ts-ignore
+        const { url, ...rest } = this.layers.get(id)?.toJSON();
+        return rest as Layer;
     }
 
     addLayer(layer: Layer) {
@@ -524,7 +532,12 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                     switch (elementMutated.get("type")) {
                         case "point":
                             // TODO 类型系统
-                            if (key === "description") {
+                            if (key === "name") {
+                                // @ts-ignore
+                                entityMutated.label.text = updateVal;
+                                // @ts-ignore
+                                entityMutated.point[key] = updateVal;
+                            } else if (key === "description") {
                                 entityMutated[key] = updateVal;
                             } else if (key === "color") {
                                 // @ts-ignore
@@ -546,6 +559,10 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                             // polygon与polyline类似
                             break;
                         case "model":
+                            if (key === "name") {
+                                // @ts-ignore
+                                entityMutated.model[key] = updateVal;
+                            }
                             // positions属性不要修改给entityMutated，因为callbackproperty和Y.Map关联
                             // orientation属不要修改给entityMutated，因为callbackproperty和Y.Map关联
                             break;

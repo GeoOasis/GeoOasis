@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { Viewer, Ion } from "cesium";
+import { Viewer, Ion, Cartesian3, Math } from "cesium";
 import { ElNotification } from "element-plus";
 import "cesium/Build/CesiumUnminified/Widgets/widgets.css";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
@@ -31,16 +31,25 @@ onMounted(() => {
         scene3DOnly: false,
         shouldAnimate: false
     });
+    store.viewerRef.camera.flyTo({
+        destination: Cartesian3.fromDegrees(105.0, 20.0, 5000000.0),
+        orientation: {
+            heading: Math.toRadians(0.0),
+            pitch: Math.toRadians(-70),
+            roll: 0.0
+        }
+    });
     store.editor.viewer = store.viewerRef;
     window.cesiumViewer = store.viewerRef;
     store.toolBox.registerTool(new BufferTool());
     store.toolBox.registerTool(new HeatMapTool());
 
     console.log("Map container mounted");
-    // For test
     ElNotification({
         title: "提示",
-        message: "Map container mounted"
+        message: "Map container mounted",
+        position: 'bottom-right',
+        duration: 3000,
     });
 });
 </script>

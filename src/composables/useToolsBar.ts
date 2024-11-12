@@ -175,14 +175,11 @@ export const useToolsBar = () => {
         }
 
         // 三种情况 point和polygon绘制的时候禁用mousemove，或者设置特定的mousemove
-        // point: down up
-        // line: down move up
-        // polygon: down move up down move up ... doubleclick
         switch (activeTool.value) {
             case "point":
                 const PointElement = newPointElement(
                     "1232434123432314",
-                    "myPoint",
+                    "default",
                     true,
                     startPoint
                 );
@@ -264,6 +261,9 @@ export const useToolsBar = () => {
 
         // drag element logic
         if (draggingElement !== undefined) {
+            // TODO: 优化drawMode
+            if (draggingElement.type === "model") return;
+
             const motionStartPosition = viewerRef.value.camera.pickEllipsoid(
                 motionEvent.startPosition
             );

@@ -24,7 +24,7 @@ export const randomGeoJsonPoint = (number = 1000) => {
             },
             geometry: {
                 type: "Point",
-                coordinates: [Math.random() * 100, Math.random() * 40]
+                coordinates: [100 + Math.random() * 20, 25 + Math.random() * 10]
             }
         });
     }

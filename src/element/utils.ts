@@ -3,9 +3,13 @@ import {
     Color,
     Entity,
     HeadingPitchRoll,
+    HeightReference,
     ImageMaterialProperty,
+    LabelStyle,
+    VerticalOrigin,
     Rectangle,
-    Transforms
+    Transforms,
+    Cartesian2
 } from "cesium";
 import {
     GeoOasisPointElement,
@@ -26,7 +30,16 @@ export const generatePointEntityfromElement = (
         show: element.show,
         position: Cartesian3.fromElements(poi.x, poi.y, poi.z),
         point: {
+            heightReference: HeightReference.CLAMP_TO_GROUND,
             pixelSize: element.pixelSize
+        },
+        label: {
+            text: element.name,
+            font: "14pt monospace",
+            style: LabelStyle.FILL_AND_OUTLINE,
+            outlineWidth: 2,
+            verticalOrigin: VerticalOrigin.BOTTOM,
+            pixelOffset: new Cartesian2(0, -9)
         }
     });
 };
@@ -78,9 +91,9 @@ export const generateModelEntityfromElement = (
             )
         ),
         model: {
-            uri: element.url
-            // minimumPixelSize: 128,
-            // maximumScale: 20000
+            uri: element.url,
+            minimumPixelSize: 128,
+            maximumScale: 20000
         }
     });
 };

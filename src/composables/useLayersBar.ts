@@ -1,9 +1,11 @@
 import { computed, onMounted, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { nanoid } from "nanoid";
+import { Model, Transforms, Cartesian3, HeadingPitchRoll } from "cesium";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { Layer } from "../layer/layer";
 import { Element } from "../element/element";
+import { newModelElement } from "../element/newElement";
 
 export const useLayersBar = () => {
     const store = useGeoOasisStore();
@@ -11,6 +13,7 @@ export const useLayersBar = () => {
         viewerRef,
         selectedBaseLayer,
         selectedElement,
+        selectedLayer,
         isPanelVisible,
         elementState,
         layerState
@@ -62,7 +65,7 @@ export const useLayersBar = () => {
         );
     };
 
-    const add3dtilesTest = () => {
+    const add3dtilesTest = async () => {
         editor.addLayer({
             id: nanoid(),
             name: "United States GOES Infrared",
@@ -77,12 +80,26 @@ export const useLayersBar = () => {
                 format: "image/png"
             }
         });
+
+        // const air111 = await Model.fromGltfAsync({
+        //     url: "./Cesium_Air.glb",
+        //     modelMatrix: Transforms.headingPitchRollToFixedFrame(
+        //         Cartesian3.fromDegrees(-110.0, 20.0, 50),
+        //         new HeadingPitchRoll(0, 0, 0)
+        //     ),
+        //     debugShowBoundingVolume: false,
+        //     scale: 1
+        // });
+
+        // store.viewerRef.scene.primitives.add(air111);
     };
 
     const handleSelect = (id: string) => {
         selectedElement.value = editor.getElement(id);
-        console.log(selectedElement.value);
-        isPanelVisible.value = selectedElement.value ? true : false;
+        selectedLayer.value = editor.getLayer(id);
+        console.log(selectedElement.value, selectedLayer.value);
+        isPanelVisible.value =
+            selectedElement.value || selectedLayer.value ? true : false;
     };
 
     return {
