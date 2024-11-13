@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import { viteStaticCopy } from "vite-plugin-static-copy";
+import { VitePWA } from "vite-plugin-pwa";
 
 const cesiumSource = "node_modules/cesium/Build/Cesium";
 
@@ -20,6 +21,12 @@ export default defineConfig({
                 { src: `${cesiumSource}/Assets`, dest: cesiumBaseUrl },
                 { src: `${cesiumSource}/Widgets`, dest: cesiumBaseUrl }
             ]
+        }),
+        VitePWA({
+            registerType: "autoUpdate",
+            workbox: {
+                maximumFileSizeToCacheInBytes: 2097152 * 3
+            }
         })
     ]
 });
