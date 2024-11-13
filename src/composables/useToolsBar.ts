@@ -24,7 +24,7 @@ export enum DrawMode {
     SPACE = "space"
 }
 
-enum GizmoMode {
+export enum GizmoMode {
     TRANSLATE = "TRANSLATE",
     ROTATE = "ROTATE",
     SCALE = "SCALE",
@@ -76,8 +76,9 @@ export const useToolsBar = () => {
         gizmo = new CesiumGizmo(viewerRef.value, {
             show: drawMode.value === DrawMode.SPACE,
             applyTransformation: false,
-            onDragMoving: (res: { mode: GizmoMode; result: any }) => {
-                handleGizmoDragMoving(res.mode, res.result);
+            onDragMoving: (e) => {
+                const { mode, result } = e;
+                handleGizmoDragMoving(mode, result);
             }
         });
 
