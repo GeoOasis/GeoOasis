@@ -15,6 +15,7 @@ dev-dist
 *.local
 pnpm-lock.yaml
 trash
+certs
 
 # Editor directories and files
 .vscode/*
