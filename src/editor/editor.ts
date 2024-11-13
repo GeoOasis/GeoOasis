@@ -18,6 +18,7 @@ import {
 import * as Y from "yjs";
 import { ObservableV2 } from "lib0/observable.js";
 import { HocuspocusProvider } from "@hocuspocus/provider";
+import { IndexeddbPersistence } from "y-indexeddb";
 import {
     Element,
     GeoOasisPointElement,
@@ -100,6 +101,7 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
             }
         });
         this.doc = this.yjsProvider.document;
+        new IndexeddbPersistence('oasis-doc', this.doc);
         this.elements = this.doc.getMap("ElementsMap");
         this.layers = this.doc.getMap("LayersMap");
         this.baseLayers = this.doc.getMap("BaseLayersMap");

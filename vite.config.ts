@@ -26,6 +26,9 @@ export default defineConfig({
             registerType: "autoUpdate",
             workbox: {
                 maximumFileSizeToCacheInBytes: 2097152 * 3
+            },
+            devOptions: {
+                enabled: false
             }
         })
     ]
