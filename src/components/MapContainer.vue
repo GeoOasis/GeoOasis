@@ -7,8 +7,6 @@ import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { BufferTool } from "../tool/buffer";
 import { HeatMapTool } from "../tool/heatmap";
 
-window.CESIUM_BASE_URL = "node_modules/cesium/Build/CesiumUnminified/";
-
 const viewerDivRef = ref<HTMLDivElement>();
 
 const store = useGeoOasisStore();

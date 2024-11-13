@@ -201,8 +201,8 @@ const handleExecuteBtn = (tool: string) => {
                         :max="100"
                         size="small"
                         @change="
-                            (value: number) =>
-                                handleElementChange({ pixelSize: value })
+                            (cur: number | undefined) =>
+                                handleElementChange({ pixelSize: cur })
                         "
                     />
                 </div>

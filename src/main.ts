@@ -10,7 +10,6 @@ const app = createApp(App);
 
 declare global {
     interface Window {
-        CESIUM_BASE_URL: string;
         cesiumViewer: Viewer;
     }
 }
