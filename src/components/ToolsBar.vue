@@ -12,7 +12,7 @@ import Dialog from "./Dialog.vue";
 import { Icon } from "@iconify/vue";
 import { ref, watch } from "vue";
 import { nanoid } from "nanoid";
-import { useToolsBar, DrawMode } from "../composables/useToolsBar";
+import { useToolsBar, DrawMode, GizmoMode } from "../composables/useToolsBar";
 import { useYjs } from "../composables/useYjs";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { randomGeoJsonPoint } from "../mock";
@@ -20,7 +20,8 @@ import { randomGeoJsonPoint } from "../mock";
 const store = useGeoOasisStore();
 
 const { undo, redo } = useYjs();
-const { activeTool, drawMode, handleLoadFile } = useToolsBar();
+const { activeTool, drawMode, gizmoMode, handleLoadFile } = useToolsBar();
+
 const items = [
     {
         label: "default",
@@ -47,6 +48,20 @@ const items = [
         icon: "gis:shape-file"
     }
 ];
+const gizmoModeOptions = [
+    {
+        label: GizmoMode.TRANSLATE,
+        icon: "ant-design:drag-outlined"
+    },
+    {
+        label: GizmoMode.ROTATE,
+        icon: "mdi:rotate-360"
+    },
+    {
+        label: GizmoMode.SCALE,
+        icon: "mage:scale-up"
+    }
+];
 
 const selectedFile = ref<File>();
 watch(selectedFile, () => {
@@ -71,7 +86,15 @@ const mockData = () => {
 
 <template>
     <ToolbarRoot class="ToolbarRoot">
-        <ToolbarToggleGroup v-model="drawMode" type="single">
+        <ToolbarToggleGroup
+            :model-value="drawMode"
+            @update:model-value="
+                (val) => {
+                    if (val) drawMode = val;
+                }
+            "
+            type="single"
+        >
             <ToolbarToggleItem
                 class="ToolbarToggleItem"
                 :value="DrawMode.SURFACE"
@@ -85,10 +108,29 @@ const mockData = () => {
                 <Icon icon="gis:cube-3d" />
             </ToolbarToggleItem>
         </ToolbarToggleGroup>
+        <ToolbarToggleGroup
+            style="margin-left: 6px"
+            :model-value="gizmoMode"
+            @update:model-value="
+                (val) => {
+                    if (val) gizmoMode = val;
+                }
+            "
+            v-show="drawMode === DrawMode.SPACE"
+            type="single"
+        >
+            <ToolbarToggleItem
+                class="ToolbarToggleItem"
+                v-for="item in gizmoModeOptions"
+                :value="item.label"
+            >
+                <Icon :icon="item.icon" />
+            </ToolbarToggleItem>
+        </ToolbarToggleGroup>
         <ToolbarSeparator class="ToolbarSeparator" />
         <ToolbarToggleGroup
             v-model="activeTool"
-            :disabled="activeTool === DrawMode.SPACE"
+            :disabled="drawMode === DrawMode.SPACE"
             type="single"
         >
             <ToolbarToggleItem

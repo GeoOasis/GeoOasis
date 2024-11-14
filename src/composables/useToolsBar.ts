@@ -1,4 +1,4 @@
-import { onMounted, ref, watchEffect } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import {
@@ -39,15 +39,15 @@ export const useToolsBar = () => {
     let startPoint: Cartesian3;
     let endPoint: Cartesian3;
 
-    const drawMode = ref(DrawMode.SURFACE);
     const activeTool = ref("default");
+    const drawMode = ref(DrawMode.SURFACE);
+    const gizmoMode = ref(GizmoMode.TRANSLATE);
 
     const store = useGeoOasisStore();
-    const { viewerRef, selectedElement, selectedLayer } =
-        storeToRefs(store);
+    const { viewerRef, selectedElement, selectedLayer } = storeToRefs(store);
     const { editor } = store;
 
-    watchEffect(() => {
+    watch(drawMode, () => {
         activeTool.value =
             drawMode.value === DrawMode.SPACE ? "default" : activeTool.value;
         if (gizmo) {
@@ -55,6 +55,12 @@ export const useToolsBar = () => {
             gizmo.disabled = !gizmo.show;
         }
     });
+    
+    watch(gizmoMode, () => {
+        if (gizmo) {
+            gizmo.mode = gizmoMode.value
+        }
+    })
 
     onMounted(() => {
         console.log("ToolsBar mounted");
@@ -117,6 +123,7 @@ export const useToolsBar = () => {
                     });
                     break;
                 case GizmoMode.SCALE:
+                    // TODO:
                     break;
                 case GizmoMode.UNIFORM_SCALE:
                     break;
@@ -437,5 +444,5 @@ export const useToolsBar = () => {
         }
     };
 
-    return { activeTool, drawMode, handleLoadFile };
+    return { activeTool, drawMode, gizmoMode, handleLoadFile };
 };
