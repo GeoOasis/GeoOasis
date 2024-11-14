@@ -20,6 +20,11 @@ declare interface GizmoOptions {
     mode?: GizmoMode;
 
     /**
+     * 禁用Gizmo
+     */
+    disabled?: boolean;
+
+    /**
      * 轴线的长度（像素）。
      * @default 300.0
      */
@@ -85,6 +90,7 @@ declare class CesiumGizmo {
     destroy(): void;
     show: boolean;
     mode: GizmoMode;
+    disabled: boolean;
 }
 
 declare class GizmoPrimitive {

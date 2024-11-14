@@ -65,6 +65,7 @@ export interface BaseEditor {
     getLayer(id: Layer["id"]): Layer | undefined;
     addLayer(layer: Layer): void;
     getLayerData(id: Layer["id"]): any;
+    deleteLayer(id: Layer["id"]): void;
     startEdit(id: Element["id"], type: Element["type"]): void;
     stopEdit(id: Element["id"], type: Element["type"]): void;
 }
@@ -101,7 +102,7 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
             }
         });
         this.doc = this.yjsProvider.document;
-        new IndexeddbPersistence('oasis-doc', this.doc);
+        new IndexeddbPersistence("oasis-doc", this.doc);
         this.elements = this.doc.getMap("ElementsMap");
         this.layers = this.doc.getMap("LayersMap");
         this.baseLayers = this.doc.getMap("BaseLayersMap");
@@ -278,6 +279,10 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
         this.layers.set(layer.id, layerMap);
     }
 
+    deleteLayer(id: Layer["id"]): void {
+        this.layers.delete(id);
+    }
+
     setBaseLayer(name: string) {
         // 预设底图的索引始终为0
         // 在初始化的时候，默认已经有底图了
@@ -393,7 +398,10 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
             // TODO 优化
             case "geojson":
                 const geojsonDataSource = await GeoJsonDataSource.load(
-                    layer.url
+                    layer.url,
+                    {
+                        markerSize: 12
+                    }
                 );
                 return geojsonDataSource;
             case "gpx":
@@ -580,6 +588,7 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
         events: Y.YEvent<any>[],
         transactions: Y.Transaction
     ) {
+        console.log("TRANSACTION is: ", transactions);
         events.map((e) => {
             console.log("Events is: ", e);
             e.changes.keys.forEach((change, key) => {
@@ -590,6 +599,30 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                     );
                 } else if (change.action === "update") {
                 } else if (change.action === "delete") {
+                    if (this.imageryLayersMap.has(key)) {
+                        const layer = this.imageryLayersMap.get(key);
+                        this.viewer?.imageryLayers.remove(
+                            layer as ImageryLayer
+                        );
+                        this.imageryLayersMap.delete(key);
+                    }
+                    if (this.cesium3dtilesLayersMap.has(key)) {
+                        const layer = this.cesium3dtilesLayersMap.get(key);
+                        this.viewer?.scene.primitives.remove(layer);
+                        this.cesium3dtilesLayersMap.delete(key);
+                    }
+                    if (this.serviceLayersMap.has(key)) {
+                        // TODO: use cesium's associated array.
+                        const layer = this.serviceLayersMap.get(key);
+                        this.viewer?.dataSources.remove(layer as DataSource);
+                        this.serviceLayersMap.delete(key);
+                        this.serviceLayersArray =
+                            this.serviceLayersArray.filter(
+                                ([id, dataSource]) => {
+                                    return dataSource !== layer;
+                                }
+                            );
+                    }
                 }
             });
         });

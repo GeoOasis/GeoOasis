@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { shallowRef, ref } from "vue";
+import { shallowRef, ref, computed } from "vue";
 import { Viewer } from "cesium";
 import { Editor } from "../editor/editor";
 import { Element } from "../element/element";
@@ -11,10 +11,10 @@ export const useGeoOasisStore = defineStore("viewer", () => {
     const viewerRef = shallowRef<Viewer>({} as Viewer);
     const editor = shallowRef(new Editor());
     const toolBox = shallowRef(new ToolBox());
-    const isPanelVisible = ref<Boolean>(false);
     const selectedElement = ref<Element | undefined>();
     const selectedLayer = ref<Layer | undefined>();
     const selectedBaseLayer = ref("Bing");
+    const isPanelVisible = computed(() => selectedElement.value || selectedLayer.value ? true : false);
 
     const elementState = shallowRef(editor.value.elements.toJSON());
     const layerState = shallowRef(editor.value.layers.toJSON());

@@ -43,14 +43,17 @@ export const useToolsBar = () => {
     const activeTool = ref("default");
 
     const store = useGeoOasisStore();
-    const { viewerRef, isPanelVisible, selectedElement, selectedLayer } =
+    const { viewerRef, selectedElement, selectedLayer } =
         storeToRefs(store);
     const { editor } = store;
 
     watchEffect(() => {
         activeTool.value =
             drawMode.value === DrawMode.SPACE ? "default" : activeTool.value;
-        if (gizmo) gizmo.show = drawMode.value === DrawMode.SPACE;
+        if (gizmo) {
+            gizmo.show = drawMode.value === DrawMode.SPACE;
+            gizmo.disabled = !gizmo.show;
+        }
     });
 
     onMounted(() => {
@@ -76,6 +79,7 @@ export const useToolsBar = () => {
         gizmo = new CesiumGizmo(viewerRef.value, {
             show: drawMode.value === DrawMode.SPACE,
             applyTransformation: false,
+            disabled: true,
             onDragMoving: (e) => {
                 const { mode, result } = e;
                 handleGizmoDragMoving(mode, result);
@@ -133,7 +137,6 @@ export const useToolsBar = () => {
             draggingElement = undefined;
             selectedElement.value = undefined;
             selectedLayer.value = undefined;
-            isPanelVisible.value = false;
             return;
         }
 
@@ -149,6 +152,7 @@ export const useToolsBar = () => {
                 draggingElement = pickedElement;
                 selectedElement.value = pickedElement;
                 if (draggingElement) {
+                    console.log("lock camera");
                     // 锁定相机
                     viewerRef.value.scene.screenSpaceCameraController.enableRotate =
                         false;
@@ -164,14 +168,6 @@ export const useToolsBar = () => {
             }
 
             selectedLayer.value = editor.pickLayer(positionedEvent.position);
-            isPanelVisible.value =
-                selectedElement.value || selectedLayer.value ? true : false;
-            console.log(
-                "selectedELement",
-                selectedElement.value,
-                "isPanelViseible",
-                isPanelVisible.value
-            );
             return;
         }
 

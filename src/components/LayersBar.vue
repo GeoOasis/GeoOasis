@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Icon } from "@iconify/vue";
 import Button from "./internals/Button.vue";
 import Separator from "./internals/Separator.vue";
 import Select from "./internals/Select.vue";
@@ -10,7 +11,8 @@ const {
     elementsRef,
     layersRef,
     add3dtilesTest,
-    handleSelect
+    handleSelect,
+    handleDelete
 } = useLayersBar();
 
 const pointElements = computed(() => {
@@ -26,8 +28,11 @@ const baseMapOptions = ["Bing", "ArcGIS"];
 <template>
     <div class="layersbar">
         <h3>Layers</h3>
-        <div class="element" v-for="e in layersRef" @click="handleSelect(e.id)">
+        <div class="item" v-for="e in layersRef" @click="handleSelect(e.id)">
             id: {{ e.id.slice(0, 3) }}, type: {{ e.type }}
+            <Button @click.stop="handleDelete(e.id)">
+                <Icon icon="ic:baseline-delete" />
+            </Button>
         </div>
         <Separator />
         <Select
@@ -39,12 +44,11 @@ const baseMapOptions = ["Bing", "ArcGIS"];
         <Separator />
         <Button @click="add3dtilesTest">add3dtilesTest</Button>
         <h3>Elements</h3>
-        <div
-            class="element"
-            v-for="e in elementsRef"
-            @click="handleSelect(e.id)"
-        >
+        <div class="item" v-for="e in elementsRef" @click="handleSelect(e.id)">
             id: {{ e.id.slice(0, 3) }}, type: {{ e.type }}
+            <Button @click.stop="handleDelete(e.id)">
+                <Icon icon="ic:baseline-delete" />
+            </Button>
         </div>
     </div>
 </template>
@@ -66,15 +70,19 @@ const baseMapOptions = ["Bing", "ArcGIS"];
     padding: 15px;
 }
 
-.element {
+.item {
     border-radius: 5px;
     box-shadow: 0 0 2px;
     padding: 5px;
     margin: 5px;
     user-select: none;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
 }
 
-.element:hover {
+.item:hover {
     background-color: var(--grass-4);
 }
 </style>

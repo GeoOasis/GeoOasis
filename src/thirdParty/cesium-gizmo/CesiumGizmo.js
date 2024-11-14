@@ -22,6 +22,8 @@ const Mode = {
   UNIFORM_SCALE: "UNIFORM_SCALE",
 };
 
+let gizmoDisabled = false;
+
 function addMouseEvent(handler, viewer, scope) {
   let startPosition = new Cesium.Cartesian2(); // mouse movement start position
   let originPosition = new Cesium.Cartesian3(); // item's cartesian coordinates
@@ -29,6 +31,7 @@ function addMouseEvent(handler, viewer, scope) {
   let originItemModelMatrix = new Cesium.Matrix4();
 
   handler.setInputAction(function (movement) {
+    if (gizmoDisabled) return;
     const picked = viewer.scene.pick(movement.position);
     console.log(picked);
     if (Cesium.defined(picked)) {
@@ -41,6 +44,7 @@ function addMouseEvent(handler, viewer, scope) {
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
   handler.setInputAction(function (movement) {
+    if (gizmoDisabled) return;
     const picked = viewer.scene.pick(movement.position);
     if (Cesium.defined(picked)) {
       // console.log(picked);
@@ -68,6 +72,7 @@ function addMouseEvent(handler, viewer, scope) {
   }, Cesium.ScreenSpaceEventType.LEFT_DOWN);
 
   handler.setInputAction(function () {
+    if (gizmoDisabled) return;
     if (scope.pickedId) {
       // scope.item._allowPicking = true;
       scope.xColor = Cesium.Color.RED;
@@ -88,6 +93,7 @@ function addMouseEvent(handler, viewer, scope) {
   }, Cesium.ScreenSpaceEventType.LEFT_UP);
 
   handler.setInputAction(function (movement) {
+    if (gizmoDisabled) return;
     if (!scope.pickedId) {
       const hovered = viewer.scene.pick(movement.endPosition);
 
@@ -692,6 +698,15 @@ class CesiumGizmo {
     }
   }
 
+  get disabled() {
+    return this._disabled;
+  }
+
+  set disabled(val) {
+    gizmoDisabled = val;
+    this._disabled = val;
+  } 
+
   constructor(viewer, options) {
     options = Cesium.defaultValue(options, Cesium.defaultValue.EMPTY_OBJECT);
 
@@ -736,6 +751,9 @@ class CesiumGizmo {
 
     this.mode = Cesium.defaultValue(options.mode, Mode.TRANSLATE);
     primitiveOpts.mode = this.mode;
+
+    this.disabled = Cesium.defaultValue(options.disabled, false);
+    primitiveOpts.mode = this.disabled;
 
     this.xColor = Cesium.defaultValue(options.xColor, Cesium.Color.RED);
     primitiveOpts.xColor = this.xColor;

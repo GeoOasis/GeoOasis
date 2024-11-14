@@ -14,7 +14,6 @@ export const useLayersBar = () => {
         selectedBaseLayer,
         selectedElement,
         selectedLayer,
-        isPanelVisible,
         elementState,
         layerState
     } = storeToRefs(store);
@@ -97,16 +96,22 @@ export const useLayersBar = () => {
     const handleSelect = (id: string) => {
         selectedElement.value = editor.getElement(id);
         selectedLayer.value = editor.getLayer(id);
-        console.log(selectedElement.value, selectedLayer.value);
-        isPanelVisible.value =
-            selectedElement.value || selectedLayer.value ? true : false;
+        // console.log(selectedElement.value, selectedLayer.value);
     };
+
+    const handleDelete = (id: string) => {
+        editor.deleteElement(id);
+        editor.deleteLayer(id);
+        selectedElement.value = undefined;
+        selectedLayer.value = undefined;
+    }
 
     return {
         selectedBaseLayer,
         elementsRef,
         layersRef,
         add3dtilesTest,
-        handleSelect
+        handleSelect,
+        handleDelete
     };
 };
