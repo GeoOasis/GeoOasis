@@ -110,6 +110,10 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
         this.init();
     }
 
+    get provider() {
+        return this.yjsProvider;
+    }
+
     init() {
         const self = this;
         // the source of truth
