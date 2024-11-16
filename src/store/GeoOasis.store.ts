@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { shallowRef, ref, computed } from "vue";
 import { Viewer } from "cesium";
+import { useAwareness } from "../composables/useAwareness";
 import { Editor } from "../editor/editor";
 import { Element } from "../element/element";
 import { Layer } from "../layer/layer";
@@ -14,10 +15,16 @@ export const useGeoOasisStore = defineStore("viewer", () => {
     const selectedElement = ref<Element | undefined>();
     const selectedLayer = ref<Layer | undefined>();
     const selectedBaseLayer = ref("Bing");
-    const isPanelVisible = computed(() => selectedElement.value || selectedLayer.value ? true : false);
+    const isPanelVisible = computed(() =>
+        selectedElement.value || selectedLayer.value ? true : false
+    );
 
     const elementState = shallowRef(editor.value.elements.toJSON());
     const layerState = shallowRef(editor.value.layers.toJSON());
+
+    const { userList, setUser, setUserPostion } = useAwareness(
+        editor.value.provider.awareness
+    );
 
     return {
         viewerRef,
@@ -28,6 +35,9 @@ export const useGeoOasisStore = defineStore("viewer", () => {
         isPanelVisible,
         selectedElement,
         selectedLayer,
-        selectedBaseLayer
+        selectedBaseLayer,
+        userList,
+        setUser,
+        setUserPostion
     };
 });

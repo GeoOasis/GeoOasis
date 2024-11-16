@@ -104,7 +104,7 @@ export const useLayersBar = () => {
         editor.deleteLayer(id);
         selectedElement.value = undefined;
         selectedLayer.value = undefined;
-    }
+    };
 
     return {
         selectedBaseLayer,
