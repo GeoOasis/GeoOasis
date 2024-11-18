@@ -4,6 +4,7 @@ import {
     ImageryLayer,
     Rectangle,
     SingleTileImageryProvider,
+    TileMapServiceImageryProvider,
     WebMapServiceImageryProvider,
     WebMapTileServiceImageryProvider,
     createWorldImageryAsync
@@ -48,6 +49,14 @@ export function generateWMSImageryFromLayer(layer: GeoOasisImageryLayer) {
         parameters: layer.parameters
     });
     return new ImageryLayer(wmsImageryProvider);
+}
+
+export async function generateTMSImagery(layer: GeoOasisImageryLayer) {
+    const tmsImageryProvider = await TileMapServiceImageryProvider.fromUrl(
+        layer.url as string
+    );
+
+    return new ImageryLayer(tmsImageryProvider);
 }
 
 export async function generateSingleTileImageryFromLayer(

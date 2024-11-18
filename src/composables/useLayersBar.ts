@@ -5,7 +5,6 @@ import { Model, Transforms, Cartesian3, HeadingPitchRoll } from "cesium";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { Layer } from "../layer/layer";
 import { Element } from "../element/element";
-import { newModelElement } from "../element/newElement";
 
 export const useLayersBar = () => {
     const store = useGeoOasisStore();
@@ -41,6 +40,17 @@ export const useLayersBar = () => {
 
     // methods
     const setupBaseLayers = () => {
+        editor.addBaseLayer(
+            {
+                id: nanoid(),
+                name: "Local",
+                type: "imagery",
+                provider: "tms",
+                show: true,
+                url: "cesiumStatic/Assets/Textures/NaturalEarthII"
+            },
+            true
+        );
         editor.addBaseLayer(
             {
                 id: nanoid(),

@@ -22,7 +22,7 @@ const polylineElements = computed(() => {
     return elementsRef.value.filter((e) => e.type === "polyline");
 });
 
-const baseMapOptions = ["Bing", "ArcGIS"];
+const baseMapOptions = ["Bing", "ArcGIS", "Local"];
 </script>
 
 <template>

@@ -1,14 +1,7 @@
 import { onMounted } from "vue";
 import { storeToRefs } from "pinia";
 import { nanoid } from "nanoid";
-import {
-    CallbackProperty,
-    Cartesian3,
-    Color,
-    Entity,
-    HeadingPitchRange,
-    Transforms
-} from "cesium";
+import { Cartesian3 } from "cesium";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { User, UserInfo } from "./useAwareness";
 

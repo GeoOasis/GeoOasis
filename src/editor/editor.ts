@@ -46,7 +46,8 @@ import {
     generateArcgisImageryFromLayer,
     generateBingImageryFromLayer,
     generateWMSImageryFromLayer,
-    generateSingleTileImageryFromLayer
+    generateSingleTileImageryFromLayer,
+    generateTMSImagery
 } from "../layer/utils";
 import { Hocuspocus_URL } from "../contants";
 
@@ -316,13 +317,16 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                 case "bing":
                     cesiumLayer = await generateBingImageryFromLayer(layer);
                     break;
+                case "tms":
+                    cesiumLayer = await generateTMSImagery(layer);
+                    break;
                 default:
                     break;
             }
             if (cesiumLayer) {
                 this.imageryLayersMap.set(layer.id, cesiumLayer);
                 this.baseLayersArray.push(layer);
-                console.log("Add baseLayer option success");
+                // console.log("Add baseLayer option success");
             }
             return;
         }
