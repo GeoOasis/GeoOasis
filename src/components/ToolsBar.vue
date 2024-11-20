@@ -90,7 +90,7 @@ const mockData = () => {
             :model-value="drawMode"
             @update:model-value="
                 (val) => {
-                    if (val) drawMode = val;
+                    if (val) drawMode = val as DrawMode;
                 }
             "
             type="single"
@@ -113,7 +113,7 @@ const mockData = () => {
             :model-value="gizmoMode"
             @update:model-value="
                 (val) => {
-                    if (val) gizmoMode = val;
+                    if (val) gizmoMode = val as GizmoMode;
                 }
             "
             v-show="drawMode === DrawMode.SPACE"
@@ -152,12 +152,9 @@ const mockData = () => {
                 <Icon icon="gis:search-feature" />
             </template>
         </Dialog>
-        <ToolbarButton class="ToolbarButton" style="margin-left: auto">
-            Share
-        </ToolbarButton>
         <ToolbarButton
             class="ToolbarButton"
-            style="margin-left: 10px"
+            style="margin-left: auto"
             @click="undo"
         >
             Undo

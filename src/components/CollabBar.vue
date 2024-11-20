@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import "./CollabBar.css";
 import { AvatarFallback, AvatarRoot } from "radix-vue";
+import ShareDialog from "./ShareDialog.vue";
 import { onMounted } from "vue";
 import { useCollabBar } from "../composables/useCollabBar";
 
 const { userList, synOtherUserCamera } = useCollabBar();
-// 展示avatar等
+
 onMounted(() => {
     console.log("Collab Bar mounted");
 });
@@ -23,5 +24,11 @@ onMounted(() => {
                 {{ user.name }}
             </AvatarFallback>
         </AvatarRoot>
+
+        <ShareDialog>
+            <template #trigger>
+                <span>Share</span>
+            </template>
+        </ShareDialog>
     </div>
 </template>

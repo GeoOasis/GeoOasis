@@ -17,8 +17,9 @@ import {
 } from "cesium";
 import * as Y from "yjs";
 import { ObservableV2 } from "lib0/observable.js";
-import { HocuspocusProvider } from "@hocuspocus/provider";
 import { IndexeddbPersistence } from "y-indexeddb";
+import { HocuspocusProvider } from "@hocuspocus/provider";
+import { createHocuspocusProvider } from "./provider";
 import {
     Element,
     GeoOasisPointElement,
@@ -50,6 +51,7 @@ import {
     generateTMSImagery
 } from "../layer/utils";
 import { Hocuspocus_URL } from "../contants";
+import { nanoid } from "nanoid";
 
 export type EditorEvent = {
     "element:add": (key: string) => void;
@@ -73,7 +75,7 @@ export interface BaseEditor {
 
 // Editor is singleton
 export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
-    private yjsProvider: HocuspocusProvider;
+    private yjsProvider?: HocuspocusProvider;
     private doc: Y.Doc;
     public elements: Y.Map<Y.Map<any>>; // how to use correct type? don't use Map
     public layers: Y.Map<Y.Map<any>>;
@@ -92,17 +94,7 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
 
     constructor() {
         super();
-        this.yjsProvider = new HocuspocusProvider({
-            url: Hocuspocus_URL,
-            name: "GeoOasisDoc",
-            onOpen() {
-                console.log("hocuspocus open successfully");
-            },
-            onConnect() {
-                console.log("provider connect to the server successfully");
-            }
-        });
-        this.doc = this.yjsProvider.document;
+        this.doc = new Y.Doc();
         new IndexeddbPersistence("oasis-doc", this.doc);
         this.elements = this.doc.getMap("ElementsMap");
         this.layers = this.doc.getMap("LayersMap");
@@ -124,6 +116,28 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
         this.layers.observeDeep((events, transactions) => {
             self.handleYjsLayersEvents(events, transactions);
         });
+    }
+
+    // change room
+    changeRoom(roomId?: string) {
+        this.disconnectProvider();
+        const nextId = roomId ? roomId : nanoid();
+        this.yjsProvider = createHocuspocusProvider(
+            Hocuspocus_URL,
+            nextId,
+            this.doc
+        );
+        return nextId;
+    }
+
+    disconnectProvider() {
+        if (this.yjsProvider) {
+            this.yjsProvider.awareness?.destroy();
+            this.yjsProvider.removeAllListeners();
+            this.yjsProvider.disconnect();
+            this.yjsProvider.destroy();
+            this.yjsProvider = undefined;
+        }
     }
 
     startEdit(id: Element["id"], type: Element["type"]): void {

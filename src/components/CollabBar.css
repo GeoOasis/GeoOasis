@@ -4,7 +4,9 @@
     background-color: var(--grass-1);
     box-shadow: 0 0 10px;
     border-radius: 5px;
-    padding: 5px 10px;
+    padding: 0px 10px;
+    height: 45px;
+    align-items: center;
 }
 
 .AvatarRoot {

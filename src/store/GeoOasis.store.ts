@@ -22,8 +22,10 @@ export const useGeoOasisStore = defineStore("viewer", () => {
     const elementState = shallowRef(editor.value.elements.toJSON());
     const layerState = shallowRef(editor.value.layers.toJSON());
 
+    const roomId = ref("");
     const { userList, setUser, setUserPostion } = useAwareness(
-        editor.value.provider.awareness
+        editor.value,
+        roomId
     );
 
     return {
@@ -37,6 +39,7 @@ export const useGeoOasisStore = defineStore("viewer", () => {
         selectedLayer,
         selectedBaseLayer,
         userList,
+        roomId,
         setUser,
         setUserPostion
     };
