@@ -5,7 +5,8 @@ export type Element =
     | GeoOasisPolylineElement
     | GeoOasisPolygonElement
     | GeoOasisModelElement
-    | GeoOasisImageElement;
+    | GeoOasisImageElement
+    | GeoOasisRectangleElement;
 
 export type ElementProperties = [keyof Element, Element[keyof Element]][];
 
@@ -17,9 +18,9 @@ export interface GeoOasisBaseElement {
     description: string;
     positions: Point3[];
     orientation?: {
-        heading: number,
-        pitch: number,
-        roll: number,
+        heading: number;
+        pitch: number;
+        roll: number;
     };
 }
 

@@ -13,7 +13,8 @@ import {
     GeoJsonDataSource,
     PolygonHierarchy,
     Transforms,
-    HeadingPitchRoll
+    HeadingPitchRoll,
+    ConstantProperty
 } from "cesium";
 import * as Y from "yjs";
 import { ObservableV2 } from "lib0/observable.js";
@@ -561,20 +562,26 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                     const entityMutated = this.entities.get(
                         elementMutated.get("id")
                     ) as Entity;
+                    if (
+                        key === "name" ||
+                        key === "description" ||
+                        key === "show"
+                    ) {
+                        // @ts-ignore
+                        entityMutated[key] = updateVal;
+                    }
                     switch (elementMutated.get("type")) {
                         case "point":
-                            // TODO 类型系统
                             if (key === "name") {
-                                // @ts-ignore
-                                entityMutated.label.text = updateVal;
-                                // @ts-ignore
-                                entityMutated.point[key] = updateVal;
-                            } else if (key === "description") {
-                                entityMutated[key] = updateVal;
+                                (
+                                    entityMutated.label
+                                        ?.text as ConstantProperty
+                                ).setValue(updateVal);
                             } else if (key === "color") {
-                                // @ts-ignore
-                                entityMutated.point[key] =
-                                    Color.fromCssColorString(updateVal);
+                                (
+                                    entityMutated.point
+                                        ?.color as ConstantProperty
+                                ).setValue(Color.fromCssColorString(updateVal));
                             } else if (key === "positions") {
                                 // positions属性不要修改给entityMutated，因为callbackproperty和Y.Map关联
                             } else {
@@ -591,10 +598,6 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                             // polygon与polyline类似
                             break;
                         case "model":
-                            if (key === "name") {
-                                // @ts-ignore
-                                entityMutated.model[key] = updateVal;
-                            }
                             // positions属性不要修改给entityMutated，因为callbackproperty和Y.Map关联
                             // orientation属不要修改给entityMutated，因为callbackproperty和Y.Map关联
                             break;

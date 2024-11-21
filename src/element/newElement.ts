@@ -5,7 +5,8 @@ import {
     GeoOasisPolylineElement,
     GeoOasisModelElement,
     GeoOasisPolygonElement,
-    GeoOasisImageElement
+    GeoOasisImageElement,
+    GeoOasisRectangleElement
 } from "./element";
 import { point3FromCartesian3 } from "./utils";
 
@@ -93,6 +94,21 @@ export const newModelElement = (
             pitch: 0,
             roll: 0
         }
+    };
+};
+
+export const newRectangleElement = (
+    name: string,
+    show: boolean,
+    positions: Cartesian3[]
+): GeoOasisRectangleElement => {
+    return {
+        id: nanoid(),
+        type: "rectangle",
+        name,
+        show,
+        description: "",
+        positions: positions.map((p) => point3FromCartesian3(p))
     };
 };
 

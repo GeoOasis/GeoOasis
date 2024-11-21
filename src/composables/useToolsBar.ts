@@ -12,7 +12,8 @@ import {
     newPolylineElement,
     newModelElement,
     newPolygonElement,
-    newImageElement
+    newImageElement,
+    newRectangleElement
 } from "../element/newElement";
 import { point3FromCartesian3 } from "../element/utils";
 import { nanoid } from "nanoid";
@@ -55,12 +56,12 @@ export const useToolsBar = () => {
             gizmo.disabled = !gizmo.show;
         }
     });
-    
+
     watch(gizmoMode, () => {
         if (gizmo) {
-            gizmo.mode = gizmoMode.value
+            gizmo.mode = gizmoMode.value;
         }
-    })
+    });
 
     onMounted(() => {
         console.log("ToolsBar mounted");
@@ -155,7 +156,6 @@ export const useToolsBar = () => {
         if (activeTool.value === "default") {
             const pickedElement = editor.pickElement(positionedEvent.position);
             if (drawMode.value === DrawMode.SURFACE) {
-                // 如果是surface模式, 照旧
                 draggingElement = pickedElement;
                 selectedElement.value = pickedElement;
                 if (draggingElement) {
@@ -200,10 +200,16 @@ export const useToolsBar = () => {
                     );
                     editor.addElement(PolylineElement);
                     edittingElement = PolylineElement;
-                    // startEdit()
                 }
                 break;
             case "rectangle":
+                if (edittingElement === null) {
+                    const rectangleEle = newRectangleElement("", true, [
+                        startPoint
+                    ]);
+                    editor.addElement(rectangleEle);
+                    edittingElement = rectangleEle;
+                }
                 break;
             case "model":
                 const ModelElement = newModelElement(
@@ -237,6 +243,13 @@ export const useToolsBar = () => {
                 case "point":
                     break;
                 case "polyline":
+                    editor.mutateElement(edittingElement.id, {
+                        positions: editor
+                            .getElement(edittingElement.id)
+                            ?.positions.concat(point3FromCartesian3(startPoint))
+                    });
+                    break;
+                case "rectangle":
                     editor.mutateElement(edittingElement.id, {
                         positions: editor
                             .getElement(edittingElement.id)
@@ -282,6 +295,7 @@ export const useToolsBar = () => {
             const delta_x = motionEndPosition.x - motionStartPosition.x;
             const delta_y = motionEndPosition.y - motionStartPosition.y;
             const delta_z = motionEndPosition.z - motionStartPosition.z;
+            let elTmp;
             switch (draggingElement.type) {
                 case "point":
                     editor.mutateElement(draggingElement.id, {
@@ -295,15 +309,27 @@ export const useToolsBar = () => {
                     });
                     break;
                 case "polyline":
-                    const updatedPos = draggingElement.positions.map((pos) => {
-                        return {
-                            x: pos.x + delta_x,
-                            y: pos.y + delta_y,
-                            z: pos.z + delta_z
-                        };
-                    });
+                    elTmp = editor.getElement(draggingElement.id) as Element;
                     editor.mutateElement(draggingElement.id, {
-                        positions: updatedPos
+                        positions: elTmp.positions.map((pos) => {
+                            return {
+                                x: pos.x + delta_x,
+                                y: pos.y + delta_y,
+                                z: pos.z + delta_z
+                            };
+                        })
+                    });
+                    break;
+                case "polygon":
+                    elTmp = editor.getElement(draggingElement.id) as Element;
+                    editor.mutateElement(draggingElement.id, {
+                        positions: elTmp.positions.map((pos) => {
+                            return {
+                                x: pos.x + delta_x,
+                                y: pos.y + delta_y,
+                                z: pos.z + delta_z
+                            };
+                        })
                     });
                     break;
                 default:
@@ -329,6 +355,15 @@ export const useToolsBar = () => {
                     // TODO 优化手段：减少对象创建
                     update = [
                         // @ts-ignore
+                        ...editor.getElement(edittingElement.id)?.positions
+                    ];
+                    update[update.length - 1] = point3FromCartesian3(endPoint);
+                    editor.mutateElement(edittingElement.id, {
+                        positions: update
+                    });
+                    break;
+                case "rectangle":
+                    update = [
                         ...editor.getElement(edittingElement.id)?.positions
                     ];
                     update[update.length - 1] = point3FromCartesian3(endPoint);
@@ -374,6 +409,8 @@ export const useToolsBar = () => {
                     break;
                 case "polyline":
                     break;
+                case "rectangle":
+                    break;
                 case "model":
                     edittingElement = null;
                     activeTool.value = "default";
@@ -389,16 +426,16 @@ export const useToolsBar = () => {
     const handleCanvasRightClick = () => {
         console.log("right click");
         if (edittingElement !== null) {
-            if (activeTool.value === "polyline") {
-                console.log("right click, polyline finish");
+            if (
+                activeTool.value === "polyline" ||
+                activeTool.value === "polygon" ||
+                activeTool.value === "rectangle"
+            ) {
                 // stopEdit();
                 edittingElement = null;
                 activeTool.value = "default";
-            } else if (activeTool.value === "polygon") {
-                console.log("right click, polygon finish");
-                edittingElement = null;
-                activeTool.value = "default";
             }
+            console.log(`${activeTool.value} finish`);
         }
     };
 

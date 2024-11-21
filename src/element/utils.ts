@@ -53,7 +53,8 @@ export const generatePolylineEntityfromElement = (
         show: element.show,
         polyline: {
             width: element.width,
-            positions: element.positions.map((p) => cartesian3FromPoint3(p))
+            positions: element.positions.map((p) => cartesian3FromPoint3(p)),
+            clampToGround: true
         }
     });
 };
