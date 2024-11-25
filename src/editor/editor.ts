@@ -27,7 +27,8 @@ import {
     GeoOasisPolylineElement,
     GeoOasisModelElement,
     GeoOasisPolygonElement,
-    GeoOasisImageElement
+    GeoOasisImageElement,
+    GeoOasisRectangleElement
 } from "../element/element";
 import {
     cartesian3FromPoint3,
@@ -544,6 +545,11 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                         case "image":
                             entity = generateRectangleEntityfromElement(
                                 elementAdded as GeoOasisImageElement
+                            );
+                            break;
+                        case "rectangle":
+                            entity = generateRectangleEntityfromElement(
+                                elementAdded as GeoOasisRectangleElement
                             );
                             break;
                     }

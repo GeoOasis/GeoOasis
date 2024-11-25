@@ -16,7 +16,8 @@ import {
     GeoOasisPolylineElement,
     GeoOasisModelElement,
     GeoOasisPolygonElement,
-    GeoOasisImageElement
+    GeoOasisImageElement,
+    GeoOasisRectangleElement
 } from "./element";
 import { Point3 } from "./point";
 
@@ -100,23 +101,25 @@ export const generateModelEntityfromElement = (
 };
 
 export const generateRectangleEntityfromElement = (
-    element: GeoOasisImageElement
+    element: GeoOasisImageElement | GeoOasisRectangleElement
 ): Entity => {
     let material;
-    if (typeof element.url === "string") {
-        material = element.url;
-    } else {
-        // @ts-ignore
-        const blob = new Blob([element.url.buffer], { type: "image/png" });
-        const url = URL.createObjectURL(blob);
-        const imageHTMLElement = document.createElement("img");
-        imageHTMLElement.src = url;
-        imageHTMLElement.onload = () => {
-            URL.revokeObjectURL(url);
-        };
-        material = new ImageMaterialProperty({
-            image: imageHTMLElement
-        });
+    if (element.type === "image") {
+        if (typeof element.url === "string") {
+            material = element.url;
+        } else {
+            // @ts-ignore
+            const blob = new Blob([element.url.buffer], { type: "image/png" });
+            const url = URL.createObjectURL(blob);
+            const imageHTMLElement = document.createElement("img");
+            imageHTMLElement.src = url;
+            imageHTMLElement.onload = () => {
+                URL.revokeObjectURL(url);
+            };
+            material = new ImageMaterialProperty({
+                image: imageHTMLElement
+            });
+        }
     }
     return new Entity({
         id: element.id,
