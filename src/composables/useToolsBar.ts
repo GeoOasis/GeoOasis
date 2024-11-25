@@ -460,6 +460,16 @@ export const useToolsBar = () => {
                 } catch (e) {
                     console.error("file format isn't vivid JSON format", e);
                 }
+            } else if (fileType === FileType.GLB) {
+                const base64GLB = e.target!.result as string;
+                const ModelElement = newModelElement(
+                    nanoid(),
+                    "",
+                    true,
+                    Cartesian3.fromDegrees(114.0, 22.0),
+                    base64GLB
+                );
+                editor.addElement(ModelElement);
             } else if (fileType === FileType.PNGImage) {
                 const imageArr = new Uint8Array(
                     e.target?.result as ArrayBuffer
@@ -473,11 +483,18 @@ export const useToolsBar = () => {
                 editor.addElement(imageElement);
             }
         });
-        if (fileType === FileType.GEOJSON || fileType === FileType.JSON) {
+
+        // TODO: optimize, we don't want to use Yjs to transfer data
+        if (
+            fileType === FileType.GEOJSON ||
+            fileType === FileType.JSON ||
+            fileType === FileType.GLTF
+        ) {
             reader.readAsText(file); // 读取文件内容为文本
         } else if (fileType === FileType.PNGImage) {
-            // reader.readAsDataURL(file);
             reader.readAsArrayBuffer(file);
+        } else if (fileType === FileType.GLB) {
+            reader.readAsDataURL(file);
         }
     };
 

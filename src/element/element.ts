@@ -62,4 +62,5 @@ export interface GeoOasisImageElement extends GeoOasisBaseElement {
 export interface GeoOasisModelElement extends GeoOasisBaseElement {
     type: "model";
     url: string;
+    data?: any;
 }

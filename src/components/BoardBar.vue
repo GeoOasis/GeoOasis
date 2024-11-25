@@ -18,10 +18,7 @@ import {
 import "./BoardBar.css";
 
 const currentMenu = ref("");
-const checkboxOne = ref(false);
-const checkboxTwo = ref(false);
 function handleClick() {
-    alert("hello!");
     console.log(currentMenu.value);
 }
 </script>
@@ -83,7 +80,7 @@ function handleClick() {
             </MenubarPortal>
         </MenubarMenu>
 
-        <MenubarMenu>
+        <MenubarMenu value="edit">
             <MenubarTrigger class="MenubarTrigger">Edit</MenubarTrigger>
             <MenubarPortal>
                 <MenubarContent
@@ -138,51 +135,10 @@ function handleClick() {
             </MenubarPortal>
         </MenubarMenu>
 
-        <MenubarMenu>
-            <MenubarTrigger class="MenubarTrigger">View</MenubarTrigger>
-            <MenubarPortal>
-                <MenubarContent
-                    class="MenubarContent"
-                    align="start"
-                    :side-offset="5"
-                    :align-offset="-14"
-                >
-                    <MenubarCheckboxItem
-                        v-model="checkboxOne"
-                        class="MenubarCheckboxItem"
-                    >
-                        <MenubarItemIndicator class="MenubarItemIndicator">
-                            <Icon icon="radix-icons:check" />
-                        </MenubarItemIndicator>
-                        Show Bookmarks
-                        <div class="RightSlot">⌘+B</div>
-                    </MenubarCheckboxItem>
-                    <MenubarCheckboxItem
-                        v-model="checkboxTwo"
-                        class="MenubarCheckboxItem"
-                    >
-                        <MenubarItemIndicator class="MenubarItemIndicator">
-                            <Icon icon="radix-icons:check" />
-                        </MenubarItemIndicator>
-                        Show Full URLs
-                    </MenubarCheckboxItem>
-                    <MenubarSeparator class="MenubarSeparator" />
-                    <MenubarItem class="MenubarItem">
-                        Reload
-                        <div class="RightSlot">⌘ R</div>
-                    </MenubarItem>
-                    <MenubarItem class="MenubarItem" disabled>
-                        Force Reload
-                        <div class="RightSlot">⇧ ⌘ R</div>
-                    </MenubarItem>
-                    <MenubarSeparator class="MenubarSeparator" />
-                    <MenubarItem class="MenubarItem">
-                        Toggle Fullscreen
-                    </MenubarItem>
-                    <MenubarSeparator class="MenubarSeparator" />
-                    <MenubarItem class="MenubarItem">Hide Sidebar</MenubarItem>
-                </MenubarContent>
-            </MenubarPortal>
+        <MenubarMenu value="setting">
+            <MenubarTrigger class="MenubarTrigger" @click="handleClick">
+                Setting
+            </MenubarTrigger>
         </MenubarMenu>
     </MenubarRoot>
 </template>

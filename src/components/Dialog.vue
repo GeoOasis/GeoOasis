@@ -10,6 +10,7 @@ import {
     DialogTrigger
 } from "radix-vue";
 import { Icon } from "@iconify/vue";
+import Switch from "./internals/Switch.vue";
 import { ref } from "vue";
 import { nanoid } from "nanoid";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
@@ -17,15 +18,29 @@ import "./Dialog.css";
 
 const store = useGeoOasisStore();
 const { editor } = store;
+const option = ref(false);
 const input = ref("");
+const ionToken = ref(""); // TODO:
+const assetID = ref("");
 const handleUpload = () => {
-    editor.addLayer({
-        id: nanoid(),
-        name: "test 3dTiles",
-        type: "3dtiles",
-        url: input.value,
-        show: true
-    });
+    if (option.value) {
+        editor.addLayer({
+            id: nanoid(),
+            name: "",
+            type: "3dtiles",
+            url: assetID.value,
+            show: true,
+            ion: true
+        });
+    } else {
+        editor.addLayer({
+            id: nanoid(),
+            name: "default",
+            type: "3dtiles",
+            url: input.value,
+            show: true
+        });
+    }
 };
 </script>
 
@@ -39,15 +54,40 @@ const handleUpload = () => {
             <DialogContent class="DialogContent">
                 <DialogTitle class="DialogTitle">Upload from Url</DialogTitle>
                 <DialogDescription class="DialogDescription">
-                    从Url上传3d tiles
+                    Add 3D Tiles from url or CesiumIon
                 </DialogDescription>
                 <fieldset class="Fieldset">
+                    <Switch
+                        name="UrlOrCesiumIon"
+                        :checked="option"
+                        @update:checked="(checked) => (option = checked)"
+                    />
+                </fieldset>
+                <fieldset class="Fieldset" v-if="!option">
                     <label class="Label" for="url">Url</label>
                     <input
                         id="url"
                         class="Input"
                         placeholder="please input 3D Tiles Url"
                         v-model="input"
+                    />
+                </fieldset>
+                <fieldset class="Fieldset" v-if="option">
+                    <label class="Label" for="token">CesiumIonToken</label>
+                    <input
+                        id="token"
+                        class="Input"
+                        placeholder="please input cesium Ion Token"
+                        v-model="ionToken"
+                    />
+                </fieldset>
+                <fieldset class="Fieldset" v-if="option">
+                    <label class="Label" for="assetId">Asset ID</label>
+                    <input
+                        id="assetId"
+                        class="Input"
+                        placeholder="please input cesium Ion Token"
+                        v-model="assetID"
                     />
                 </fieldset>
                 <div

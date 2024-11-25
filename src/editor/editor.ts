@@ -374,14 +374,17 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                 break;
             case "3dtiles":
                 if (layerAdded.tileset) {
-                    const response = await fetch(layerAdded.url);
-                    const tilesetJsonData = await response.json();
-                    console.log(tilesetJsonData);
-                    this.renderBoundingVolume(tilesetJsonData);
-                    // TODO 优化: 本次会触发 Yjs addEvent
-                    this.layers
-                        .get(layerAdded.id)
-                        ?.set("tileset", tilesetJsonData);
+                    // TODO: fetch ion asset's tileset
+                    if (!layerAdded.ion) {
+                        const response = await fetch(layerAdded.url);
+                        const tilesetJsonData = await response.json();
+                        console.log(tilesetJsonData);
+                        this.renderBoundingVolume(tilesetJsonData);
+                        // TODO 优化: 本次会触发 Yjs addEvent
+                        this.layers
+                            .get(layerAdded.id)
+                            ?.set("tileset", tilesetJsonData);
+                    }
                 }
                 layer = await this.add3dtilesLayer(layerAdded);
                 if (layer) {
@@ -437,8 +440,15 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
 
     private async add3dtilesLayer(layer: GeoOasis3DTilesLayer) {
         try {
-            // TODO 优化
-            const tileset = await Cesium3DTileset.fromUrl(layer.url);
+            // TODO: optimize
+            let tileset;
+            if (layer.ion) {
+                tileset = await Cesium3DTileset.fromIonAssetId(
+                    Number(layer.url)
+                );
+            } else {
+                tileset = await Cesium3DTileset.fromUrl(layer.url);
+            }
             return tileset;
         } catch (error) {
             console.error(`Error creating tileset: ${error}`);

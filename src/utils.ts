@@ -8,7 +8,9 @@ export enum FileType {
     SVGImage = ".svg",
     WordDocument = ".docx",
     ExcelSpreadsheet = ".xlsx",
-    TextFile = ".txt"
+    TextFile = ".txt",
+    GLTF = ".gltf",
+    GLB = ".glb"
 }
 
 export const getFileType = (fileName: string): FileType | undefined => {
