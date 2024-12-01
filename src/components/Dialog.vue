@@ -72,7 +72,7 @@ const handleUpload = () => {
                         v-model="input"
                     />
                 </fieldset>
-                <fieldset class="Fieldset" v-if="option">
+                <!-- <fieldset class="Fieldset" v-if="option">
                     <label class="Label" for="token">CesiumIonToken</label>
                     <input
                         id="token"
@@ -80,7 +80,7 @@ const handleUpload = () => {
                         placeholder="please input cesium Ion Token"
                         v-model="ionToken"
                     />
-                </fieldset>
+                </fieldset> -->
                 <fieldset class="Fieldset" v-if="option">
                     <label class="Label" for="assetId">Asset ID</label>
                     <input

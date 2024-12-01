@@ -40,7 +40,8 @@ export const generatePointEntityfromElement = (
             style: LabelStyle.FILL_AND_OUTLINE,
             outlineWidth: 2,
             verticalOrigin: VerticalOrigin.BOTTOM,
-            pixelOffset: new Cartesian2(0, -9)
+            pixelOffset: new Cartesian2(0, -9),
+            heightReference: HeightReference.CLAMP_TO_GROUND
         }
     });
 };

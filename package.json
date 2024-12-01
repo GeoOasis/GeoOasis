@@ -14,7 +14,7 @@
     "@iconify/vue": "^4.1.2",
     "@radix-ui/colors": "^3.0.0",
     "@turf/buffer": "^7.1.0",
-    "cesium": "^1.113.0",
+    "cesium": "^1.123.1",
     "element-plus": "^2.4.4",
     "lib0": "^0.2.98",
     "nanoid": "^5.0.4",
