@@ -19,7 +19,7 @@ import "./Dialog.css";
 const store = useGeoOasisStore();
 const { editor } = store;
 const option = ref(false);
-const input = ref("");
+const assetUrl = ref("");
 const ionToken = ref(""); // TODO:
 const assetID = ref("");
 const handleUpload = () => {
@@ -37,10 +37,12 @@ const handleUpload = () => {
             id: nanoid(),
             name: "default",
             type: "3dtiles",
-            url: input.value,
+            url: assetUrl.value,
             show: true
         });
     }
+    assetID.value = "";
+    assetUrl.value = "";
 };
 </script>
 
@@ -69,7 +71,7 @@ const handleUpload = () => {
                         id="url"
                         class="Input"
                         placeholder="please input 3D Tiles Url"
-                        v-model="input"
+                        v-model="assetUrl"
                     />
                 </fieldset>
                 <!-- <fieldset class="Fieldset" v-if="option">

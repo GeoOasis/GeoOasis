@@ -14,7 +14,10 @@ import {
     PolygonHierarchy,
     Transforms,
     HeadingPitchRoll,
-    ConstantProperty
+    ConstantProperty,
+    IonResource,
+    Quaternion,
+    Matrix3
 } from "cesium";
 import * as Y from "yjs";
 import { ObservableV2 } from "lib0/observable.js";
@@ -373,18 +376,21 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                 }
                 break;
             case "3dtiles":
-                if (layerAdded.tileset) {
-                    // TODO: fetch ion asset's tileset
-                    if (!layerAdded.ion) {
-                        const response = await fetch(layerAdded.url);
-                        const tilesetJsonData = await response.json();
-                        console.log(tilesetJsonData);
-                        this.renderBoundingVolume(tilesetJsonData);
-                        // TODO 优化: 本次会触发 Yjs addEvent
-                        this.layers
-                            .get(layerAdded.id)
-                            ?.set("tileset", tilesetJsonData);
+                if (!layerAdded.tileset) {
+                    let resource;
+                    if (layerAdded.ion) {
+                        resource = await IonResource.fromAssetId(
+                            Number(layerAdded.url)
+                        );
+                    } else {
+                        resource = layerAdded.url;
                     }
+                    const tilesetJson =
+                        await Cesium3DTileset.loadJson(resource);
+                    this.layers.get(layerAdded.id)?.set("tileset", tilesetJson);
+                } else {
+                    // TODO: offline
+                    this.renderBoundingVolume(layerAdded.tileset);
                 }
                 layer = await this.add3dtilesLayer(layerAdded);
                 if (layer) {
@@ -440,7 +446,6 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
 
     private async add3dtilesLayer(layer: GeoOasis3DTilesLayer) {
         try {
-            // TODO: optimize
             let tileset;
             if (layer.ion) {
                 tileset = await Cesium3DTileset.fromIonAssetId(
@@ -456,19 +461,12 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
     }
 
     private renderBoundingVolume(tilesetjson: any): Entity | undefined {
-        console.log(tilesetjson);
         const rootBoundingVolume = tilesetjson.root.boundingVolume;
         const rootTransform: number[] = tilesetjson.root.transform;
         let boundingVolumeEntity: Entity | undefined;
         if (rootBoundingVolume.box) {
             const matrix4 = Matrix4.fromArray(rootTransform);
-            const globecenter = new Cartesian3(0.0, 0.0, 0.0);
-            const localcenter = Matrix4.multiplyByPoint(
-                matrix4,
-                globecenter,
-                globecenter
-            );
-
+            const localcenter = new Cartesian3();
             const boxcenter = new Cartesian3(
                 rootBoundingVolume.box[0],
                 rootBoundingVolume.box[1],
@@ -477,31 +475,32 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
             const localboxcenter = Cartesian3.add(
                 localcenter,
                 boxcenter,
-                localcenter
+                new Cartesian3()
             );
+            const worldCenter = Matrix4.multiplyByPoint(
+                matrix4,
+                localboxcenter,
+                new Cartesian3()
+            );
+            const worldOrientation = Quaternion.fromRotationMatrix(
+                Matrix4.getMatrix3(matrix4, new Matrix3())
+            );
+
             const box = this.viewer?.entities.add({
-                id: "box",
-                position: localboxcenter,
+                position: worldCenter,
+                orientation: worldOrientation,
                 box: {
                     dimensions: new Cartesian3(
-                        rootBoundingVolume.box[3],
-                        rootBoundingVolume.box[7],
-                        rootBoundingVolume.box[11]
+                        2 * rootBoundingVolume.box[3],
+                        2 * rootBoundingVolume.box[7],
+                        2 * rootBoundingVolume.box[11]
                     ),
-                    material: Color.RED.withAlpha(0.5),
+                    material: Color.RED.withAlpha(0.4),
                     outline: true,
-                    outlineColor: Color.BLACK
+                    outlineColor: Color.YELLOW
                 }
             });
 
-            // const localcenterpoint = this.viewer?.entities.add({
-            //     id: "point",
-            //     position: localcenter,
-            //     point: {
-            //         color: Color.WHITE,
-            //         pixelSize: 10
-            //     }
-            // });
             boundingVolumeEntity = box;
             this.viewer?.flyTo(box as Entity);
         }

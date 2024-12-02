@@ -27,8 +27,8 @@ onMounted(() => {
         navigationHelpButton: false,
         navigationInstructionsInitiallyVisible: false,
         scene3DOnly: false,
-        shouldAnimate: false
-        // terrain: Terrain.fromWorldTerrain()
+        shouldAnimate: false,
+        terrain: Terrain.fromWorldTerrain()
     });
     viewer.camera.flyTo({
         destination: Cartesian3.fromDegrees(105.0, 20.0, 5000000.0),
@@ -43,7 +43,6 @@ onMounted(() => {
     store.editor.viewer = viewer;
     store.toolBox.registerTool(new BufferTool());
     store.toolBox.registerTool(new HeatMapTool());
-
     console.log("Map container mounted");
     ElNotification({
         title: "提示",
