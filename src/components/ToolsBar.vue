@@ -53,7 +53,7 @@ const gizmoModeOptions = [
         icon: "mdi:rotate-360"
     },
     {
-        label: GizmoMode.SCALE,
+        label: GizmoMode.UNIFORM_SCALE,
         icon: "mage:scale-up"
     }
 ];

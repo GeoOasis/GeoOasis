@@ -22,6 +22,7 @@ export interface GeoOasisBaseElement {
         pitch: number;
         roll: number;
     };
+    scale?: Point3;
 }
 
 // points, billboards, labels

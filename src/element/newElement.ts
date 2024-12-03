@@ -93,6 +93,11 @@ export const newModelElement = (
             heading: 0,
             pitch: 0,
             roll: 0
+        },
+        scale: {
+            x: 1,
+            y: 1,
+            z: 1
         }
     };
 };

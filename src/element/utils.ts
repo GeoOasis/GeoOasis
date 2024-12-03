@@ -95,8 +95,9 @@ export const generateModelEntityfromElement = (
         ),
         model: {
             uri: element.url,
-            minimumPixelSize: 128,
-            maximumScale: 20000
+            scale: element.scale?.x
+            // minimumPixelSize: 128,
+            // maximumScale: 20000,
         }
     });
 };

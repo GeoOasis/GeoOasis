@@ -16,7 +16,8 @@ import {
     ConstantProperty,
     IonResource,
     Quaternion,
-    Matrix3
+    Matrix3,
+    CallbackPositionProperty
 } from "cesium";
 import * as Y from "yjs";
 import { ObservableV2 } from "lib0/observable.js";
@@ -176,8 +177,7 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                 }, false);
                 break;
             case "model":
-                // @ts-ignore
-                entity.position = new CallbackProperty(() => {
+                entity.position = new CallbackPositionProperty(() => {
                     return cartesian3FromPoint3(
                         this.elements.get(id)?.get("positions")[0]
                     );
@@ -192,6 +192,11 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                     const hpr = new HeadingPitchRoll(heading, pitch, roll);
                     return Transforms.headingPitchRollQuaternion(pos, hpr);
                 }, false);
+                if (entity.model) {
+                    entity.model.scale = new CallbackProperty(() => {
+                        return this.elements.get(id)?.get("scale").x;
+                    }, false);
+                }
                 break;
             case "image":
                 break;
@@ -255,6 +260,7 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
 
     pickElement(position: Cartesian2) {
         const pickedEntity = this.viewer?.scene.pick(position);
+        console.log("picked!!!!!!!!!!!!", pickedEntity);
         if (pickedEntity) {
             return this.elements.get(pickedEntity.id.id)?.toJSON() as Element;
         }

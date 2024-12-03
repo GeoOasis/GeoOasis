@@ -128,6 +128,13 @@ export const useToolsBar = () => {
                     // TODO:
                     break;
                 case GizmoMode.UNIFORM_SCALE:
+                    editor.mutateElement(draggingElement.id, {
+                        scale: {
+                            x: result[0],
+                            y: result[1],
+                            z: result[2]
+                        }
+                    });
                     break;
             }
         }

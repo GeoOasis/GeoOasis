@@ -112,7 +112,7 @@ function addMouseEvent(handler, viewer, scope) {
     const transform = Cesium.Transforms.eastNorthUpToFixedFrame(originPosition); // east, north, up is the positive direction of x, y, z axis
     // originPosition coords on the canvas
     const originPositionOnCanvas =
-      Cesium.SceneTransforms.wgs84ToWindowCoordinates(
+      Cesium.SceneTransforms.worldToWindowCoordinates(
         viewer.scene,
         originPosition,
         new Cesium.Cartesian2()
@@ -147,7 +147,7 @@ function addMouseEvent(handler, viewer, scope) {
         );
         // target position on the canvas
         const endPositionOnCanvas =
-          Cesium.SceneTransforms.wgs84ToWindowCoordinates(
+          Cesium.SceneTransforms.worldToWindowCoordinates(
             viewer.scene,
             targetPosition,
             new Cesium.Cartesian2()
@@ -387,7 +387,7 @@ function addMouseEvent(handler, viewer, scope) {
           targetPosition
         );
 
-        Cesium.SceneTransforms.wgs84ToDrawingBufferCoordinates(
+        Cesium.SceneTransforms.worldToDrawingBufferCoordinates(
           viewer.scene,
           targetPosition,
           endPositionOnCanvas
