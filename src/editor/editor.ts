@@ -8,7 +8,6 @@ import {
     Color,
     ImageryLayer,
     DataSource,
-    Primitive,
     Cesium3DTileset,
     GeoJsonDataSource,
     PolygonHierarchy,
@@ -95,7 +94,8 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
     private imageryLayersMap: Map<Layer["id"], ImageryLayer> = new Map();
     private serviceLayersMap: Map<Layer["id"], DataSource> = new Map(); // use Array?
     private serviceLayersArray: [Layer["id"], DataSource][] = new Array();
-    private cesium3dtilesLayersMap: Map<Layer["id"], Primitive> = new Map();
+    private cesium3dtilesLayersMap: Map<Layer["id"], Cesium3DTileset> =
+        new Map();
 
     constructor() {
         super();
@@ -376,35 +376,48 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                 }
                 break;
             case "3dtiles":
-                if (!layerAdded.tileset) {
-                    let resource;
-                    if (layerAdded.ion) {
-                        resource = await IonResource.fromAssetId(
-                            Number(layerAdded.url)
-                        );
-                    } else {
-                        resource = layerAdded.url;
+                try {
+                    const tilesetJson = await fetch3DTilesetJson(layerAdded);
+                    if (!layerAdded.tileset) {
+                        // cache tileset.josn
+                        this.layers
+                            .get(layerAdded.id)
+                            ?.set("tileset", tilesetJson);
                     }
-                    const tilesetJson =
-                        await Cesium3DTileset.loadJson(resource);
-                    this.layers.get(layerAdded.id)?.set("tileset", tilesetJson);
-                } else {
-                    // TODO: offline
-                    this.renderBoundingVolume(layerAdded.tileset);
-                }
-                layer = await this.add3dtilesLayer(layerAdded);
-                if (layer) {
-                    this.viewer?.scene.primitives.add(layer);
-                    this.cesium3dtilesLayersMap.set(
-                        layerAdded.id,
-                        layer as any
-                    );
-                    await this.viewer?.zoomTo(layer);
+                    await this.add3dtilesLayer(layerAdded);
+                } catch (error) {
+                    const tilesetJson = this.layers
+                        .get(layerAdded.id)
+                        ?.get("tileset");
+                    let boundingVolumeEntity: Entity;
+                    if (tilesetJson && this.viewer) {
+                        boundingVolumeEntity = renderBoundingVolume(
+                            tilesetJson,
+                            this.viewer
+                        );
+                    }
+                    retryAsync(
+                        async () => {
+                            await this.add3dtilesLayer(layerAdded);
+                        },
+                        10,
+                        10000
+                    ).then(() => {
+                        this.viewer?.entities.remove(boundingVolumeEntity);
+                    });
+                    console.error(error);
                 }
                 break;
             case "terrain":
                 break;
         }
+    }
+
+    private async add3dtilesLayer(layer: GeoOasis3DTilesLayer) {
+        const cesium3dtiles = await create3dtilesLayer(layer);
+        this.viewer?.scene.primitives.add(cesium3dtiles);
+        this.cesium3dtilesLayersMap.set(layer.id, cesium3dtiles);
+        await this.viewer?.zoomTo(cesium3dtiles);
     }
 
     private async addImageryLayer(layer: GeoOasisImageryLayer) {
@@ -442,69 +455,6 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
             case " czml":
             case "custom":
         }
-    }
-
-    private async add3dtilesLayer(layer: GeoOasis3DTilesLayer) {
-        try {
-            let tileset;
-            if (layer.ion) {
-                tileset = await Cesium3DTileset.fromIonAssetId(
-                    Number(layer.url)
-                );
-            } else {
-                tileset = await Cesium3DTileset.fromUrl(layer.url);
-            }
-            return tileset;
-        } catch (error) {
-            console.error(`Error creating tileset: ${error}`);
-        }
-    }
-
-    private renderBoundingVolume(tilesetjson: any): Entity | undefined {
-        const rootBoundingVolume = tilesetjson.root.boundingVolume;
-        const rootTransform: number[] = tilesetjson.root.transform;
-        let boundingVolumeEntity: Entity | undefined;
-        if (rootBoundingVolume.box) {
-            const matrix4 = Matrix4.fromArray(rootTransform);
-            const localcenter = new Cartesian3();
-            const boxcenter = new Cartesian3(
-                rootBoundingVolume.box[0],
-                rootBoundingVolume.box[1],
-                rootBoundingVolume.box[2]
-            );
-            const localboxcenter = Cartesian3.add(
-                localcenter,
-                boxcenter,
-                new Cartesian3()
-            );
-            const worldCenter = Matrix4.multiplyByPoint(
-                matrix4,
-                localboxcenter,
-                new Cartesian3()
-            );
-            const worldOrientation = Quaternion.fromRotationMatrix(
-                Matrix4.getMatrix3(matrix4, new Matrix3())
-            );
-
-            const box = this.viewer?.entities.add({
-                position: worldCenter,
-                orientation: worldOrientation,
-                box: {
-                    dimensions: new Cartesian3(
-                        2 * rootBoundingVolume.box[3],
-                        2 * rootBoundingVolume.box[7],
-                        2 * rootBoundingVolume.box[11]
-                    ),
-                    material: Color.RED.withAlpha(0.4),
-                    outline: true,
-                    outlineColor: Color.YELLOW
-                }
-            });
-
-            boundingVolumeEntity = box;
-            this.viewer?.flyTo(box as Entity);
-        }
-        return boundingVolumeEntity;
     }
 
     handleYjsElementsEvents(
@@ -667,4 +617,99 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
             });
         });
     }
+}
+
+async function create3dtilesLayer(layer: GeoOasis3DTilesLayer) {
+    try {
+        if (layer.ion) {
+            return await Cesium3DTileset.fromIonAssetId(Number(layer.url));
+        } else {
+            return await Cesium3DTileset.fromUrl(layer.url);
+        }
+    } catch (error) {
+        throw new Error(`Error creating tileset: ${error}`);
+    }
+}
+
+async function fetch3DTilesetJson(layer: GeoOasis3DTilesLayer) {
+    try {
+        let resource;
+        if (layer.ion) {
+            resource = await IonResource.fromAssetId(Number(layer.url));
+        } else {
+            resource = layer.url;
+        }
+        const tilesetJson = await Cesium3DTileset.loadJson(resource);
+        return tilesetJson;
+    } catch (error) {
+        throw error;
+    }
+}
+
+function renderBoundingVolume(tilesetjson: any, viewer: Viewer): Entity {
+    const rootBoundingVolume = tilesetjson.root.boundingVolume;
+    const rootTransform: number[] = tilesetjson.root.transform;
+    let boundingVolumeEntity: Entity = {} as Entity;
+    if (rootBoundingVolume.box) {
+        const matrix4 = Matrix4.fromArray(rootTransform);
+        const localcenter = new Cartesian3();
+        const boxcenter = new Cartesian3(
+            rootBoundingVolume.box[0],
+            rootBoundingVolume.box[1],
+            rootBoundingVolume.box[2]
+        );
+        const localboxcenter = Cartesian3.add(
+            localcenter,
+            boxcenter,
+            new Cartesian3()
+        );
+        const worldCenter = Matrix4.multiplyByPoint(
+            matrix4,
+            localboxcenter,
+            new Cartesian3()
+        );
+        const worldOrientation = Quaternion.fromRotationMatrix(
+            Matrix4.getMatrix3(matrix4, new Matrix3())
+        );
+
+        const box = viewer.entities.add({
+            position: worldCenter,
+            orientation: worldOrientation,
+            box: {
+                dimensions: new Cartesian3(
+                    2 * rootBoundingVolume.box[3],
+                    2 * rootBoundingVolume.box[7],
+                    2 * rootBoundingVolume.box[11]
+                ),
+                material: Color.RED.withAlpha(0.4),
+                outline: true,
+                outlineColor: Color.YELLOW
+            }
+        });
+
+        boundingVolumeEntity = box;
+        viewer.flyTo(box as Entity);
+    }
+    return boundingVolumeEntity;
+}
+
+async function retryAsync(
+    functionToRetry: () => Promise<any>,
+    maxRetries = 3,
+    delay = 1000
+) {
+    async function retry(attempt: number) {
+        try {
+            return await functionToRetry();
+        } catch (error) {
+            if (attempt <= maxRetries) {
+                console.log(`Attempt ${attempt} failed. Retrying...`);
+                await new Promise((resolve) => setTimeout(resolve, delay));
+                return await retry(attempt + 1);
+            } else {
+                throw error;
+            }
+        }
+    }
+    return await retry(1);
 }

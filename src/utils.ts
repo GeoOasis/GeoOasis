@@ -23,3 +23,9 @@ export const getFileType = (fileName: string): FileType | undefined => {
         (type) => type === extension.toLowerCase()
     );
 };
+
+export type CesiumRenderableObject = {
+    update?: () => void;
+    isDestroyed: () => boolean;
+    destroy: () => void;
+};
