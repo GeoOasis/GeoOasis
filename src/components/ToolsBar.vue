@@ -10,19 +10,14 @@ import {
 import ToolbarUploadButton from "./internals/UploadButton.vue";
 import Dialog from "./Dialog.vue";
 import { Icon } from "@iconify/vue";
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { nanoid } from "nanoid";
 import { useToolsBar, DrawMode, GizmoMode } from "../composables/useToolsBar";
 import { useYjs } from "../composables/useYjs";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { randomGeoJsonPoint } from "../mock";
 
-const store = useGeoOasisStore();
-
-const { undo, redo } = useYjs();
-const { activeTool, drawMode, gizmoMode, handleLoadFile } = useToolsBar();
-
-const items = [
+const toolOptions = [
     {
         label: "default",
         icon: "gis:arrow-o"
@@ -62,6 +57,32 @@ const gizmoModeOptions = [
         icon: "mage:scale-up"
     }
 ];
+const glTFOptions = [
+    {
+        name: "light",
+        url: "light.glb"
+    },
+    {
+        name: "sign",
+        url: "sign.glb"
+    },
+    {
+        name: "car",
+        url: "car.glb"
+    },
+    {
+        name: "airplane",
+        url: "Cesium_Air.glb"
+    }
+];
+
+const store = useGeoOasisStore();
+
+const { undo, redo } = useYjs();
+const { activeTool, drawMode, gizmoMode, selectedModel, handleLoadFile } =
+    useToolsBar();
+
+const modelBarVisible = computed(() => activeTool.value === "model");
 
 const selectedFile = ref<File>();
 watch(selectedFile, () => {
@@ -135,7 +156,7 @@ const mockData = () => {
         >
             <ToolbarToggleItem
                 class="ToolbarToggleItem"
-                v-for="item in items"
+                v-for="item in toolOptions"
                 :value="item.label"
             >
                 <Icon :icon="item.icon" />
@@ -174,4 +195,14 @@ const mockData = () => {
             Mock
         </ToolbarButton>
     </ToolbarRoot>
+    <div v-show="modelBarVisible" class="ModelBar">
+        <div
+            class="ModelBarItem"
+            :class="{ ModelBarItemActive: selectedModel === item.url }"
+            v-for="item in glTFOptions"
+            @click="selectedModel = item.url"
+        >
+            {{ item.name }}
+        </div>
+    </div>
 </template>

@@ -1,9 +1,12 @@
 <script setup lang="ts">
-//
+import { useSceneHelper } from "../composables/useSceneHelper";
+const { flyToHome } = useSceneHelper();
 </script>
 
 <template>
-    <div class="footerbar">TODO footer</div>
+    <div class="footerbar">
+        <div @click="flyToHome">Home</div>
+    </div>
 </template>
 
 <style scoped>

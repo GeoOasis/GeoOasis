@@ -1,4 +1,4 @@
-import { Point3 } from "./point";
+import { Point3 } from "./types";
 
 export type Element =
     | GeoOasisPointElement

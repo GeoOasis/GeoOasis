@@ -41,7 +41,7 @@ import {
     generateModelEntityfromElement,
     generateRectangleEntityfromElement
 } from "../element/utils";
-import { Point3 } from "../element/point";
+import { Point3 } from "../element/types";
 import {
     GeoOasis3DTilesLayer,
     GeoOasisImageryLayer,

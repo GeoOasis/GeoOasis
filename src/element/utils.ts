@@ -19,7 +19,7 @@ import {
     GeoOasisImageElement,
     GeoOasisRectangleElement
 } from "./element";
-import { Point3 } from "./point";
+import { Point3 } from "./types";
 
 export const generatePointEntityfromElement = (
     element: GeoOasisPointElement
@@ -31,7 +31,7 @@ export const generatePointEntityfromElement = (
         show: element.show,
         position: Cartesian3.fromElements(poi.x, poi.y, poi.z),
         point: {
-            heightReference: HeightReference.CLAMP_TO_GROUND,
+            // heightReference: HeightReference.CLAMP_TO_GROUND,
             pixelSize: element.pixelSize
         },
         label: {
@@ -40,8 +40,8 @@ export const generatePointEntityfromElement = (
             style: LabelStyle.FILL_AND_OUTLINE,
             outlineWidth: 2,
             verticalOrigin: VerticalOrigin.BOTTOM,
-            pixelOffset: new Cartesian2(0, -9),
-            heightReference: HeightReference.CLAMP_TO_GROUND
+            pixelOffset: new Cartesian2(0, -9)
+            // heightReference: HeightReference.CLAMP_TO_GROUND
         }
     });
 };

@@ -4,6 +4,7 @@ import { Viewer, Ion, Cartesian3, Math, Terrain } from "cesium";
 import { ElNotification } from "element-plus";
 import "cesium/Build/CesiumUnminified/Widgets/widgets.css";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
+import { useSceneHelper } from "../composables/useSceneHelper";
 import { BufferTool } from "../tool/buffer";
 import { HeatMapTool } from "../tool/heatmap";
 import { CesiumIonDefaultToken } from "../contants";
@@ -11,6 +12,7 @@ import { CesiumIonDefaultToken } from "../contants";
 const viewerDivRef = ref<HTMLDivElement>();
 
 const store = useGeoOasisStore();
+const { flyToHome } = useSceneHelper();
 
 onMounted(() => {
     Ion.defaultAccessToken = CesiumIonDefaultToken;
@@ -44,6 +46,7 @@ onMounted(() => {
     store.toolBox.registerTool(new BufferTool());
     store.toolBox.registerTool(new HeatMapTool());
     console.log("Map container mounted");
+    flyToHome();
     ElNotification({
         title: "提示",
         message: "Map container mounted",

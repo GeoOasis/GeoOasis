@@ -43,6 +43,7 @@ export const useToolsBar = () => {
     const activeTool = ref("default");
     const drawMode = ref(DrawMode.SURFACE);
     const gizmoMode = ref(GizmoMode.TRANSLATE);
+    const selectedModel = ref("");
 
     const store = useGeoOasisStore();
     const { viewerRef, selectedElement, selectedLayer } = storeToRefs(store);
@@ -136,11 +137,16 @@ export const useToolsBar = () => {
         positionedEvent: ScreenSpaceEventHandler.PositionedEvent
     ) => {
         console.log("left down!");
-        let cartesian = viewerRef.value.camera.pickEllipsoid(
-            positionedEvent.position,
-            viewerRef.value.scene.globe.ellipsoid
+        let ellipsoidPos = viewerRef.value.scene.camera.pickEllipsoid(
+            positionedEvent.position
         );
-        if (!cartesian) {
+        let globePos = viewerRef.value.scene.pickPosition(
+            positionedEvent.position
+        );
+
+        console.log("scene.pickPos: ", globePos);
+        console.log("camera.pickEllipsoid: ", ellipsoidPos);
+        if (!globePos) {
             // TODO 当LeftDown的时候，未选中地球时，LeftUp和MouseMove应该怎样处理
             draggingElement = undefined;
             selectedElement.value = undefined;
@@ -148,8 +154,8 @@ export const useToolsBar = () => {
             return;
         }
 
-        startPoint = cartesian;
-        console.log("left click on earth: ", cartesian);
+        startPoint = globePos;
+        // console.log("left click on earth: ", globePos);
 
         // * if the active tool is default, then can drag the selected element
         // * when drawMode is SPACE, the active tool is default
@@ -212,12 +218,17 @@ export const useToolsBar = () => {
                 }
                 break;
             case "model":
+                if (!selectedModel.value) {
+                    console.log("choose a model");
+                    edittingElement = null;
+                    break;
+                }
                 const ModelElement = newModelElement(
                     nanoid(),
                     "",
                     true,
                     startPoint,
-                    "./Cesium_Air.glb"
+                    `./${selectedModel.value}`
                 );
                 editor.addElement(ModelElement);
                 edittingElement = ModelElement;
@@ -275,35 +286,36 @@ export const useToolsBar = () => {
         motionEvent: ScreenSpaceEventHandler.MotionEvent
     ) => {
         if (drawMode.value === DrawMode.SPACE) return;
-
+        const startGlobePos = viewerRef.value.scene.pickPosition(
+            motionEvent.startPosition
+        );
+        const endGlobePos = viewerRef.value.scene.pickPosition(
+            motionEvent.startPosition
+        );
+        if (!startGlobePos || !endGlobePos) return;
+        endPoint = endGlobePos;
         // drag element logic
         if (draggingElement !== undefined) {
             // TODO: 优化drawMode
             if (draggingElement.type === "model") return;
-
-            const motionStartPosition = viewerRef.value.camera.pickEllipsoid(
-                motionEvent.startPosition
-            );
-            const motionEndPosition = viewerRef.value.camera.pickEllipsoid(
-                motionEvent.endPosition
-            );
-            if (
-                motionStartPosition === undefined ||
-                motionEndPosition === undefined
-            )
-                return;
-            const delta_x = motionEndPosition.x - motionStartPosition.x;
-            const delta_y = motionEndPosition.y - motionStartPosition.y;
-            const delta_z = motionEndPosition.z - motionStartPosition.z;
+            // const motionStartPosition = viewerRef.value.camera.pickEllipsoid(
+            //     motionEvent.startPosition
+            // );
+            // const motionEndPosition = viewerRef.value.camera.pickEllipsoid(
+            //     motionEvent.endPosition
+            // );
+            const delta_x = endGlobePos.x - startGlobePos.x;
+            const delta_y = endGlobePos.y - startGlobePos.y;
+            const delta_z = endGlobePos.z - startGlobePos.z;
             let elTmp;
             switch (draggingElement.type) {
                 case "point":
                     editor.mutateElement(draggingElement.id, {
                         positions: [
                             {
-                                x: motionEndPosition.x,
-                                y: motionEndPosition.y,
-                                z: motionEndPosition.z
+                                x: endGlobePos.x,
+                                y: endGlobePos.y,
+                                z: endGlobePos.z
                             }
                         ]
                     });
@@ -335,16 +347,10 @@ export const useToolsBar = () => {
                 default:
                     break;
             }
+            return;
         }
 
         // draw element logic
-        if (edittingElement === null) return;
-        let cartesian = viewerRef.value.camera.pickEllipsoid(
-            motionEvent.endPosition,
-            viewerRef.value.scene.globe.ellipsoid
-        );
-        if (!cartesian) return;
-        endPoint = cartesian;
         if (edittingElement !== null) {
             let update;
             switch (activeTool.value) {
@@ -355,7 +361,7 @@ export const useToolsBar = () => {
                     // TODO 优化手段：减少对象创建
                     update = [
                         // @ts-ignore
-                        ...editor.getElement(edittingElement.id)?.positions
+                        ...editor.getElement(edittingElement.id).positions
                     ];
                     update[update.length - 1] = point3FromCartesian3(endPoint);
                     editor.mutateElement(edittingElement.id, {
@@ -364,7 +370,8 @@ export const useToolsBar = () => {
                     break;
                 case "rectangle":
                     update = [
-                        ...editor.getElement(edittingElement.id)?.positions
+                        // @ts-ignore
+                        ...editor.getElement(edittingElement.id).positions
                     ];
                     update[update.length - 1] = point3FromCartesian3(endPoint);
                     editor.mutateElement(edittingElement.id, {
@@ -376,7 +383,7 @@ export const useToolsBar = () => {
                 case "polygon":
                     update = [
                         // @ts-ignore
-                        ...editor.getElement(edittingElement.id)?.positions
+                        ...editor.getElement(edittingElement.id).positions
                     ];
                     update[update.length - 1] = point3FromCartesian3(endPoint);
                     editor.mutateElement(edittingElement.id, {
@@ -498,5 +505,5 @@ export const useToolsBar = () => {
         }
     };
 
-    return { activeTool, drawMode, gizmoMode, handleLoadFile };
+    return { activeTool, drawMode, gizmoMode, selectedModel, handleLoadFile };
 };
