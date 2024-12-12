@@ -1,6 +1,6 @@
 import { ref, Ref, watch } from "vue";
 import { nanoid } from "nanoid";
-import { Cartesian3 } from "cesium";
+import { CallbackPositionProperty, Cartesian3, Color, Entity } from "cesium";
 import { Editor } from "../editor/editor";
 
 export type UserInfo = {
@@ -19,6 +19,11 @@ export type UserPos = {
 };
 
 export type User = UserInfo & UserPos;
+
+type AwarenessUser = {
+    user: UserInfo;
+    pos: UserPos;
+};
 
 const randomNames: string[] = ["alan", "bob", "charlie", "david"];
 
@@ -41,11 +46,23 @@ export const useAwareness = (editor: Editor, roomId: Ref<string>) => {
 
     const userList = ref<User[]>([]);
 
+    watch(roomId, () => {
+        if (roomId) {
+            const awareness = editor.provider?.awareness;
+            if (awareness) {
+                awareness.on("change", handler);
+                awareness.on("change", entityHandler);
+                initLocalUser();
+            }
+        }
+    });
+
     const handler = (
-        _changes: unknown
-        // event: "local" | Record<string, unknown>
+        changes: Record<"added" | "updated" | "removed", number[]>,
+        event: "local" | Record<string, unknown>
     ) => {
-        if (editor.provider?.awareness) {
+        const awareness = editor.provider?.awareness;
+        if (awareness) {
             userList.value = Array.from(
                 editor.provider?.awareness?.getStates().values()
             ).map((state) => {
@@ -53,6 +70,64 @@ export const useAwareness = (editor: Editor, roomId: Ref<string>) => {
                     ...state.user,
                     ...state.pos
                 };
+            });
+        }
+    };
+
+    const entityHandler = (
+        changes: Record<"added" | "updated" | "removed", number[]>,
+        event: "local" | Record<string, unknown>
+    ) => {
+        if (event === "local") return;
+        const awareness = editor.provider?.awareness;
+        if (awareness) {
+            changes.added.forEach((clientId) => {
+                const remoteState = awareness
+                    .getStates()
+                    .get(clientId) as AwarenessUser;
+                const entity = new Entity({
+                    id: clientId.toString(),
+                    name: remoteState.user.name,
+                    position: new CallbackPositionProperty((time, result) => {
+                        if (!result) {
+                            result = new Cartesian3();
+                        }
+                        const remoteState = awareness
+                            .getStates()
+                            .get(clientId) as AwarenessUser;
+                        result.x = remoteState.pos.x;
+                        result.y = remoteState.pos.y;
+                        result.z = remoteState.pos.z;
+                        return result;
+                    }, false),
+                    // TODO: optimize
+                    // orientation: new CallbackProperty((time, result) => {
+                    //     const remoteState = awareness
+                    //         .getStates()
+                    //         .get(clientId) as AwarenessUser;
+                    //     const center = Cartesian3.fromElements(
+                    //         remoteState.pos.x,
+                    //         remoteState.pos.y,
+                    //         remoteState.pos.z
+                    //     );
+                    //     return Transforms.headingPitchRollQuaternion(
+                    //         center,
+                    //         new HeadingPitchRoll(
+                    //             remoteState.pos.heading,
+                    //             remoteState.pos.pitch,
+                    //             remoteState.pos.roll
+                    //         )
+                    //     );
+                    // }, false),
+                    point: {
+                        color: Color.fromRandom(),
+                        pixelSize: 50
+                    }
+                });
+                editor.viewer?.entities.add(entity);
+            });
+            changes.removed.forEach((clientId) => {
+                editor.viewer?.entities.removeById(clientId.toString());
             });
         }
     };
@@ -92,6 +167,7 @@ export const useAwareness = (editor: Editor, roomId: Ref<string>) => {
                 let cameraPosWC = viewer.camera.positionWC;
                 if (cameraPosWCOld.equals(cameraPosWC)) return;
                 cameraPosWCOld = cameraPosWC.clone();
+                // TODO: throttle
                 setUserPostion({
                     x: cameraPosWC.x,
                     y: cameraPosWC.y,
@@ -103,16 +179,6 @@ export const useAwareness = (editor: Editor, roomId: Ref<string>) => {
             });
         }
     };
-
-    watch(roomId, () => {
-        if (roomId) {
-            const awareness = editor.provider?.awareness;
-            if (awareness) {
-                awareness.on("change", handler);
-                initLocalUser();
-            }
-        }
-    });
 
     return {
         userList,

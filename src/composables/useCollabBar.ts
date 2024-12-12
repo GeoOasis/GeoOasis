@@ -7,7 +7,6 @@ export const useCollabBar = () => {
     // store
     const store = useGeoOasisStore();
     const { viewerRef, userList } = storeToRefs(store);
-    // const { setUser, setUserPostion } = store;
 
     const synOtherUserCamera = (user: User) => {
         if (user.id === userList.value[0].id) return;

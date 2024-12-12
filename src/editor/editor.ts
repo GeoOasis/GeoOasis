@@ -469,7 +469,7 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
     ) {
         // change cesium entity
         console.log("TRANSACTION is: ", transactions);
-        events.map((e) => {
+        for (const e of events) {
             console.log("Events is: ", e);
             e.changes.keys.forEach((change, key) => {
                 console.log(
@@ -577,7 +577,7 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                     }
                 }
             });
-        });
+        }
     }
 
     handleYjsLayersEvents(
@@ -585,12 +585,13 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
         transactions: Y.Transaction
     ) {
         console.log("TRANSACTION is: ", transactions);
-        events.map((e) => {
+        for (const e of events) {
             console.log("Events is: ", e);
             e.changes.keys.forEach((change, key) => {
                 console.log(`this change's key is ${key}`);
                 if (change.action === "add") {
                     this.addLayerToCesium(
+                        // TODO: toJSON is not the best way
                         this.layers.get(key)?.toJSON() as Layer
                     );
                 } else if (change.action === "update") {
@@ -621,7 +622,7 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                     }
                 }
             });
-        });
+        }
     }
 }
 
