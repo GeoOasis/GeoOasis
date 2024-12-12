@@ -230,13 +230,10 @@ export const useToolsBar = () => {
                     edittingElement = null;
                     break;
                 }
-                const ModelElement = newModelElement(
-                    nanoid(),
-                    "",
-                    true,
-                    startPoint,
-                    `./${selectedModel.value}`
-                );
+                const ModelElement = newModelElement({
+                    position: startPoint,
+                    url: `./${selectedModel.value}`
+                });
                 editor.addElement(ModelElement);
                 edittingElement = ModelElement;
                 break;
@@ -475,15 +472,20 @@ export const useToolsBar = () => {
                     console.error("file format isn't vivid JSON format", e);
                 }
             } else if (fileType === FileType.GLB) {
-                const base64GLB = e.target!.result as string;
-                const ModelElement = newModelElement(
-                    nanoid(),
-                    "",
-                    true,
-                    Cartesian3.fromDegrees(114.0, 22.0),
-                    base64GLB
+                const glbUint8Array = new Uint8Array(
+                    e.target?.result as ArrayBuffer
                 );
-                editor.addElement(ModelElement);
+                const glbElement = newModelElement({
+                    position: Cartesian3.fromDegrees(114.0, 22.0), // TODO: optimize
+                    url: glbUint8Array
+                });
+                editor.addElement(glbElement);
+                // const base64GLB = e.target!.result as string;
+                // const ModelElement = newModelElement(
+                //     Cartesian3.fromDegrees(114.0, 22.0),
+                //     base64GLB
+                // );
+                // editor.addElement(ModelElement);
             } else if (fileType === FileType.PNGImage) {
                 const imageArr = new Uint8Array(
                     e.target?.result as ArrayBuffer
@@ -505,10 +507,11 @@ export const useToolsBar = () => {
             fileType === FileType.GLTF
         ) {
             reader.readAsText(file); // 读取文件内容为文本
-        } else if (fileType === FileType.PNGImage) {
+        } else if (
+            fileType === FileType.PNGImage ||
+            fileType === FileType.GLB
+        ) {
             reader.readAsArrayBuffer(file);
-        } else if (fileType === FileType.GLB) {
-            reader.readAsDataURL(file);
         }
     };
 

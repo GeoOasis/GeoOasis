@@ -68,19 +68,28 @@ export const newPolygonElement = (
     };
 };
 
-export const newModelElement = (
-    id: string,
-    name: string,
-    show: boolean,
-    position: Cartesian3,
-    url: string
-): GeoOasisModelElement => {
+export const newModelElement = (options: {
+    id?: string;
+    name?: string;
+    show?: boolean;
+    position: Cartesian3;
+    url: string | Uint8Array;
+    description?: string;
+}): GeoOasisModelElement => {
+    const {
+        id = nanoid(),
+        name = "",
+        show = true,
+        position,
+        url,
+        description = ""
+    } = options;
     return {
-        id: nanoid(),
+        id,
         type: "model",
         name,
         show,
-        description: "",
+        description,
         positions: [
             {
                 x: position.x,

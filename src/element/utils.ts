@@ -80,6 +80,15 @@ export const generateModelEntityfromElement = (
 ): Entity => {
     const poi = element.positions[0];
     const center = Cartesian3.fromElements(poi.x, poi.y, poi.z);
+    let uri = "";
+    if (element.url instanceof Uint8Array) {
+        const glbBlob = new Blob([element.url], {
+            type: "model/gltf-binary"
+        });
+        uri = URL.createObjectURL(glbBlob);
+    } else {
+        uri = element.url;
+    }
     return new Entity({
         id: element.id,
         name: element.name,
@@ -94,7 +103,7 @@ export const generateModelEntityfromElement = (
             )
         ),
         model: {
-            uri: element.url,
+            uri: uri,
             scale: element.scale?.x
             // minimumPixelSize: 128,
             // maximumScale: 20000,
@@ -111,7 +120,7 @@ export const generateRectangleEntityfromElement = (
             material = element.url;
         } else {
             // @ts-ignore
-            const blob = new Blob([element.url.buffer], { type: "image/png" });
+            const blob = new Blob([element.url], { type: "image/png" });
             const url = URL.createObjectURL(blob);
             const imageHTMLElement = document.createElement("img");
             imageHTMLElement.src = url;
