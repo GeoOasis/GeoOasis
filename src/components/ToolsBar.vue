@@ -93,7 +93,7 @@ watch(selectedFile, () => {
 });
 
 const mockData = () => {
-    const mockData = randomGeoJsonPoint(100);
+    const mockData = randomGeoJsonPoint(10000);
     store.editor.addLayer({
         id: nanoid(),
         name: "HeatMapMockData",

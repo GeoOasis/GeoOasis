@@ -1,144 +1,29 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
-import { storeToRefs } from "pinia";
-import { nanoid } from "nanoid";
 import { Label } from "radix-vue";
 import { Icon } from "@iconify/vue";
 import Button from "./internals/Button.vue";
 import Separator from "./internals/Separator.vue";
 import Switch from "./internals/Switch.vue";
 import Select from "./internals/Select.vue";
-import { useGeoOasisStore } from "../store/GeoOasis.store";
-import { newImageElement } from "../element/newElement";
+import { useInfoPanel } from "../composables/useInfoPanel";
 
-const store = useGeoOasisStore();
-const { selectedElement, selectedLayer, toolBox } = storeToRefs(store);
-const { editor } = store;
-
-const form = ref<any[]>([]);
-
-watch(selectedElement, () => {
-    form.value = [];
-    if (selectedElement.value) {
-        for (const [key, value] of Object.entries(selectedElement.value)) {
-            form.value.push([key, value]);
-        }
-    }
-});
-
-const handleElementChange = (update: { [key: string]: any }) => {
-    if (selectedElement.value) {
-        editor.mutateElement(selectedElement.value.id, update);
-    }
-};
-
-const isToolBoxVisible = ref(false);
-const selectedTool = ref();
-const tools = ["buffer", "heatmap", "interplation"];
-const isWasm = ref(true);
-
-const handleExecuteBtn = (tool: string) => {
-    if (!selectedLayer.value) return;
-    const geojsonData = editor.getLayerData(selectedLayer.value.id);
-    let data: any;
-    let option: any; // option应该是是state，而且是动态的
-    if (tool === "buffer") {
-        option = { mode: "js", size: 100 };
-        data = geojsonData;
-    } else if (tool === "heatmap") {
-        // only for point geojosn
-        // prepare data
-        const extent = {
-            minLng: Infinity,
-            minLat: Infinity,
-            maxLng: -Infinity,
-            maxLat: -Infinity
-        };
-        data = [];
-        geojsonData.features.forEach((feature: any) => {
-            const coord = feature.geometry.coordinates;
-            extent.minLng = Math.min(extent.minLng, coord[0]);
-            extent.minLat = Math.min(extent.minLat, coord[1]);
-            extent.maxLng = Math.max(extent.maxLng, coord[0]);
-            extent.maxLat = Math.max(extent.maxLat, coord[1]);
-            data.push({
-                lat: feature.geometry.coordinates[1],
-                lng: feature.geometry.coordinates[0],
-                heat: feature.properties.heat
-            });
-        });
-
-        option = {
-            size: 256,
-            radius: 10,
-            maxHeat: 20,
-            gradient: ["00AAFF", "00FF00", "FFFF00", "FF8800", "FF0000"],
-            extent: extent
-        };
-        console.log(extent);
-    }
-
-    toolBox.value.runTool(tool, data, option).then((result) => {
-        // add result to editor
-        if (tool === "buffer") {
-            editor.addLayer({
-                id: nanoid(),
-                name: "bufferResult",
-                type: "service",
-                provider: "geojson",
-                url: result as Object,
-                show: true
-            });
-        } else if (tool === "heatmap") {
-            const canvas = document.createElement("canvas");
-            canvas.width = result.width;
-            canvas.height = result.height;
-            const ctx = canvas.getContext("2d");
-            const bitmap = createImageBitmap(result, {
-                imageOrientation: "flipY"
-            });
-            bitmap.then((bitmap) => {
-                ctx?.drawImage(bitmap, 0, 0);
-                // canvas.toBlob(
-                //     (blob) => {
-                //         blob?.arrayBuffer().then((buffer) => {
-                //             const imageArr = new Uint8Array(buffer);
-                //             const heatmap = newImageElement({
-                //                 id: nanoid(),
-                //                 type: "image",
-                //                 name: "heatMap",
-                //                 show: true,
-                //                 url: imageArr,
-                //                 extent: option.extent
-                //             });
-                //             editor.addElement(heatmap);
-                //         });
-                //     },
-                //     "image/png",
-                //     1.0
-                // );
-                const pngDataUrl = canvas.toDataURL("image/png", 1.0);
-                editor.addLayer({
-                    id: nanoid(),
-                    name: "heatMap",
-                    type: "imagery",
-                    provider: "singleTile",
-                    show: true,
-                    url: pngDataUrl,
-                    parameters: {
-                        extent: option.extent
-                    }
-                });
-            });
-        }
-    });
-};
+const {
+    form,
+    selectedElement,
+    selectedLayer,
+    isToolBoxVisible,
+    selectedTool,
+    tools,
+    isWasm,
+    handleElementChange,
+    handleExecuteBtn
+} = useInfoPanel();
 </script>
 
 <template>
     <div class="info-panel">
         <div v-show="selectedElement">
-            <div v-for="(value, index) in form" class="info-panel-item">
+            <div v-for="(value, _index) in form" class="info-panel-item">
                 <div v-if="value[0] === 'name'">
                     <Label class="LabelRoot" :for="value[0]">
                         {{ value[0] }}

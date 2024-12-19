@@ -32,7 +32,7 @@ const getRandomName = (array: string[]): string => {
     return array[randomIndex] + Math.floor(Math.random() * 100);
 };
 
-// TODO: modify
+// TODO: optimize
 const createDefaultUser = (): UserInfo => {
     return {
         id: nanoid(),
@@ -58,8 +58,8 @@ export const useAwareness = (editor: Editor, roomId: Ref<string>) => {
     });
 
     const handler = (
-        changes: Record<"added" | "updated" | "removed", number[]>,
-        event: "local" | Record<string, unknown>
+        _changes: Record<"added" | "updated" | "removed", number[]>,
+        _event: "local" | Record<string, unknown>
     ) => {
         const awareness = editor.provider?.awareness;
         if (awareness) {
@@ -88,7 +88,7 @@ export const useAwareness = (editor: Editor, roomId: Ref<string>) => {
                 const entity = new Entity({
                     id: clientId.toString(),
                     name: remoteState.user.name,
-                    position: new CallbackPositionProperty((time, result) => {
+                    position: new CallbackPositionProperty((_time, result) => {
                         if (!result) {
                             result = new Cartesian3();
                         }

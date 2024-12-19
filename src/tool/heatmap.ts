@@ -1,4 +1,6 @@
 import { BaseTool } from "./interface";
+import { HeatMap, HeatPoint, RGBA } from "rust-wasm-heatmap";
+import { memory } from "rust-wasm-heatmap/rust_wasm_heatmap_bg.wasm";
 
 export class HeatMapTool implements BaseTool {
     name: string = "heatmap";
@@ -13,14 +15,16 @@ export class HeatMapTool implements BaseTool {
             maxLng: number;
             maxLat: number;
         } = options.extent;
+        const mode = options.mode;
         const heatPoint: { lat: number; lng: number; heat: number }[] = data;
 
         const gradientParse = parseGradient(gradient);
-        console.log("parse gradient: ", gradientParse);
+        console.log("heatmap options", options);
 
         return new Promise((resolve, reject) => {
             resolve(
                 createHeat(
+                    mode,
                     size,
                     radius,
                     maxHeat,
@@ -119,7 +123,7 @@ const heatToColor = (
     return [r, g, b, a];
 };
 
-const createHeat = (
+const createHeatmapUseJs = (
     size: number,
     radius: number,
     maxheat: number,
@@ -131,7 +135,8 @@ const createHeat = (
         maxLng: number;
         maxLat: number;
     }
-) => {
+): ImageData => {
+    // console.time("createHeatmapUseJs");
     const { minLng, minLat, maxLng, maxLat } = extent;
 
     const dLng = maxLng - minLng;
@@ -179,5 +184,87 @@ const createHeat = (
         }
     }
     const image = new ImageData(uintc8, size, sizeY);
+    // console.timeEnd("createHeatmapUseJs");
     return image;
+};
+
+const creatHeatmapUseWasm = (
+    size: number,
+    radius: number,
+    maxheat: number,
+    gradient: { r: number; g: number; b: number }[],
+    heatPoint: { lat: number; lng: number; heat: number }[],
+    extent: {
+        minLng: number;
+        minLat: number;
+        maxLng: number;
+        maxLat: number;
+    }
+): ImageData => {
+    // console.time("creatHeatmapUseWasm");
+    const heatmap = HeatMap.new(
+        size,
+        radius,
+        extent.minLng,
+        extent.minLat,
+        extent.maxLng,
+        extent.maxLat,
+        maxheat
+    );
+    const rgbas = gradient.map((color) =>
+        RGBA.new(color.r, color.g, color.b, 255)
+    );
+    heatmap.set_gradients(rgbas);
+    const hw = heatmap.width();
+    const hh = heatmap.height();
+
+    const tmpPoints = heatPoint.map((p) => HeatPoint.new(p.lng, p.lat, p.heat));
+    heatmap.add_points(tmpPoints);
+
+    const colorsPtr = heatmap.color_values();
+    const colorsArr = new Uint8ClampedArray(
+        memory.buffer,
+        colorsPtr,
+        4 * hw * hh
+    );
+    console.log(colorsArr);
+    const imageData = new ImageData(colorsArr, hw, hh);
+    // console.timeEnd("creatHeatmapUseWasm");
+    // ? free
+    return imageData;
+};
+
+const createHeat = (
+    mode: "wasm" | "js",
+    size: number,
+    radius: number,
+    maxheat: number,
+    gradient: { r: number; g: number; b: number }[],
+    heatPoint: { lat: number; lng: number; heat: number }[],
+    extent: {
+        minLng: number;
+        minLat: number;
+        maxLng: number;
+        maxLat: number;
+    }
+) => {
+    if (mode === "js") {
+        return createHeatmapUseJs(
+            size,
+            radius,
+            maxheat,
+            gradient,
+            heatPoint,
+            extent
+        );
+    } else if (mode === "wasm") {
+        return creatHeatmapUseWasm(
+            size,
+            radius,
+            maxheat,
+            gradient,
+            heatPoint,
+            extent
+        );
+    }
 };

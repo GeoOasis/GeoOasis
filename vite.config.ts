@@ -2,6 +2,8 @@ import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import { VitePWA } from "vite-plugin-pwa";
+import wasm from "vite-plugin-wasm";
+import topLevelAwait from "vite-plugin-top-level-await";
 
 const cesiumSource = "node_modules/cesium/Build/Cesium";
 
@@ -14,6 +16,8 @@ export default defineConfig({
     },
     plugins: [
         vue(),
+        wasm(),
+        topLevelAwait(),
         viteStaticCopy({
             targets: [
                 { src: `${cesiumSource}/ThirdParty`, dest: cesiumBaseUrl },
@@ -32,5 +36,8 @@ export default defineConfig({
                 enabled: false
             }
         })
-    ]
+    ],
+    optimizeDeps: {
+        exclude: ["rust-wasm-heatmap"]
+    }
 });
