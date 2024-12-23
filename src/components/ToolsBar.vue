@@ -57,30 +57,18 @@ const gizmoModeOptions = [
         icon: "mage:scale-up"
     }
 ];
-const glTFOptions = [
-    {
-        name: "light",
-        url: "light.glb"
-    },
-    {
-        name: "sign",
-        url: "sign.glb"
-    },
-    {
-        name: "car",
-        url: "car.glb"
-    },
-    {
-        name: "airplane",
-        url: "Cesium_Air.glb"
-    }
-];
 
 const store = useGeoOasisStore();
 
 const { undo, redo } = useYjs();
-const { activeTool, drawMode, gizmoMode, selectedModel, handleLoadFile } =
-    useToolsBar();
+const {
+    activeTool,
+    drawMode,
+    gizmoMode,
+    selectedModelIdx,
+    assetsOption,
+    handleLoadFile
+} = useToolsBar();
 
 const modelBarVisible = computed(() => activeTool.value === "model");
 
@@ -93,7 +81,7 @@ watch(selectedFile, () => {
 });
 
 const mockData = () => {
-    const mockData = randomGeoJsonPoint(10000);
+    const mockData = randomGeoJsonPoint(1000);
     store.editor.addLayer({
         id: nanoid(),
         name: "HeatMapMockData",
@@ -198,9 +186,9 @@ const mockData = () => {
     <div v-show="modelBarVisible" class="ModelBar">
         <div
             class="ModelBarItem"
-            :class="{ ModelBarItemActive: selectedModel === item.url }"
-            v-for="item in glTFOptions"
-            @click="selectedModel = item.url"
+            :class="{ ModelBarItemActive: selectedModelIdx === index }"
+            v-for="(item, index) in assetsOption"
+            @click="selectedModelIdx = index"
         >
             {{ item.name }}
         </div>

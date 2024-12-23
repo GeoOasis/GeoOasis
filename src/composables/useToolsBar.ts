@@ -1,4 +1,4 @@
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import {
@@ -16,6 +16,7 @@ import {
     newRectangleElement
 } from "../element/newElement";
 import { point3FromCartesian3 } from "../element/utils";
+import { defaultAsset } from "../editor/assetLibrary";
 import { nanoid } from "nanoid";
 import { FileType, getFileType } from "../utils";
 import { CesiumGizmo } from "../thirdParty/cesium-gizmo";
@@ -33,6 +34,11 @@ export enum GizmoMode {
 }
 
 export const useToolsBar = () => {
+    const store = useGeoOasisStore();
+    const { viewerRef, selectedElement, selectedLayer, assetState } =
+        storeToRefs(store);
+    const { editor } = store;
+
     let handler: ScreenSpaceEventHandler;
     let gizmo: CesiumGizmo;
     let edittingElement: Element | null = null;
@@ -43,11 +49,8 @@ export const useToolsBar = () => {
     const activeTool = ref("default");
     const drawMode = ref(DrawMode.SURFACE);
     const gizmoMode = ref(GizmoMode.TRANSLATE);
-    const selectedModel = ref("");
-
-    const store = useGeoOasisStore();
-    const { viewerRef, selectedElement, selectedLayer } = storeToRefs(store);
-    const { editor } = store;
+    const selectedModelIdx = ref<number>();
+    const assetsOption = computed(() => defaultAsset.concat(assetState.value));
 
     watch(drawMode, () => {
         activeTool.value =
@@ -225,14 +228,22 @@ export const useToolsBar = () => {
                 }
                 break;
             case "model":
-                if (!selectedModel.value) {
+                if (!selectedModelIdx.value) {
                     console.log("choose a model");
+                    edittingElement = null;
+                    break;
+                }
+                const assetId = editor.assetLibrary.getAssetId(
+                    selectedModelIdx.value
+                );
+                if (!assetId) {
+                    console.error("No this assetId");
                     edittingElement = null;
                     break;
                 }
                 const ModelElement = newModelElement({
                     position: startPoint,
-                    url: `./${selectedModel.value}`
+                    assetId
                 });
                 editor.addElement(ModelElement);
                 edittingElement = ModelElement;
@@ -475,17 +486,10 @@ export const useToolsBar = () => {
                 const glbUint8Array = new Uint8Array(
                     e.target?.result as ArrayBuffer
                 );
-                const glbElement = newModelElement({
-                    position: Cartesian3.fromDegrees(114.0, 22.0), // TODO: optimize
-                    url: glbUint8Array
+                editor.assetLibrary.addAsset({
+                    name: file.name,
+                    data: glbUint8Array
                 });
-                editor.addElement(glbElement);
-                // const base64GLB = e.target!.result as string;
-                // const ModelElement = newModelElement(
-                //     Cartesian3.fromDegrees(114.0, 22.0),
-                //     base64GLB
-                // );
-                // editor.addElement(ModelElement);
             } else if (fileType === FileType.PNGImage) {
                 const imageArr = new Uint8Array(
                     e.target?.result as ArrayBuffer
@@ -500,7 +504,7 @@ export const useToolsBar = () => {
             }
         });
 
-        // TODO: optimize, we don't want to use Yjs to transfer data
+        // TODO: optimize, we don't want to use Yjs to transfer data? or we can use Yjs to transfer data
         if (
             fileType === FileType.GEOJSON ||
             fileType === FileType.JSON ||
@@ -515,5 +519,12 @@ export const useToolsBar = () => {
         }
     };
 
-    return { activeTool, drawMode, gizmoMode, selectedModel, handleLoadFile };
+    return {
+        activeTool,
+        drawMode,
+        gizmoMode,
+        selectedModelIdx,
+        assetsOption,
+        handleLoadFile
+    };
 };

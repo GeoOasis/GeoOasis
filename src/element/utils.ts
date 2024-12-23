@@ -20,6 +20,7 @@ import {
     GeoOasisRectangleElement
 } from "./element";
 import { Point3 } from "./types";
+import { Editor } from "../editor/editor";
 
 export const generatePointEntityfromElement = (
     element: GeoOasisPointElement
@@ -76,19 +77,12 @@ export const generatePolygonEntityfromElement = (
 };
 
 export const generateModelEntityfromElement = (
-    element: GeoOasisModelElement
+    element: GeoOasisModelElement,
+    editor: Editor
 ): Entity => {
     const poi = element.positions[0];
     const center = Cartesian3.fromElements(poi.x, poi.y, poi.z);
-    let uri = "";
-    if (element.url instanceof Uint8Array) {
-        const glbBlob = new Blob([element.url], {
-            type: "model/gltf-binary"
-        });
-        uri = URL.createObjectURL(glbBlob);
-    } else {
-        uri = element.url;
-    }
+    let uri = editor.assetLibrary.getAssetUrl(element.assetId);
     return new Entity({
         id: element.id,
         name: element.name,
@@ -103,7 +97,7 @@ export const generateModelEntityfromElement = (
             )
         ),
         model: {
-            uri: uri,
+            uri,
             scale: element.scale?.x
             // minimumPixelSize: 128,
             // maximumScale: 20000,

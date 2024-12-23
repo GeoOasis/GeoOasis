@@ -23,6 +23,7 @@ import * as Y from "yjs";
 import { ObservableV2 } from "lib0/observable.js";
 import { IndexeddbPersistence } from "y-indexeddb";
 import { HocuspocusProvider } from "@hocuspocus/provider";
+import { nanoid } from "nanoid";
 import { createHocuspocusProvider } from "./provider";
 import {
     Element,
@@ -56,7 +57,7 @@ import {
     generateTMSImagery
 } from "../layer/utils";
 import { Hocuspocus_URL } from "../contants";
-import { nanoid } from "nanoid";
+import { AssetLibrary } from "./assetLibrary";
 
 export type EditorEvent = {
     "element:add": (key: string) => void;
@@ -88,6 +89,7 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
     private entities: Map<string, Entity> = new Map();
     public viewer: Viewer | undefined;
     public undoManager: Y.UndoManager;
+    public assetLibrary: AssetLibrary;
 
     // TODO：type TrueLayer = ImageryLayer | DataSource | Primitive
     // TODO: 减少状态
@@ -101,11 +103,12 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
     constructor() {
         super();
         this.doc = new Y.Doc();
-        new IndexeddbPersistence("oasis-doc", this.doc);
         this.elements = this.doc.getMap("ElementsMap");
         this.layers = this.doc.getMap("LayersMap");
         this.baseLayers = this.doc.getMap("BaseLayersMap");
         this.undoManager = new Y.UndoManager([this.elements, this.layers]);
+        this.assetLibrary = new AssetLibrary(this.doc);
+        new IndexeddbPersistence("oasis-doc", this.doc);
         this.init();
     }
 
@@ -275,7 +278,7 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
             const owner = entityCollection.owner;
             // console.log("ower:", owner);
             const found = this.serviceLayersArray.find(
-                ([layerId, dataSource]) => {
+                ([_layerId, dataSource]) => {
                     return dataSource === owner;
                 }
             );
@@ -504,7 +507,8 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                             break;
                         case "model":
                             entity = generateModelEntityfromElement(
-                                elementAdded as GeoOasisModelElement
+                                elementAdded as GeoOasisModelElement,
+                                this
                             );
                             break;
                         case "image":
@@ -615,7 +619,7 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                         this.serviceLayersMap.delete(key);
                         this.serviceLayersArray =
                             this.serviceLayersArray.filter(
-                                ([id, dataSource]) => {
+                                ([_id, dataSource]) => {
                                     return dataSource !== layer;
                                 }
                             );

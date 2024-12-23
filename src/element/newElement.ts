@@ -73,7 +73,7 @@ export const newModelElement = (options: {
     name?: string;
     show?: boolean;
     position: Cartesian3;
-    url: string | Uint8Array;
+    assetId: string;
     description?: string;
 }): GeoOasisModelElement => {
     const {
@@ -81,7 +81,7 @@ export const newModelElement = (options: {
         name = "",
         show = true,
         position,
-        url,
+        assetId,
         description = ""
     } = options;
     return {
@@ -90,6 +90,7 @@ export const newModelElement = (options: {
         name,
         show,
         description,
+        assetId,
         positions: [
             {
                 x: position.x,
@@ -97,7 +98,6 @@ export const newModelElement = (options: {
                 z: position.z
             }
         ],
-        url,
         orientation: {
             heading: 0,
             pitch: 0,

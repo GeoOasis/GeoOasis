@@ -60,5 +60,5 @@ export interface GeoOasisImageElement extends GeoOasisBaseElement {
 
 export interface GeoOasisModelElement extends GeoOasisBaseElement {
     type: "model";
-    url: string | Uint8Array; // model/gltf-binary
+    assetId: string;
 }
