@@ -15,7 +15,7 @@ export const useSyncArray = <T>(yarray: Y.Array<T>) => {
     return array;
 };
 
-type MapRefValue<R> = { [K in keyof R]: ShallowRef<R[K]> };
+export type MapRefValue<R> = { [K in keyof R]: ShallowRef<R[K]> };
 
 export const useSyncMap = <R extends Record<string, unknown>>(
     ymap: Y.Map<any>,
@@ -37,4 +37,18 @@ export const useSyncMap = <R extends Record<string, unknown>>(
         });
     };
     return map;
+};
+
+export const useSyncMapArray = <T>(ymap: Y.Map<T>) => {
+    const array = shallowRef<T[]>([]);
+    onMounted(() => {
+        ymap.observe(handler);
+    });
+    onUnmounted(() => {
+        ymap.unobserve(handler);
+    });
+    const handler = () => {
+        array.value = [...ymap.values()];
+    };
+    return array;
 };

@@ -1,3 +1,4 @@
+import { KV } from "../type";
 import { Point3 } from "./types";
 
 export type Element =
@@ -8,7 +9,7 @@ export type Element =
     | GeoOasisImageElement
     | GeoOasisRectangleElement;
 
-export type ElementProperties = [keyof Element, Element[keyof Element]][];
+export type ElementKV = KV<Element>;
 
 export interface GeoOasisBaseElement {
     id: string;

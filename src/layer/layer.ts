@@ -1,9 +1,13 @@
+import { KV } from "../type";
+
 export type Layer =
     | GeoOasisImageryLayer
     | GeoOasisTerrainLayer
     | GeoOasisImageryLayer
     | GeoOasisServiceLayer
     | GeoOasis3DTilesLayer;
+
+export type LayerKV = KV<Layer>;
 
 export interface GeoOasisBaseLayer {
     id: string;

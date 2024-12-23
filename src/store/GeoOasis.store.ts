@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { shallowRef, ref, computed } from "vue";
 import { Viewer } from "cesium";
 import { useAwareness } from "../composables/useAwareness";
-import { useSyncArray } from "../composables/useSync";
+import { useSyncArray, useSyncMapArray } from "../composables/useSync";
 import { Editor } from "../editor/editor";
 import { Element } from "../element/element";
 import { Layer } from "../layer/layer";
@@ -20,8 +20,8 @@ export const useGeoOasisStore = defineStore("viewer", () => {
         selectedElement.value || selectedLayer.value ? true : false
     );
 
-    const elementState = shallowRef(editor.value.elements.toJSON());
-    const layerState = shallowRef(editor.value.layers.toJSON());
+    const elementArray = useSyncMapArray(editor.value.elements);
+    const layersArray = useSyncMapArray(editor.value.layers);
     const assetState = useSyncArray(editor.value.assetLibrary.assetArray);
 
     const roomId = ref("");
@@ -34,8 +34,8 @@ export const useGeoOasisStore = defineStore("viewer", () => {
         viewerRef,
         editor,
         toolBox,
-        elementState,
-        layerState,
+        elementArray,
+        layersArray,
         assetState,
         isPanelVisible,
         selectedElement,

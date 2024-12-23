@@ -1,26 +1,19 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
 import Button from "./internals/Button.vue";
 import Separator from "./internals/Separator.vue";
 import Select from "./internals/Select.vue";
-import { computed } from "vue";
+import Item from "./LayerBarItem.vue";
 import { useLayersBar } from "../composables/useLayersBar";
+import * as Y from "yjs";
 
 const {
     selectedBaseLayer,
-    elementsRef,
-    layersRef,
+    elementArray,
+    layersArray,
     add3dtilesTest,
     handleSelect,
     handleDelete
 } = useLayersBar();
-
-const pointElements = computed(() => {
-    return elementsRef.value.filter((e) => e.type === "point");
-});
-const polylineElements = computed(() => {
-    return elementsRef.value.filter((e) => e.type === "polyline");
-});
 
 const baseMapOptions = ["Bing", "ArcGIS", "Local"];
 </script>
@@ -28,12 +21,14 @@ const baseMapOptions = ["Bing", "ArcGIS", "Local"];
 <template>
     <div class="layersbar">
         <h3>Layers</h3>
-        <div class="item" v-for="e in layersRef" @click="handleSelect(e.id)">
-            id: {{ e.id.slice(0, 3) }}, type: {{ e.type }}
-            <Button @click.stop="handleDelete(e.id)">
-                <Icon icon="ic:baseline-delete" />
-            </Button>
-        </div>
+        <Item
+            type="layer"
+            v-for="e in layersArray"
+            :key="e.get('id')"
+            :item="e as Y.Map<any>"
+            @handle-select="handleSelect"
+            @handle-delete="handleDelete"
+        />
         <Separator />
         <Select
             title="BaseMap"
@@ -44,12 +39,14 @@ const baseMapOptions = ["Bing", "ArcGIS", "Local"];
         <Separator />
         <Button @click="add3dtilesTest">add3dtilesTest</Button>
         <h3>Elements</h3>
-        <div class="item" v-for="e in elementsRef" @click="handleSelect(e.id)">
-            id: {{ e.id.slice(0, 3) }}, type: {{ e.type }}
-            <Button @click.stop="handleDelete(e.id)">
-                <Icon icon="ic:baseline-delete" />
-            </Button>
-        </div>
+        <Item
+            type="element"
+            v-for="e in elementArray"
+            :key="e.get('id')"
+            :item="e as Y.Map<any>"
+            @handle-select="handleSelect"
+            @handle-delete="handleDelete"
+        />
     </div>
 </template>
 
@@ -68,21 +65,5 @@ const baseMapOptions = ["Bing", "ArcGIS", "Local"];
     box-shadow: 0 0 10px;
     border-radius: 10px;
     padding: 15px;
-}
-
-.item {
-    border-radius: 5px;
-    box-shadow: 0 0 2px;
-    padding: 5px;
-    margin: 5px;
-    user-select: none;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-}
-
-.item:hover {
-    background-color: var(--grass-4);
 }
 </style>

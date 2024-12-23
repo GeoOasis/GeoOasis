@@ -1,9 +1,7 @@
-import { computed, onMounted, watch } from "vue";
+import { onMounted, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { nanoid } from "nanoid";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
-import { Layer } from "../layer/layer";
-import { Element } from "../element/element";
 
 export const useLayersBar = () => {
     const store = useGeoOasisStore();
@@ -12,16 +10,10 @@ export const useLayersBar = () => {
         selectedBaseLayer,
         selectedElement,
         selectedLayer,
-        elementState,
-        layerState
+        elementArray,
+        layersArray
     } = storeToRefs(store);
     const { editor } = store;
-
-    const elementsRef = computed<Element[]>(() =>
-        Object.values(elementState.value)
-    );
-
-    const layersRef = computed<Layer[]>(() => Object.values(layerState.value));
 
     // mounted
     onMounted(() => {
@@ -105,8 +97,8 @@ export const useLayersBar = () => {
 
     return {
         selectedBaseLayer,
-        elementsRef,
-        layersRef,
+        elementArray,
+        layersArray,
         add3dtilesTest,
         handleSelect,
         handleDelete
