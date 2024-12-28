@@ -1,5 +1,5 @@
 import { BaseTool } from "./interface";
-import { HeatMap, HeatPoint, RGBA } from "rust-wasm-heatmap";
+import { HeatMap, RGBA } from "rust-wasm-heatmap";
 import { memory } from "rust-wasm-heatmap/rust_wasm_heatmap_bg.wasm";
 
 export class HeatMapTool implements BaseTool {
@@ -21,7 +21,7 @@ export class HeatMapTool implements BaseTool {
         const gradientParse = parseGradient(gradient);
         console.log("heatmap options", options);
 
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, _reject) => {
             resolve(
                 createHeat(
                     mode,
@@ -218,8 +218,16 @@ const creatHeatmapUseWasm = (
     const hw = heatmap.width();
     const hh = heatmap.height();
 
-    const tmpPoints = heatPoint.map((p) => HeatPoint.new(p.lng, p.lat, p.heat));
-    heatmap.add_points(tmpPoints);
+    const tmp: number[] = [];
+    heatPoint.forEach(p => {
+        tmp.push(p.lng)
+        tmp.push(p.lat)
+        tmp.push(p.heat)
+    })
+    heatmap.add_points_v2(new Float64Array(tmp));
+
+    // const tmpPoints = heatPoint.map((p) => HeatPoint.new(p.lng, p.lat, p.heat));
+    // heatmap.add_points(tmpPoints);
 
     const colorsPtr = heatmap.color_values();
     const colorsArr = new Uint8ClampedArray(

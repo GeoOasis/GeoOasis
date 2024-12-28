@@ -20,7 +20,7 @@
         "nanoid": "^5.0.4",
         "pinia": "^2.1.7",
         "radix-vue": "^1.7.1",
-        "rust-wasm-heatmap": "0.1.3",
+        "rust-wasm-heatmap": "0.1.4",
         "vue": "^3.3.11",
         "y-indexeddb": "^9.0.12",
         "yjs": "^13.6.14"

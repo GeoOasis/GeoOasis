@@ -89,7 +89,7 @@ export const useInfoPanel = () => {
                     show: true
                 });
             } else if (tool === "heatmap") {
-                const canvas = document.createElement("canvas");
+                let canvas: HTMLCanvasElement | null = document.createElement("canvas");
                 canvas.width = result.width;
                 canvas.height = result.height;
                 const ctx = canvas.getContext("2d");
@@ -115,7 +115,9 @@ export const useInfoPanel = () => {
                     //     "image/png",
                     //     1.0
                     // );
-                    const pngDataUrl = canvas.toDataURL("image/png", 1.0);
+                    const pngDataUrl = canvas?.toDataURL("image/png", 1.0);
+                    canvas?.remove();
+                    canvas= null;
                     editor.addLayer({
                         id: nanoid(),
                         name: "heatMap",
