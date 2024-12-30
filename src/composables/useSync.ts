@@ -33,7 +33,9 @@ export const useSyncMap = <R extends Record<string, unknown>>(
     });
     const handler = ({ changes }: Y.YMapEvent<any>) => {
         changes.keys.forEach((_change, key) => {
-            map[key].value = ymap.get(key);
+            if (map[key]) {
+                map[key].value = ymap.get(key);
+            }
         });
     };
     return map;
