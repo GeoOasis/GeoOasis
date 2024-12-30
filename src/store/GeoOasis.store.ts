@@ -12,7 +12,7 @@ export const useGeoOasisStore = defineStore("viewer", () => {
     const toolBox = shallowRef(new ToolBox());
     const selectedElement = ref<Element | undefined>();
     const selectedLayer = ref<Layer | undefined>();
-    const selectedBaseLayer = ref("Bing");
+    const selectedBaseLayer = ref("Local");
     const isPanelVisible = computed(() =>
         selectedElement.value || selectedLayer.value ? true : false
     );

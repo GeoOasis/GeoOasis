@@ -1,16 +1,14 @@
 <script setup lang="ts">
-import Button from "./internals/Button.vue";
+import { Label } from "radix-vue";
 import Separator from "./internals/Separator.vue";
 import Select from "./internals/Select.vue";
-import Item from "./LayerBarItem.vue";
+import LayerBarItem from "./LayerBarItem.vue";
 import { useLayersBar } from "../composables/useLayersBar";
-import * as Y from "yjs";
 
 const {
     selectedBaseLayer,
     elementArray,
     layersArray,
-    add3dtilesTest,
     handleSelect,
     handleDelete
 } = useLayersBar();
@@ -20,16 +18,7 @@ const baseMapOptions = ["Bing", "ArcGIS", "Local"];
 
 <template>
     <div class="layersbar">
-        <h3>Layers</h3>
-        <Item
-            type="layer"
-            v-for="e in layersArray"
-            :key="e.get('id')"
-            :item="e as Y.Map<any>"
-            @handle-select="handleSelect"
-            @handle-delete="handleDelete"
-        />
-        <Separator />
+        <Label>BaseLayer:</Label>
         <Select
             title="BaseMap"
             :selected="selectedBaseLayer"
@@ -37,13 +26,22 @@ const baseMapOptions = ["Bing", "ArcGIS", "Local"];
             @update:model-value="selectedBaseLayer = $event"
         ></Select>
         <Separator />
-        <Button @click="add3dtilesTest">add3dtilesTest</Button>
+        <h3>Layers</h3>
+        <LayerBarItem
+            type="layer"
+            v-for="e in layersArray"
+            :key="e.get('id')"
+            :item="e"
+            @handle-select="handleSelect"
+            @handle-delete="handleDelete"
+        />
+        <Separator />
         <h3>Elements</h3>
-        <Item
+        <LayerBarItem
             type="element"
             v-for="e in elementArray"
-            :key="e.get('id')"
-            :item="e as Y.Map<any>"
+            :key="(e.get('id') as string)"
+            :item="e"
             @handle-select="handleSelect"
             @handle-delete="handleDelete"
         />
