@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { Viewer, Ion, Cartesian3, Math, Terrain } from "cesium";
+import { Viewer, Ion, Terrain } from "cesium";
 import { ElNotification } from "element-plus";
+import { nanoid } from "nanoid";
 import "cesium/Build/CesiumUnminified/Widgets/widgets.css";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { useSceneHelper } from "../composables/useSceneHelper";
@@ -30,23 +31,16 @@ onMounted(() => {
         navigationInstructionsInitiallyVisible: false,
         scene3DOnly: false,
         shouldAnimate: false,
-        terrain: Terrain.fromWorldTerrain()
-    });
-    viewer.camera.flyTo({
-        destination: Cartesian3.fromDegrees(105.0, 20.0, 5000000.0),
-        orientation: {
-            heading: Math.toRadians(0.0),
-            pitch: Math.toRadians(-70),
-            roll: 0.0
-        }
+        baseLayer: false
+        // terrain: Terrain.fromWorldTerrain()
     });
     window.cesiumViewer = viewer;
-    store.viewerRef = viewer;
     store.editor.viewer = viewer;
     store.toolBox.registerTool(new BufferTool());
     store.toolBox.registerTool(new HeatMapTool());
-    console.log("Map container mounted");
+    setupBaseLayers();
     flyToHome();
+    console.log("Map container mounted");
     ElNotification({
         title: "提示",
         message: "Map container mounted",
@@ -54,6 +48,41 @@ onMounted(() => {
         duration: 3000
     });
 });
+
+const setupBaseLayers = () => {
+    store.editor.addBaseLayer(
+        {
+            id: nanoid(),
+            name: "Local",
+            type: "imagery",
+            provider: "tms",
+            show: true,
+            url: "cesiumStatic/Assets/Textures/NaturalEarthII"
+        },
+        true
+    );
+    store.editor.addBaseLayer(
+        {
+            id: nanoid(),
+            name: "Bing",
+            type: "imagery",
+            provider: "bing",
+            show: true
+        },
+        true
+    );
+    store.editor.addBaseLayer(
+        {
+            id: nanoid(),
+            name: "ArcGIS",
+            type: "imagery",
+            provider: "arcgis",
+            url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer",
+            show: true
+        },
+        true
+    );
+};
 </script>
 
 <template>

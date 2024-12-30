@@ -6,7 +6,6 @@ import { useGeoOasisStore } from "../store/GeoOasis.store";
 export const useLayersBar = () => {
     const store = useGeoOasisStore();
     const {
-        viewerRef,
         selectedBaseLayer,
         selectedElement,
         selectedLayer,
@@ -18,52 +17,15 @@ export const useLayersBar = () => {
     // mounted
     onMounted(() => {
         console.log("LayersBar mounted");
-        viewerRef.value.imageryLayers.layerAdded.addEventListener((e) => {
+        editor.viewer?.imageryLayers.layerAdded.addEventListener((e) => {
             console.log("layer added!!!", e);
         });
         // TODO 需要添加addLayer的按钮和panel
-        setupBaseLayers();
     });
 
     watch(selectedBaseLayer, () => {
         editor.setBaseLayer(selectedBaseLayer.value);
     });
-
-    // methods
-    const setupBaseLayers = () => {
-        editor.addBaseLayer(
-            {
-                id: nanoid(),
-                name: "Local",
-                type: "imagery",
-                provider: "tms",
-                show: true,
-                url: "cesiumStatic/Assets/Textures/NaturalEarthII"
-            },
-            true
-        );
-        editor.addBaseLayer(
-            {
-                id: nanoid(),
-                name: "Bing",
-                type: "imagery",
-                provider: "bing",
-                show: true
-            },
-            true
-        );
-        editor.addBaseLayer(
-            {
-                id: nanoid(),
-                name: "ArcGIS",
-                type: "imagery",
-                provider: "arcgis",
-                url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer",
-                show: true
-            },
-            true
-        );
-    };
 
     const add3dtilesTest = async () => {
         editor.addLayer({

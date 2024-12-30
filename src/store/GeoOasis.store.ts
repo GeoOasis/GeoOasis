@@ -1,6 +1,5 @@
 import { defineStore } from "pinia";
 import { shallowRef, ref, computed } from "vue";
-import { Viewer } from "cesium";
 import { useAwareness } from "../composables/useAwareness";
 import { useSyncArray, useSyncMapArray } from "../composables/useSync";
 import { Editor } from "../editor/editor";
@@ -9,8 +8,6 @@ import { Layer } from "../layer/layer";
 import { ToolBox } from "../tool/ToolBox";
 
 export const useGeoOasisStore = defineStore("viewer", () => {
-    // use pinia to store viewer
-    const viewerRef = shallowRef<Viewer>({} as Viewer);
     const editor = shallowRef(new Editor());
     const toolBox = shallowRef(new ToolBox());
     const selectedElement = ref<Element | undefined>();
@@ -31,7 +28,6 @@ export const useGeoOasisStore = defineStore("viewer", () => {
     );
 
     return {
-        viewerRef,
         editor,
         toolBox,
         elementArray,

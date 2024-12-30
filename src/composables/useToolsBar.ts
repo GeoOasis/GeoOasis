@@ -4,7 +4,8 @@ import { useGeoOasisStore } from "../store/GeoOasis.store";
 import {
     Cartesian3,
     ScreenSpaceEventHandler,
-    ScreenSpaceEventType
+    ScreenSpaceEventType,
+    Viewer
 } from "cesium";
 import { Element } from "../element/element";
 import {
@@ -35,8 +36,7 @@ export enum GizmoMode {
 
 export const useToolsBar = () => {
     const store = useGeoOasisStore();
-    const { viewerRef, selectedElement, selectedLayer, assetState } =
-        storeToRefs(store);
+    const { selectedElement, selectedLayer, assetState } = storeToRefs(store);
     const { editor } = store;
 
     let handler: ScreenSpaceEventHandler;
@@ -45,6 +45,7 @@ export const useToolsBar = () => {
     let draggingElement: Element | undefined = undefined;
     let startPoint: Cartesian3;
     let endPoint: Cartesian3;
+    let viewerRef: Viewer;
 
     const activeTool = ref("default");
     const drawMode = ref(DrawMode.SURFACE);
@@ -69,7 +70,8 @@ export const useToolsBar = () => {
 
     onMounted(() => {
         console.log("ToolsBar mounted");
-        handler = new ScreenSpaceEventHandler(viewerRef.value.scene.canvas);
+        viewerRef = editor.viewer as Viewer;
+        handler = new ScreenSpaceEventHandler(viewerRef.scene.canvas);
         handler.setInputAction(
             handleCanvasLeftDown,
             ScreenSpaceEventType.LEFT_DOWN
@@ -87,7 +89,7 @@ export const useToolsBar = () => {
             ScreenSpaceEventType.RIGHT_CLICK
         );
 
-        gizmo = new CesiumGizmo(viewerRef.value, {
+        gizmo = new CesiumGizmo(viewerRef, {
             show: drawMode.value === DrawMode.SPACE,
             applyTransformation: false,
             disabled: true,
@@ -147,12 +149,10 @@ export const useToolsBar = () => {
         positionedEvent: ScreenSpaceEventHandler.PositionedEvent
     ) => {
         console.log("left down!");
-        let ellipsoidPos = viewerRef.value.scene.camera.pickEllipsoid(
+        let ellipsoidPos = viewerRef.scene.camera.pickEllipsoid(
             positionedEvent.position
         );
-        let globePos = viewerRef.value.scene.pickPosition(
-            positionedEvent.position
-        );
+        let globePos = viewerRef.scene.pickPosition(positionedEvent.position);
 
         console.log("scene.pickPos: ", globePos);
         console.log("camera.pickEllipsoid: ", ellipsoidPos);
@@ -177,9 +177,9 @@ export const useToolsBar = () => {
                 if (draggingElement) {
                     console.log("lock camera");
                     // 锁定相机
-                    viewerRef.value.scene.screenSpaceCameraController.enableRotate =
+                    viewerRef.scene.screenSpaceCameraController.enableRotate =
                         false;
-                    viewerRef.value.scene.screenSpaceCameraController.enableTranslate =
+                    viewerRef.scene.screenSpaceCameraController.enableTranslate =
                         false;
                 }
             } else {
@@ -301,10 +301,10 @@ export const useToolsBar = () => {
         motionEvent: ScreenSpaceEventHandler.MotionEvent
     ) => {
         if (drawMode.value === DrawMode.SPACE) return;
-        const startGlobePos = viewerRef.value.scene.pickPosition(
+        const startGlobePos = viewerRef.scene.pickPosition(
             motionEvent.startPosition
         );
-        const endGlobePos = viewerRef.value.scene.pickPosition(
+        const endGlobePos = viewerRef.scene.pickPosition(
             motionEvent.startPosition
         );
         if (!startGlobePos || !endGlobePos) return;
@@ -417,10 +417,8 @@ export const useToolsBar = () => {
 
         if (draggingElement !== undefined) {
             draggingElement = undefined;
-            viewerRef.value.scene.screenSpaceCameraController.enableRotate =
-                true;
-            viewerRef.value.scene.screenSpaceCameraController.enableTranslate =
-                true;
+            viewerRef.scene.screenSpaceCameraController.enableRotate = true;
+            viewerRef.scene.screenSpaceCameraController.enableTranslate = true;
         }
 
         if (edittingElement !== null) {

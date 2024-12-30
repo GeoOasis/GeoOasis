@@ -6,11 +6,11 @@ import { User } from "./useAwareness";
 export const useCollabBar = () => {
     // store
     const store = useGeoOasisStore();
-    const { viewerRef, userList } = storeToRefs(store);
+    const { editor } = store;
 
     const synOtherUserCamera = (user: User) => {
-        if (user.id === userList.value[0].id) return;
-        viewerRef.value.camera.flyTo({
+        if (user.id === store.userList[0].id) return;
+        editor.viewer?.camera.flyTo({
             destination: Cartesian3.fromElements(user.x, user.y, user.z),
             orientation: {
                 heading: user.heading,
@@ -21,7 +21,7 @@ export const useCollabBar = () => {
     };
 
     return {
-        userList,
+        userList: store.userList,
         synOtherUserCamera
     };
 };
