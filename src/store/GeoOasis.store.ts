@@ -6,6 +6,8 @@ import { Editor } from "../editor/editor";
 import { Element } from "../element/element";
 import { Layer } from "../layer/layer";
 import { ToolBox } from "../tool/ToolBox";
+import { DrawMode, GizmoMode } from "../editor/type";
+import { defaultAsset } from "../editor/assetLibrary";
 
 export const useGeoOasisStore = defineStore("viewer", () => {
     const editor = shallowRef(new Editor());
@@ -27,6 +29,12 @@ export const useGeoOasisStore = defineStore("viewer", () => {
         roomId
     );
 
+    const activeTool = ref("default");
+    const drawMode = ref(DrawMode.SURFACE);
+    const gizmoMode = ref(GizmoMode.TRANSLATE);
+    const selectedModelIdx = ref<number>();
+    const assetsOption = computed(() => defaultAsset.concat(assetState.value));
+
     return {
         editor,
         toolBox,
@@ -39,6 +47,11 @@ export const useGeoOasisStore = defineStore("viewer", () => {
         selectedBaseLayer,
         userList,
         roomId,
+        activeTool,
+        drawMode,
+        gizmoMode,
+        selectedModelIdx,
+        assetsOption,
         setUser,
         setUserPostion
     };

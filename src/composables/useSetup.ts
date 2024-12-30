@@ -1,43 +1,44 @@
-import { computed, onMounted, ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { storeToRefs } from "pinia";
-import { useGeoOasisStore } from "../store/GeoOasis.store";
+import { ElNotification } from "element-plus";
 import {
+    Viewer,
+    Ion,
     Cartesian3,
     ScreenSpaceEventHandler,
-    ScreenSpaceEventType,
-    Viewer
+    ScreenSpaceEventType
 } from "cesium";
+import { nanoid } from "nanoid";
+import { useGeoOasisStore } from "../store/GeoOasis.store";
+import { useSceneHelper } from "../composables/useSceneHelper";
+import { BufferTool } from "../tool/buffer";
+import { HeatMapTool } from "../tool/heatmap";
+import { CesiumGizmo } from "../thirdParty/cesium-gizmo";
 import { Element } from "../element/element";
 import {
     newPointElement,
     newPolylineElement,
     newModelElement,
     newPolygonElement,
-    newImageElement,
     newRectangleElement
 } from "../element/newElement";
 import { point3FromCartesian3 } from "../element/utils";
-import { defaultAsset } from "../editor/assetLibrary";
-import { nanoid } from "nanoid";
-import { FileType, getFileType } from "../utils";
-import { CesiumGizmo } from "../thirdParty/cesium-gizmo";
+import { CesiumIonDefaultToken } from "../contants";
+import { DrawMode, GizmoMode } from "../editor/type";
 
-export enum DrawMode {
-    SURFACE = "surface",
-    SPACE = "space"
-}
-
-export enum GizmoMode {
-    TRANSLATE = "TRANSLATE",
-    ROTATE = "ROTATE",
-    SCALE = "SCALE",
-    UNIFORM_SCALE = "UNIFORM_SCALE"
-}
-
-export const useToolsBar = () => {
+export const useSetup = () => {
     const store = useGeoOasisStore();
-    const { selectedElement, selectedLayer, assetState } = storeToRefs(store);
+    const {
+        activeTool,
+        drawMode,
+        gizmoMode,
+        selectedModelIdx,
+        selectedElement,
+        selectedLayer
+    } = storeToRefs(store);
     const { editor } = store;
+    const { flyToHome } = useSceneHelper();
+    const viewerDivRef = ref<HTMLDivElement>();
 
     let handler: ScreenSpaceEventHandler;
     let gizmo: CesiumGizmo;
@@ -45,13 +46,7 @@ export const useToolsBar = () => {
     let draggingElement: Element | undefined = undefined;
     let startPoint: Cartesian3;
     let endPoint: Cartesian3;
-    let viewerRef: Viewer;
-
-    const activeTool = ref("default");
-    const drawMode = ref(DrawMode.SURFACE);
-    const gizmoMode = ref(GizmoMode.TRANSLATE);
-    const selectedModelIdx = ref<number>();
-    const assetsOption = computed(() => defaultAsset.concat(assetState.value));
+    let viewer: Viewer;
 
     watch(drawMode, () => {
         activeTool.value =
@@ -69,9 +64,84 @@ export const useToolsBar = () => {
     });
 
     onMounted(() => {
-        console.log("ToolsBar mounted");
-        viewerRef = editor.viewer as Viewer;
-        handler = new ScreenSpaceEventHandler(viewerRef.scene.canvas);
+        setupViewer();
+        setupBaseLayers();
+        addPointerListener();
+        ElNotification({
+            title: "提示",
+            message: "Map container mounted",
+            position: "bottom-right",
+            duration: 3000
+        });
+    });
+
+    const setupViewer = () => {
+        Ion.defaultAccessToken = CesiumIonDefaultToken;
+        const cesiumviewer = new Viewer(viewerDivRef.value as HTMLElement, {
+            animation: false,
+            baseLayerPicker: false,
+            fullscreenButton: false,
+            geocoder: false,
+            homeButton: false,
+            infoBox: false,
+            sceneModePicker: false,
+            selectionIndicator: true,
+            timeline: false,
+            navigationHelpButton: false,
+            navigationInstructionsInitiallyVisible: false,
+            scene3DOnly: false,
+            shouldAnimate: false,
+            baseLayer: false
+            // terrain: Terrain.fromWorldTerrain()
+        });
+        window.cesiumViewer = cesiumviewer;
+        store.editor.viewer = cesiumviewer;
+        viewer = cesiumviewer;
+        store.toolBox.registerTool(new BufferTool());
+        store.toolBox.registerTool(new HeatMapTool());
+        flyToHome();
+    };
+
+    const setupBaseLayers = () => {
+        editor.viewer?.imageryLayers.layerAdded.addEventListener((e) => {
+            console.log("layer added!!!", e);
+        });
+        editor.addBaseLayer(
+            {
+                id: nanoid(),
+                name: "Local",
+                type: "imagery",
+                provider: "tms",
+                show: true,
+                url: "cesiumStatic/Assets/Textures/NaturalEarthII"
+            },
+            true
+        );
+        editor.addBaseLayer(
+            {
+                id: nanoid(),
+                name: "Bing",
+                type: "imagery",
+                provider: "bing",
+                show: true
+            },
+            true
+        );
+        editor.addBaseLayer(
+            {
+                id: nanoid(),
+                name: "ArcGIS",
+                type: "imagery",
+                provider: "arcgis",
+                url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer",
+                show: true
+            },
+            true
+        );
+    };
+
+    const addPointerListener = () => {
+        handler = new ScreenSpaceEventHandler(viewer.scene.canvas);
         handler.setInputAction(
             handleCanvasLeftDown,
             ScreenSpaceEventType.LEFT_DOWN
@@ -88,8 +158,7 @@ export const useToolsBar = () => {
             handleCanvasRightClick,
             ScreenSpaceEventType.RIGHT_CLICK
         );
-
-        gizmo = new CesiumGizmo(viewerRef, {
+        gizmo = new CesiumGizmo(viewer, {
             show: drawMode.value === DrawMode.SPACE,
             applyTransformation: false,
             disabled: true,
@@ -98,9 +167,8 @@ export const useToolsBar = () => {
                 handleGizmoDragMoving(mode, result);
             }
         });
-
         gizmo.mode = GizmoMode.TRANSLATE;
-    });
+    };
 
     // translate -> Cartesian3, 替换
     // rotate -> Transforms.fixedFrameToHeadingPitchRoll(finalTransform), final transform替换
@@ -149,11 +217,10 @@ export const useToolsBar = () => {
         positionedEvent: ScreenSpaceEventHandler.PositionedEvent
     ) => {
         console.log("left down!");
-        let ellipsoidPos = viewerRef.scene.camera.pickEllipsoid(
+        let ellipsoidPos = viewer.scene.camera.pickEllipsoid(
             positionedEvent.position
         );
-        let globePos = viewerRef.scene.pickPosition(positionedEvent.position);
-
+        let globePos = viewer.scene.pickPosition(positionedEvent.position);
         console.log("scene.pickPos: ", globePos);
         console.log("camera.pickEllipsoid: ", ellipsoidPos);
         if (!globePos) {
@@ -163,7 +230,6 @@ export const useToolsBar = () => {
             selectedLayer.value = undefined;
             return;
         }
-
         startPoint = globePos;
         // console.log("left click on earth: ", globePos);
 
@@ -177,9 +243,9 @@ export const useToolsBar = () => {
                 if (draggingElement) {
                     console.log("lock camera");
                     // 锁定相机
-                    viewerRef.scene.screenSpaceCameraController.enableRotate =
+                    viewer.scene.screenSpaceCameraController.enableRotate =
                         false;
-                    viewerRef.scene.screenSpaceCameraController.enableTranslate =
+                    viewer.scene.screenSpaceCameraController.enableTranslate =
                         false;
                 }
             } else {
@@ -301,10 +367,10 @@ export const useToolsBar = () => {
         motionEvent: ScreenSpaceEventHandler.MotionEvent
     ) => {
         if (drawMode.value === DrawMode.SPACE) return;
-        const startGlobePos = viewerRef.scene.pickPosition(
+        const startGlobePos = viewer.scene.pickPosition(
             motionEvent.startPosition
         );
-        const endGlobePos = viewerRef.scene.pickPosition(
+        const endGlobePos = viewer.scene.pickPosition(
             motionEvent.startPosition
         );
         if (!startGlobePos || !endGlobePos) return;
@@ -417,8 +483,8 @@ export const useToolsBar = () => {
 
         if (draggingElement !== undefined) {
             draggingElement = undefined;
-            viewerRef.scene.screenSpaceCameraController.enableRotate = true;
-            viewerRef.scene.screenSpaceCameraController.enableTranslate = true;
+            viewer.scene.screenSpaceCameraController.enableRotate = true;
+            viewer.scene.screenSpaceCameraController.enableTranslate = true;
         }
 
         if (edittingElement !== null) {
@@ -459,70 +525,7 @@ export const useToolsBar = () => {
         }
     };
 
-    const handleLoadFile = (file: File) => {
-        const fileType = getFileType(file.name);
-        if (!fileType) {
-            throw new Error("unknown file type");
-        }
-        const reader = new FileReader();
-        reader.addEventListener("load", (e) => {
-            if (fileType === FileType.GEOJSON || fileType === FileType.JSON) {
-                try {
-                    const jsonObj = JSON.parse(e.target!.result as string);
-                    editor.addLayer({
-                        id: nanoid(),
-                        name: "Geojsontest",
-                        type: "service",
-                        provider: "geojson",
-                        url: jsonObj,
-                        show: true
-                    });
-                } catch (e) {
-                    console.error("file format isn't vivid JSON format", e);
-                }
-            } else if (fileType === FileType.GLB) {
-                const glbUint8Array = new Uint8Array(
-                    e.target?.result as ArrayBuffer
-                );
-                editor.assetLibrary.addAsset({
-                    name: file.name,
-                    data: glbUint8Array
-                });
-            } else if (fileType === FileType.PNGImage) {
-                const imageArr = new Uint8Array(
-                    e.target?.result as ArrayBuffer
-                );
-                const imageElement = newImageElement({
-                    name: "",
-                    show: "true",
-                    url: imageArr
-                    // url: e.target?.result
-                });
-                editor.addElement(imageElement);
-            }
-        });
-
-        // TODO: optimize, we don't want to use Yjs to transfer data? or we can use Yjs to transfer data
-        if (
-            fileType === FileType.GEOJSON ||
-            fileType === FileType.JSON ||
-            fileType === FileType.GLTF
-        ) {
-            reader.readAsText(file); // 读取文件内容为文本
-        } else if (
-            fileType === FileType.PNGImage ||
-            fileType === FileType.GLB
-        ) {
-            reader.readAsArrayBuffer(file);
-        }
-    };
-
     return {
-        activeTool,
-        drawMode,
-        gizmoMode,
-        selectedModelIdx,
-        assetsOption,
-        handleLoadFile
+        viewerDivRef
     };
 };

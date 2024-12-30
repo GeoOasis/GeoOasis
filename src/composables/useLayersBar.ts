@@ -13,9 +13,6 @@ export const useLayersBar = () => {
     // mounted
     onMounted(() => {
         console.log("LayersBar mounted");
-        editor.viewer?.imageryLayers.layerAdded.addEventListener((e) => {
-            console.log("layer added!!!", e);
-        });
     });
 
     watch(selectedBaseLayer, () => {

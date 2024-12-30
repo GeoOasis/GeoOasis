@@ -10,12 +10,14 @@ import {
 import ToolbarUploadButton from "./internals/UploadButton.vue";
 import Dialog from "./Dialog.vue";
 import { Icon } from "@iconify/vue";
-import { computed, ref, watch } from "vue";
+import { computed } from "vue";
+import { storeToRefs } from "pinia";
 import { nanoid } from "nanoid";
-import { useToolsBar, DrawMode, GizmoMode } from "../composables/useToolsBar";
-import { useYjs } from "../composables/useYjs";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
+import { useUpLoadFile } from "../composables/useUpLoadFile";
+import { useYjs } from "../composables/useYjs";
 import { randomGeoJsonPoint } from "../mock";
+import { DrawMode, GizmoMode } from "../editor/type";
 
 const toolOptions = [
     {
@@ -59,26 +61,13 @@ const gizmoModeOptions = [
 ];
 
 const store = useGeoOasisStore();
+const { activeTool, drawMode, gizmoMode, selectedModelIdx, assetsOption } =
+    storeToRefs(store);
 
 const { undo, redo } = useYjs();
-const {
-    activeTool,
-    drawMode,
-    gizmoMode,
-    selectedModelIdx,
-    assetsOption,
-    handleLoadFile
-} = useToolsBar();
+const { selectedFile } = useUpLoadFile();
 
 const modelBarVisible = computed(() => activeTool.value === "model");
-
-const selectedFile = ref<File>();
-watch(selectedFile, () => {
-    if (selectedFile.value !== undefined) {
-        handleLoadFile(selectedFile.value);
-        selectedFile.value = undefined;
-    }
-});
 
 const mockData = () => {
     const mockData = randomGeoJsonPoint(1000);

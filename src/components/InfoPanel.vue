@@ -6,6 +6,11 @@ import Separator from "./internals/Separator.vue";
 import Switch from "./internals/Switch.vue";
 import Select from "./internals/Select.vue";
 import { useInfoPanel } from "../composables/useInfoPanel";
+import { useGeoOasisStore } from "../store/GeoOasis.store";
+import { storeToRefs } from "pinia";
+
+const store = useGeoOasisStore();
+const { isPanelVisible } = storeToRefs(store);
 
 const {
     form,
@@ -21,7 +26,7 @@ const {
 </script>
 
 <template>
-    <div class="info-panel">
+    <div class="info-panel" v-show="isPanelVisible">
         <div v-show="selectedElement">
             <div v-for="(value, _index) in form" class="info-panel-item">
                 <div v-if="value[0] === 'name'">
