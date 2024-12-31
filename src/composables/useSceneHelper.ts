@@ -1,4 +1,5 @@
 import { Cartesian3, Math as CesiumMath } from "cesium";
+import { User } from "./useAwareness";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 
 export const useSceneHelper = () => {
@@ -14,5 +15,17 @@ export const useSceneHelper = () => {
         });
     };
 
-    return { flyToHome };
+    const synOtherUserCamera = (user: User) => {
+        if (user.id === store.userList[0].id) return;
+        store.editor.viewer?.camera.flyTo({
+            destination: Cartesian3.fromElements(user.x, user.y, user.z),
+            orientation: {
+                heading: user.heading,
+                pitch: user.pitch,
+                roll: user.roll
+            }
+        });
+    };
+
+    return { flyToHome, synOtherUserCamera };
 };
