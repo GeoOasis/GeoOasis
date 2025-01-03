@@ -8,7 +8,6 @@ import {
     ScreenSpaceEventHandler,
     ScreenSpaceEventType
 } from "cesium";
-import { nanoid } from "nanoid";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { useSceneHelper } from "../composables/useSceneHelper";
 import { BufferTool } from "../tool/buffer";
@@ -25,6 +24,7 @@ import {
 import { point3FromCartesian3 } from "../element/utils";
 import { CesiumIonDefaultToken } from "../contants";
 import { DrawMode, GizmoMode } from "../editor/type";
+import { defaultBaseLayers } from "../editor/imageryLayerManager";
 
 export const useSetup = () => {
     const store = useGeoOasisStore();
@@ -34,41 +34,19 @@ export const useSetup = () => {
         gizmoMode,
         selectedModelIdx,
         selectedElement,
-        selectedLayer
+        selectedLayer,
+        selectedBaseLayer
     } = storeToRefs(store);
     const { editor } = store;
     const { flyToHome } = useSceneHelper();
     const viewerDivRef = ref<HTMLDivElement>();
-
-    let handler: ScreenSpaceEventHandler;
-    let gizmo: CesiumGizmo;
-    let edittingElement: Element | null = null;
-    let draggingElement: Element | undefined = undefined;
-    let startPoint: Cartesian3;
-    let endPoint: Cartesian3;
-    let viewer: Viewer;
-
-    watch(drawMode, () => {
-        activeTool.value =
-            drawMode.value === DrawMode.SPACE ? "default" : activeTool.value;
-        if (gizmo) {
-            gizmo.show = drawMode.value === DrawMode.SPACE;
-            gizmo.disabled = !gizmo.show;
-        }
-    });
-
-    watch(gizmoMode, () => {
-        if (gizmo) {
-            gizmo.mode = gizmoMode.value;
-        }
-    });
 
     onMounted(() => {
         setupViewer();
         setupBaseLayers();
         addPointerListener();
         ElNotification({
-            title: "提示",
+            title: "Tips:",
             message: "Map container mounted",
             position: "bottom-right",
             duration: 3000
@@ -95,7 +73,7 @@ export const useSetup = () => {
             // terrain: Terrain.fromWorldTerrain()
         });
         window.cesiumViewer = cesiumviewer;
-        store.editor.viewer = cesiumviewer;
+        store.editor.attachViewer(cesiumviewer);
         viewer = cesiumviewer;
         store.toolBox.registerTool(new BufferTool());
         store.toolBox.registerTool(new HeatMapTool());
@@ -106,39 +84,44 @@ export const useSetup = () => {
         editor.viewer?.imageryLayers.layerAdded.addEventListener((e) => {
             console.log("layer added!!!", e);
         });
-        editor.addBaseLayer(
-            {
-                id: nanoid(),
-                name: "Local",
-                type: "imagery",
-                provider: "tms",
-                show: true,
-                url: "cesiumStatic/Assets/Textures/NaturalEarthII"
-            },
-            true
-        );
-        editor.addBaseLayer(
-            {
-                id: nanoid(),
-                name: "Bing",
-                type: "imagery",
-                provider: "bing",
-                show: true
-            },
-            true
-        );
-        editor.addBaseLayer(
-            {
-                id: nanoid(),
-                name: "ArcGIS",
-                type: "imagery",
-                provider: "arcgis",
-                url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer",
-                show: true
-            },
-            true
-        );
+        editor.viewer?.imageryLayers.layerRemoved.addEventListener((e) => {
+            console.log("layer removeed!!!", e);
+        });
+        for (const layer of defaultBaseLayers) {
+            if (layer.name === selectedBaseLayer.value) {
+                editor.imageryLayerManager
+                    .addBaseLayerOption(layer, true)
+                    .then(() => {
+                        editor.setBaseLayer(selectedBaseLayer.value);
+                    });
+            } else {
+                editor.imageryLayerManager.addBaseLayerOption(layer, true);
+            }
+        }
     };
+
+    let handler: ScreenSpaceEventHandler;
+    let gizmo: CesiumGizmo;
+    let edittingElement: Element | null = null;
+    let draggingElement: Element | undefined = undefined;
+    let startPoint: Cartesian3;
+    let endPoint: Cartesian3;
+    let viewer: Viewer;
+
+    watch(drawMode, () => {
+        activeTool.value =
+            drawMode.value === DrawMode.SPACE ? "default" : activeTool.value;
+        if (gizmo) {
+            gizmo.show = drawMode.value === DrawMode.SPACE;
+            gizmo.disabled = !gizmo.show;
+        }
+    });
+
+    watch(gizmoMode, () => {
+        if (gizmo) {
+            gizmo.mode = gizmoMode.value;
+        }
+    });
 
     const addPointerListener = () => {
         handler = new ScreenSpaceEventHandler(viewer.scene.canvas);

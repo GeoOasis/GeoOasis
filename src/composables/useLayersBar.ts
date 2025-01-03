@@ -1,13 +1,20 @@
-import { onMounted, watch } from "vue";
+import { onMounted, watch, ShallowRef } from "vue";
 import { storeToRefs } from "pinia";
 import * as Y from "yjs";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { YElement } from "../type";
+import { YImageryLayer } from "../editor/imageryLayerManager";
 
 export const useLayersBar = () => {
     const store = useGeoOasisStore();
-    const { selectedBaseLayer, selectedElement, selectedLayer } =
-        storeToRefs(store);
+    const {
+        selectedBaseLayer,
+        selectedElement,
+        selectedLayer,
+        elementArray,
+        layersArray,
+        imageryLayersArray
+    } = storeToRefs(store);
     const { editor } = store;
 
     // mounted
@@ -34,8 +41,9 @@ export const useLayersBar = () => {
 
     return {
         selectedBaseLayer,
-        elementArray: store.elementArray as YElement[],
-        layersArray: store.layersArray as Y.Map<any>[],
+        elementArray: elementArray as ShallowRef<YElement[]>,
+        layersArray: layersArray as ShallowRef<Y.Map<any>[]>,
+        imageryLayersArray: imageryLayersArray as ShallowRef<YImageryLayer[]>,
         handleSelect,
         handleDelete
     };

@@ -99,11 +99,11 @@ const {
             </div>
         </div>
         <div v-show="selectedLayer">
+            <div class="info-panel-item">
+                <Label class="LabelRoot">name:</Label>
+                {{ selectedLayer?.name }}
+            </div>
             <div v-if="selectedLayer?.type === 'service'">
-                <div class="info-panel-item">
-                    <Label class="LabelRoot">name:</Label>
-                    {{ selectedLayer.name }}
-                </div>
                 <div class="info-panel-item">
                     <div class="info-panel-toolbar">
                         <Button @click="isToolBoxVisible = !isToolBoxVisible">

@@ -21,6 +21,9 @@ export const useGeoOasisStore = defineStore("viewer", () => {
 
     const elementArray = useSyncMapArray(editor.value.elements);
     const layersArray = useSyncMapArray(editor.value.layers);
+    const imageryLayersArray = useSyncArray(
+        editor.value.imageryLayerManager.yImageryLayers
+    );
     const assetState = useSyncArray(editor.value.assetLibrary.assetArray);
 
     const roomId = ref("");
@@ -40,6 +43,7 @@ export const useGeoOasisStore = defineStore("viewer", () => {
         toolBox,
         elementArray,
         layersArray,
+        imageryLayersArray,
         assetState,
         isPanelVisible,
         selectedElement,

@@ -9,6 +9,7 @@ const {
     selectedBaseLayer,
     elementArray,
     layersArray,
+    imageryLayersArray,
     handleSelect,
     handleDelete
 } = useLayersBar();
@@ -18,6 +19,7 @@ const baseMapOptions = ["Bing", "ArcGIS", "Local"];
 
 <template>
     <div class="layersbar">
+        <h3>Imagery Layers</h3>
         <Label>BaseLayer:</Label>
         <Select
             title="BaseMap"
@@ -25,8 +27,17 @@ const baseMapOptions = ["Bing", "ArcGIS", "Local"];
             :select-options="baseMapOptions"
             @update:model-value="selectedBaseLayer = $event"
         ></Select>
+        <LayerBarItem
+            type="layer"
+            v-for="(e, index) in imageryLayersArray"
+            :key="(e.get('id') as string)"
+            :index="index"
+            :item="e"
+            @handle-select="handleSelect"
+            @handle-delete="handleDelete"
+        />
         <Separator />
-        <h3>Layers</h3>
+        <h3>Other Layers</h3>
         <LayerBarItem
             type="layer"
             v-for="e in layersArray"

@@ -6,7 +6,6 @@ import {
     Cartesian3,
     Matrix4,
     Color,
-    ImageryLayer,
     DataSource,
     Cesium3DTileset,
     GeoJsonDataSource,
@@ -32,7 +31,8 @@ import {
     GeoOasisModelElement,
     GeoOasisPolygonElement,
     GeoOasisImageElement,
-    GeoOasisRectangleElement
+    GeoOasisRectangleElement,
+    ElementKV
 } from "../element/element";
 import {
     cartesian3FromPoint3,
@@ -45,19 +45,12 @@ import {
 import { Point3 } from "../element/types";
 import {
     GeoOasis3DTilesLayer,
-    GeoOasisImageryLayer,
     Layer,
     GeoOasisServiceLayer
 } from "../layer/layer";
-import {
-    generateArcgisImageryFromLayer,
-    generateBingImageryFromLayer,
-    generateWMSImageryFromLayer,
-    generateSingleTileImageryFromLayer,
-    generateTMSImagery
-} from "../layer/utils";
 import { Hocuspocus_URL } from "../contants";
 import { AssetLibrary } from "./assetLibrary";
+import { ImageryLayerManager } from "./imageryLayerManager";
 
 export type EditorEvent = {
     "element:add": (key: string) => void;
@@ -74,7 +67,7 @@ export interface BaseEditor {
     getLayer(id: Layer["id"]): Layer | undefined;
     addLayer(layer: Layer): void;
     getLayerData(id: Layer["id"]): any;
-    deleteLayer(id: Layer["id"]): void;
+    deleteLayer(id: Layer["id"], type?: Layer["type"]): void;
     startEdit(id: Element["id"], type: Element["type"]): void;
     stopEdit(id: Element["id"], type: Element["type"]): void;
 }
@@ -90,12 +83,10 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
     public viewer: Viewer | undefined;
     public undoManager: Y.UndoManager;
     public assetLibrary: AssetLibrary;
+    public imageryLayerManager: ImageryLayerManager;
 
-    // TODO：type TrueLayer = ImageryLayer | DataSource | Primitive
     // TODO: 减少状态
-    private baseLayersArray: Array<GeoOasisImageryLayer> = new Array();
-    private imageryLayersMap: Map<Layer["id"], ImageryLayer> = new Map();
-    private serviceLayersMap: Map<Layer["id"], DataSource> = new Map(); // use Array?
+    private serviceLayersMap: Map<Layer["id"], DataSource> = new Map();
     private serviceLayersArray: [Layer["id"], DataSource][] = new Array();
     private cesium3dtilesLayersMap: Map<Layer["id"], Cesium3DTileset> =
         new Map();
@@ -106,8 +97,19 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
         this.elements = this.doc.getMap("ElementsMap");
         this.layers = this.doc.getMap("LayersMap");
         this.baseLayers = this.doc.getMap("BaseLayersMap");
-        this.undoManager = new Y.UndoManager([this.elements, this.layers]);
         this.assetLibrary = new AssetLibrary(this.doc);
+        const yArr = this.doc.getArray("yImageryLayers");
+        const yMap = this.doc.getMap("yBaseImageryLayers");
+        this.imageryLayerManager = new ImageryLayerManager(
+            this.doc,
+            yArr,
+            yMap
+        );
+        this.undoManager = new Y.UndoManager([
+            this.elements,
+            this.layers,
+            yArr
+        ]);
         new IndexeddbPersistence("oasis-doc", this.doc);
         this.init();
     }
@@ -125,6 +127,11 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
         this.layers.observeDeep((events, transactions) => {
             self.handleYjsLayersEvents(events, transactions);
         });
+    }
+
+    attachViewer(viewer: Viewer) {
+        this.viewer = viewer;
+        this.imageryLayerManager.imageryLayerCollection = viewer.imageryLayers;
     }
 
     // change room
@@ -242,6 +249,13 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
         return this.elements.get(id)?.toJSON() as Element;
     }
 
+    getElementAttribute<K extends keyof ElementKV>(
+        id: Element["id"],
+        key: K
+    ): ElementKV[K] {
+        return this.elements.get(id)?.get(key);
+    }
+
     addElement(element: Element): void {
         const elementYMap = new Y.Map();
         for (const [key, value] of Object.entries(element)) {
@@ -271,6 +285,7 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
     }
 
     pickLayer(position: Cartesian2) {
+        // this method can't pick ImageryLayer.
         const pickedEntity = this.viewer?.scene.pick(position);
         if (pickedEntity) {
             const entity = pickedEntity.id;
@@ -298,13 +313,20 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
     }
 
     getLayer(id: Layer["id"]): Layer | undefined {
-        if (!this.layers.has(id)) return undefined;
+        if (!this.layers.has(id)) {
+            const info = this.imageryLayerManager.getLayerInfo(id);
+            return info;
+        }
         // @ts-ignore
         const { url, ...rest } = this.layers.get(id)?.toJSON();
         return rest as Layer;
     }
 
     addLayer(layer: Layer) {
+        if (layer.type === "imagery") {
+            this.imageryLayerManager.addLayer(layer);
+            return;
+        }
         const layerMap = new Y.Map();
         for (const [key, value] of Object.entries(layer)) {
             layerMap.set(key, value);
@@ -313,69 +335,18 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
     }
 
     deleteLayer(id: Layer["id"]): void {
+        this.imageryLayerManager.deleteLayer(id);
         this.layers.delete(id);
     }
 
+    // the index of baseLayer is always 0 in the viewer.imageryLayers.
     setBaseLayer(name: string) {
-        // 预设底图的索引始终为0
-        // 在初始化的时候，默认已经有底图了
-        if (this.viewer) {
-            const activeBaseLayer = this.viewer.imageryLayers.get(0);
-            this.viewer.imageryLayers.remove(activeBaseLayer, false);
-
-            const baseLayerOption = this.baseLayersArray.find(
-                (layer) => layer.name === name
-            );
-            if (baseLayerOption) {
-                const baseLayer = this.imageryLayersMap.get(baseLayerOption.id);
-                if (baseLayer) {
-                    this.viewer.imageryLayers.add(baseLayer, 0);
-                }
-            }
-        }
-    }
-
-    async addBaseLayer(layer: GeoOasisImageryLayer, origin: Boolean) {
-        if (origin) {
-            let cesiumLayer;
-            switch (layer.provider) {
-                case "arcgis":
-                    cesiumLayer = await generateArcgisImageryFromLayer(layer);
-                    break;
-                case "bing":
-                    cesiumLayer = await generateBingImageryFromLayer(layer);
-                    break;
-                case "tms":
-                    cesiumLayer = await generateTMSImagery(layer);
-                    break;
-                default:
-                    break;
-            }
-            if (cesiumLayer) {
-                this.imageryLayersMap.set(layer.id, cesiumLayer);
-                this.baseLayersArray.push(layer);
-                // console.log("Add baseLayer option success");
-            }
-            return;
-        }
-        const layerMap = new Y.Map();
-        for (const [key, value] of Object.entries(layer)) {
-            layerMap.set(key, value);
-        }
-        this.baseLayers.set(layer.id, layerMap);
+        this.imageryLayerManager.setBaseLayer(name);
     }
 
     private async addLayerToCesium(layerAdded: Layer) {
         let layer;
         switch (layerAdded.type) {
-            case "imagery":
-                layer = await this.addImageryLayer(layerAdded);
-                if (layer) {
-                    layer.alpha = 0.5;
-                    this.viewer?.imageryLayers.add(layer);
-                    this.imageryLayersMap.set(layerAdded.id, layer);
-                }
-                break;
             case "service":
                 layer = await this.addServiceLayer(layerAdded);
                 if (layer) {
@@ -427,25 +398,6 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
         this.viewer?.scene.primitives.add(cesium3dtiles);
         this.cesium3dtilesLayersMap.set(layer.id, cesium3dtiles);
         await this.viewer?.zoomTo(cesium3dtiles);
-    }
-
-    private async addImageryLayer(layer: GeoOasisImageryLayer) {
-        try {
-            switch (layer.provider) {
-                case "wmts":
-                    break;
-                case "wms":
-                    return generateWMSImageryFromLayer(layer);
-                case "singleTile":
-                    return await generateSingleTileImageryFromLayer(layer);
-                default:
-                    break;
-            }
-        } catch (error) {
-            console.error(
-                `There was an error while creating ${layer.name}. ${error}`
-            );
-        }
     }
 
     private async addServiceLayer(layer: GeoOasisServiceLayer) {
@@ -595,18 +547,11 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                 console.log(`this change's key is ${key}`);
                 if (change.action === "add") {
                     this.addLayerToCesium(
-                        // TODO: toJSON is not the best way
+                        // TODO: toJSON is not the best way.
                         this.layers.get(key)?.toJSON() as Layer
                     );
                 } else if (change.action === "update") {
                 } else if (change.action === "delete") {
-                    if (this.imageryLayersMap.has(key)) {
-                        const layer = this.imageryLayersMap.get(key);
-                        this.viewer?.imageryLayers.remove(
-                            layer as ImageryLayer
-                        );
-                        this.imageryLayersMap.delete(key);
-                    }
                     if (this.cesium3dtilesLayersMap.has(key)) {
                         const layer = this.cesium3dtilesLayersMap.get(key);
                         this.viewer?.scene.primitives.remove(layer);
