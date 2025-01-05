@@ -5,25 +5,40 @@ import CollabBar from "./CollabBar.vue";
 </script>
 
 <template>
-    <el-row :gutter="20">
-        <el-col :span="5">
+    <div class="header-container">
+        <div class="board">
             <BoardBar />
-        </el-col>
-        <el-col :span="14">
+        </div>
+        <div class="tools">
             <ToolsBar />
-        </el-col>
-        <el-col :span="5">
+        </div>
+        <div class="collab">
             <CollabBar />
-        </el-col>
-    </el-row>
+        </div>
+    </div>
 </template>
 
 <style scoped>
-.el-row {
+.header-container {
     position: fixed;
     top: 30px;
     left: 30px;
     right: 30px;
-    /* padding: 0 15px; */
+    display: flex;
+    gap: 20px;
+    flex-direction: row;
+    align-items: center;
+}
+
+.board {
+    flex: 1 100px;
+}
+
+.collab {
+    flex: 1 100px;
+}
+
+.tools {
+    flex: 8;
 }
 </style>
