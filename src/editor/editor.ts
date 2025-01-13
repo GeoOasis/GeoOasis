@@ -100,11 +100,7 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
         this.assetLibrary = new AssetLibrary(this.doc);
         const yArr = this.doc.getArray("yImageryLayers");
         const yMap = this.doc.getMap("yBaseImageryLayers");
-        this.imageryLayerManager = new ImageryLayerManager(
-            this.doc,
-            yArr,
-            yMap
-        );
+        this.imageryLayerManager = new ImageryLayerManager(yArr, yMap);
         this.undoManager = new Y.UndoManager([
             this.elements,
             this.layers,

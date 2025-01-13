@@ -45,10 +45,8 @@ export class ImageryLayerManager {
     yImageryLayers: Y.Array<YImageryLayer>;
     yImageryBaseLayers: Y.Map<YImageryLayer>;
     private hasBaseLayer: Boolean;
-    private doc: Y.Doc;
 
-    constructor(doc: Y.Doc, array: Y.Array<any>, map: Y.Map<any>) {
-        this.doc = doc;
+    constructor(array: Y.Array<any>, map: Y.Map<any>) {
         this.yImageryLayers = array as Y.Array<YImageryLayer>;
         this.yImageryBaseLayers = map as Y.Map<YImageryLayer>;
         this.imageryLayersMap = new Map();
@@ -75,7 +73,9 @@ export class ImageryLayerManager {
 
     raiseLayer(index: number) {
         const ylayer = this.yImageryLayers.get(index);
-        this.doc.transact(() => {
+        // ! In concurrent situation, will have a problem.
+        // ! like two user do some operation, delete one, but add twice.
+        this.yImageryLayers.doc?.transact(() => {
             this.yImageryLayers.delete(index);
             this.yImageryLayers.insert(index + 1, [ylayer]);
         });
@@ -83,7 +83,7 @@ export class ImageryLayerManager {
 
     lowerLayer(index: number) {
         const ylayer = this.yImageryLayers.get(index);
-        this.doc.transact(() => {
+        this.yImageryLayers.doc?.transact(() => {
             this.yImageryLayers.delete(index);
             this.yImageryLayers.insert(index - 1, [ylayer]);
         });
