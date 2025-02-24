@@ -1,4 +1,5 @@
 import { ref, Ref, watch } from "vue";
+import { useStorage } from '@vueuse/core';
 import { nanoid } from "nanoid";
 import { CallbackPositionProperty, Cartesian3, Color, Entity } from "cesium";
 import { Editor } from "../editor/editor";
@@ -45,6 +46,8 @@ export const useAwareness = (editor: Editor, roomId: Ref<string>) => {
     let cameraPosWCOld: Cartesian3;
 
     const userList = ref<User[]>([]);
+
+    const localUser = useStorage('default-user', createDefaultUser());
 
     watch(roomId, () => {
         if (roomId) {
@@ -151,7 +154,7 @@ export const useAwareness = (editor: Editor, roomId: Ref<string>) => {
             let cameraPosWC = camera.positionWC;
             cameraPosWCOld = cameraPosWC.clone();
 
-            setUser(createDefaultUser());
+            setUser(localUser.value);
             // camera's orientation is defined by headingPitchRoll or DirectionUp
             setUserPostion({
                 x: cameraPosWC.x,
