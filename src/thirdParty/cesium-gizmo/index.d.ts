@@ -98,4 +98,6 @@ declare class GizmoPrimitive {
     destroy(): void;
 }
 
-export { CesiumGizmo, GizmoPrimitive };
+declare function getScaleForMinimumSize(model: any, frameState: any): number;
+
+export { CesiumGizmo, GizmoPrimitive, getScaleForMinimumSize };
