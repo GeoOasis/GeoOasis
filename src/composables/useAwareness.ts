@@ -1,8 +1,9 @@
 import { ref, Ref, watch } from "vue";
-import { useStorage } from '@vueuse/core';
+import { useStorage } from "@vueuse/core";
 import { nanoid } from "nanoid";
-import { CallbackPositionProperty, Cartesian3, Color, Entity } from "cesium";
 import { Editor } from "../editor/editor";
+import { Point3 } from "../element/types";
+import { CameraPrimitive } from "../scene/CameraPrimitive";
 
 export type UserInfo = {
     id: string;
@@ -11,17 +12,15 @@ export type UserInfo = {
 };
 
 export type UserPos = {
-    x: number;
-    y: number;
-    z: number;
-    heading: number;
-    pitch: number;
-    roll: number;
+    position: Point3;
+    direction: Point3;
+    up: Point3;
+    right: Point3;
 };
 
 export type User = UserInfo & UserPos;
 
-type AwarenessUser = {
+export type AwarenessUser = {
     user: UserInfo;
     pos: UserPos;
 };
@@ -43,21 +42,27 @@ const createDefaultUser = (): UserInfo => {
 };
 
 export const useAwareness = (editor: Editor, roomId: Ref<string>) => {
-    let cameraPosWCOld: Cartesian3;
-
     const userList = ref<User[]>([]);
+    const localUser = useStorage("default-user", createDefaultUser());
 
-    const localUser = useStorage('default-user', createDefaultUser());
+    watch(roomId, (_newId, _oldId, onCleanup) => {
+        let removeListener: Function | undefined;
 
-    watch(roomId, () => {
-        if (roomId) {
+        if (roomId.value) {
             const awareness = editor.provider?.awareness;
-            if (awareness) {
-                awareness.on("change", handler);
-                awareness.on("change", entityHandler);
-                initLocalUser();
-            }
+            awareness?.on("change", handler);
+            awareness?.on("change", entityHandler);
+            removeListener = initLocalUser();
         }
+
+        onCleanup(() => {
+            if (roomId.value) {
+                const awareness = editor.provider?.awareness;
+                awareness?.off("change", handler);
+                awareness?.off("change", entityHandler);
+                removeListener?.();
+            }
+        });
     });
 
     const handler = (
@@ -66,6 +71,7 @@ export const useAwareness = (editor: Editor, roomId: Ref<string>) => {
     ) => {
         const awareness = editor.provider?.awareness;
         if (awareness) {
+            // TODO: optimize
             userList.value = Array.from(
                 editor.provider?.awareness?.getStates().values()
             ).map((state) => {
@@ -83,56 +89,34 @@ export const useAwareness = (editor: Editor, roomId: Ref<string>) => {
     ) => {
         if (event === "local") return;
         const awareness = editor.provider?.awareness;
-        if (awareness) {
-            changes.added.forEach((clientId) => {
-                const remoteState = awareness
-                    .getStates()
-                    .get(clientId) as AwarenessUser;
-                const entity = new Entity({
-                    id: clientId.toString(),
-                    name: remoteState.user.name,
-                    position: new CallbackPositionProperty((_time, result) => {
-                        if (!result) {
-                            result = new Cartesian3();
-                        }
-                        const remoteState = awareness
-                            .getStates()
-                            .get(clientId) as AwarenessUser;
-                        result.x = remoteState.pos.x;
-                        result.y = remoteState.pos.y;
-                        result.z = remoteState.pos.z;
-                        return result;
-                    }, false),
-                    // TODO: optimize
-                    // orientation: new CallbackProperty((time, result) => {
-                    //     const remoteState = awareness
-                    //         .getStates()
-                    //         .get(clientId) as AwarenessUser;
-                    //     const center = Cartesian3.fromElements(
-                    //         remoteState.pos.x,
-                    //         remoteState.pos.y,
-                    //         remoteState.pos.z
-                    //     );
-                    //     return Transforms.headingPitchRollQuaternion(
-                    //         center,
-                    //         new HeadingPitchRoll(
-                    //             remoteState.pos.heading,
-                    //             remoteState.pos.pitch,
-                    //             remoteState.pos.roll
-                    //         )
-                    //     );
-                    // }, false),
-                    point: {
-                        color: Color.fromRandom(),
-                        pixelSize: 50
-                    }
+        if (!awareness) return;
+        const userStates = awareness.getStates() as Map<number, AwarenessUser>;
+        changes.added.forEach((clientId) => {
+            const remoteUserState = userStates.get(clientId);
+            if (remoteUserState) {
+                const { position, direction, up, right } = remoteUserState.pos;
+                const cameraPrimitive = new CameraPrimitive({
+                    id: clientId.toString()
                 });
-                editor.viewer?.entities.add(entity);
-            });
-            changes.removed.forEach((clientId) => {
-                editor.viewer?.entities.removeById(clientId.toString());
-            });
-        }
+                cameraPrimitive.setCameraInfo(position, direction, up, right);
+                editor.cameraPrimitivesCollection.add(cameraPrimitive);
+            }
+        });
+        changes.removed.forEach((clientId) => {
+            editor.cameraPrimitivesCollection.removeById(clientId.toString());
+        });
+        changes.updated.forEach((clientId) => {
+            const remoteUserState = userStates.get(clientId);
+            if (remoteUserState) {
+                const { position, direction, up, right } = remoteUserState.pos;
+                const cameraPrimitive =
+                    editor.cameraPrimitivesCollection.getById(
+                        clientId.toString()
+                    ) as CameraPrimitive;
+                console.log("update: ", cameraPrimitive);
+                cameraPrimitive.setCameraInfo(position, direction, up, right);
+            }
+        });
     };
 
     const setUser = (user: UserInfo) => {
@@ -141,7 +125,7 @@ export const useAwareness = (editor: Editor, roomId: Ref<string>) => {
         });
     };
 
-    const setUserPostion = (pos: UserPos) => {
+    const setUserPosition = (pos: UserPos) => {
         editor.provider?.awareness?.setLocalStateField("pos", {
             ...pos
         });
@@ -150,42 +134,61 @@ export const useAwareness = (editor: Editor, roomId: Ref<string>) => {
     const initLocalUser = () => {
         const viewer = editor.viewer;
         const camera = viewer?.camera;
-        if (camera) {
-            let cameraPosWC = camera.positionWC;
-            cameraPosWCOld = cameraPosWC.clone();
-
-            setUser(localUser.value);
-            // camera's orientation is defined by headingPitchRoll or DirectionUp
-            setUserPostion({
-                x: cameraPosWC.x,
-                y: cameraPosWC.y,
-                z: cameraPosWC.z,
-                heading: camera.heading,
-                pitch: camera.pitch,
-                roll: camera.roll
+        if (!camera) return;
+        setUser(localUser.value);
+        setUserPosition({
+            position: {
+                x: camera.positionWC.x,
+                y: camera.positionWC.y,
+                z: camera.positionWC.z
+            },
+            direction: {
+                x: camera.directionWC.x,
+                y: camera.directionWC.y,
+                z: camera.directionWC.z
+            },
+            up: {
+                x: camera.upWC.x,
+                y: camera.upWC.y,
+                z: camera.upWC.z
+            },
+            right: {
+                x: camera.rightWC.x,
+                y: camera.rightWC.y,
+                z: camera.rightWC.z
+            }
+        });
+        let removeListener = viewer.clock.onTick.addEventListener(() => {
+            // TODO: throttle
+            setUserPosition({
+                position: {
+                    x: camera.positionWC.x,
+                    y: camera.positionWC.y,
+                    z: camera.positionWC.z
+                },
+                direction: {
+                    x: camera.directionWC.x,
+                    y: camera.directionWC.y,
+                    z: camera.directionWC.z
+                },
+                up: {
+                    x: camera.upWC.x,
+                    y: camera.upWC.y,
+                    z: camera.upWC.z
+                },
+                right: {
+                    x: camera.rightWC.x,
+                    y: camera.rightWC.y,
+                    z: camera.rightWC.z
+                }
             });
-
-            viewer.clock.onTick.addEventListener(() => {
-                // 位置不变的时候不发送事件
-                let cameraPosWC = viewer.camera.positionWC;
-                if (cameraPosWCOld.equals(cameraPosWC)) return;
-                cameraPosWCOld = cameraPosWC.clone();
-                // TODO: throttle
-                setUserPostion({
-                    x: cameraPosWC.x,
-                    y: cameraPosWC.y,
-                    z: cameraPosWC.z,
-                    heading: camera.heading,
-                    pitch: camera.pitch,
-                    roll: camera.roll
-                });
-            });
-        }
+        });
+        return removeListener;
     };
 
     return {
         userList,
         setUser,
-        setUserPostion
+        setUserPosition
     };
 };

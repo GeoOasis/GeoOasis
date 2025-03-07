@@ -27,7 +27,7 @@ export const useGeoOasisStore = defineStore("viewer", () => {
     const assetState = useSyncArray(editor.value.assetLibrary.assetArray);
 
     const roomId = ref("");
-    const { userList, setUser, setUserPostion } = useAwareness(
+    const { userList, setUser, setUserPosition } = useAwareness(
         editor.value,
         roomId
     );
@@ -57,6 +57,6 @@ export const useGeoOasisStore = defineStore("viewer", () => {
         selectedModelIdx,
         assetsOption,
         setUser,
-        setUserPostion
+        setUserPosition
     };
 });

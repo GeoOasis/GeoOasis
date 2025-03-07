@@ -16,7 +16,8 @@ import {
     IonResource,
     Quaternion,
     Matrix3,
-    CallbackPositionProperty
+    CallbackPositionProperty,
+    PrimitiveCollection
 } from "cesium";
 import * as Y from "yjs";
 import { ObservableV2 } from "lib0/observable.js";
@@ -51,6 +52,7 @@ import {
 import { Hocuspocus_URL } from "../contants";
 import { AssetLibrary } from "./assetLibrary";
 import { ImageryLayerManager } from "./imageryLayerManager";
+import { PrimitiveCollection2 } from "../scene/PrimitiveCollection2";
 
 export type EditorEvent = {
     "element:add": (key: string) => void;
@@ -84,6 +86,8 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
     public undoManager: Y.UndoManager;
     public assetLibrary: AssetLibrary;
     public imageryLayerManager: ImageryLayerManager;
+    public cameraPrimitivesCollection: PrimitiveCollection2 =
+        new PrimitiveCollection2();
 
     // TODO: 减少状态
     private serviceLayersMap: Map<Layer["id"], DataSource> = new Map();
@@ -128,6 +132,7 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
     attachViewer(viewer: Viewer) {
         this.viewer = viewer;
         this.imageryLayerManager.imageryLayerCollection = viewer.imageryLayers;
+        this.viewer.scene.primitives.add(this.cameraPrimitivesCollection);
     }
 
     // change room

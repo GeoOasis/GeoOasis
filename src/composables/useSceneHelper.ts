@@ -1,4 +1,4 @@
-import { Cartesian3, Math as CesiumMath } from "cesium";
+import { Cartesian3, Math as CesiumMath, Matrix3, Quaternion } from "cesium";
 import { User } from "./useAwareness";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 
@@ -17,13 +17,24 @@ export const useSceneHelper = () => {
 
     const synOtherUserCamera = (user: User) => {
         if (user.id === store.userList[0].id) return;
+        const direction = user.direction as Cartesian3;
+        const up = user.up as Cartesian3;
+        const right = user.right as Cartesian3;
+        Cartesian3.negate(right, right);
+        const rotation = new Matrix3();
+        Matrix3.setColumn(rotation, 0, right, rotation);
+        Matrix3.setColumn(rotation, 1, up, rotation);
+        Matrix3.setColumn(rotation, 2, direction, rotation);
+
+        const orientation = Quaternion.fromRotationMatrix(rotation);
+
         store.editor.viewer?.camera.flyTo({
-            destination: Cartesian3.fromElements(user.x, user.y, user.z),
-            orientation: {
-                heading: user.heading,
-                pitch: user.pitch,
-                roll: user.roll
-            }
+            destination: Cartesian3.fromElements(
+                user.position.x,
+                user.position.y,
+                user.position.z
+            ),
+            orientation: orientation
         });
     };
 
