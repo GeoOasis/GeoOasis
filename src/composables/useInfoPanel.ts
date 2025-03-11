@@ -27,7 +27,7 @@ export const useInfoPanel = () => {
 
     const isToolBoxVisible = ref(false);
     const selectedTool = ref();
-    const tools = ["buffer", "heatmap", "interplation"];
+    const tools = ["buffer", "heatmap", "interpolation"];
     const isWasm = ref(false);
     const computeMode = computed(() => (isWasm.value ? "wasm" : "js"));
 

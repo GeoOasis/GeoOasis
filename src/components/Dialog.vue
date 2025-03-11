@@ -30,11 +30,6 @@ const handleUpload = () => {
             url: asset.value,
             ion: isCesiumIon.value
         });
-        console.log({
-            name: assetName.value,
-            url: asset.value,
-            ion: isCesiumIon.value
-        });
     } else {
         editor.addLayer({
             id: nanoid(),

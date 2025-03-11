@@ -55,7 +55,7 @@ export const useSetup = () => {
 
     const setupViewer = () => {
         Ion.defaultAccessToken = CesiumIonDefaultToken;
-        const cesiumviewer = new Viewer(viewerDivRef.value as HTMLElement, {
+        const cesiumViewer = new Viewer(viewerDivRef.value as HTMLElement, {
             animation: false,
             baseLayerPicker: false,
             fullscreenButton: false,
@@ -72,9 +72,9 @@ export const useSetup = () => {
             baseLayer: false
             // terrain: Terrain.fromWorldTerrain()
         });
-        window.cesiumViewer = cesiumviewer;
-        store.editor.attachViewer(cesiumviewer);
-        viewer = cesiumviewer;
+        window.cesiumViewer = cesiumViewer;
+        store.editor.attachViewer(cesiumViewer);
+        viewer = cesiumViewer;
         store.toolBox.registerTool(new BufferTool());
         store.toolBox.registerTool(new HeatMapTool());
         flyToHome();
@@ -85,7 +85,7 @@ export const useSetup = () => {
             console.log("layer added!!!", e);
         });
         editor.viewer?.imageryLayers.layerRemoved.addEventListener((e) => {
-            console.log("layer removeed!!!", e);
+            console.log("layer removed!!!", e);
         });
         for (const layer of defaultBaseLayers) {
             if (layer.name === selectedBaseLayer.value) {
@@ -102,7 +102,7 @@ export const useSetup = () => {
 
     let handler: ScreenSpaceEventHandler;
     let gizmo: CesiumGizmo;
-    let edittingElement: Element | null = null;
+    let editingElement: Element | null = null;
     let draggingElement: Element | undefined = undefined;
     let startPoint: Cartesian3;
     let endPoint: Cartesian3;
@@ -253,10 +253,10 @@ export const useSetup = () => {
                     startPoint
                 );
                 editor.addElement(PointElement);
-                edittingElement = PointElement;
+                editingElement = PointElement;
                 break;
             case "polyline":
-                if (edittingElement === null) {
+                if (editingElement === null) {
                     const PolylineElement = newPolylineElement(
                         "21",
                         "myPolyline",
@@ -264,22 +264,22 @@ export const useSetup = () => {
                         [startPoint]
                     );
                     editor.addElement(PolylineElement);
-                    edittingElement = PolylineElement;
+                    editingElement = PolylineElement;
                 }
                 break;
             case "rectangle":
-                if (edittingElement === null) {
+                if (editingElement === null) {
                     const rectangleEle = newRectangleElement("", true, [
                         startPoint
                     ]);
                     editor.addElement(rectangleEle);
-                    edittingElement = rectangleEle;
+                    editingElement = rectangleEle;
                 }
                 break;
             case "model":
                 if (!selectedModelIdx.value) {
                     console.log("choose a model");
-                    edittingElement = null;
+                    editingElement = null;
                     break;
                 }
                 const assetId = editor.assetLibrary.getAssetId(
@@ -287,7 +287,7 @@ export const useSetup = () => {
                 );
                 if (!assetId) {
                     console.error("No this assetId");
-                    edittingElement = null;
+                    editingElement = null;
                     break;
                 }
                 const ModelElement = newModelElement({
@@ -295,48 +295,48 @@ export const useSetup = () => {
                     assetId
                 });
                 editor.addElement(ModelElement);
-                edittingElement = ModelElement;
+                editingElement = ModelElement;
                 break;
             case "polygon":
-                if (edittingElement === null) {
+                if (editingElement === null) {
                     const polygonElement = newPolygonElement(
                         "test",
-                        "mypolygon",
+                        "default",
                         true,
                         [startPoint]
                     );
                     editor.addElement(polygonElement);
-                    edittingElement = polygonElement;
+                    editingElement = polygonElement;
                 }
                 break;
             default:
                 break;
         }
 
-        if (edittingElement !== null) {
+        if (editingElement !== null) {
             switch (activeTool.value) {
                 case "point":
                     break;
                 case "polyline":
-                    editor.mutateElement(edittingElement.id, {
+                    editor.mutateElement(editingElement.id, {
                         positions: editor
-                            .getElement(edittingElement.id)
+                            .getElement(editingElement.id)
                             ?.positions.concat(point3FromCartesian3(startPoint))
                     });
                     break;
                 case "rectangle":
-                    editor.mutateElement(edittingElement.id, {
+                    editor.mutateElement(editingElement.id, {
                         positions: editor
-                            .getElement(edittingElement.id)
+                            .getElement(editingElement.id)
                             ?.positions.concat(point3FromCartesian3(startPoint))
                     });
                     break;
                 case "model":
                     break;
                 case "polygon":
-                    editor.mutateElement(edittingElement.id, {
+                    editor.mutateElement(editingElement.id, {
                         positions: editor
-                            .getElement(edittingElement.id)
+                            .getElement(editingElement.id)
                             ?.positions.concat(point3FromCartesian3(startPoint))
                     });
                     break;
@@ -415,7 +415,7 @@ export const useSetup = () => {
         }
 
         // draw element logic
-        if (edittingElement !== null) {
+        if (editingElement !== null) {
             let update;
             switch (activeTool.value) {
                 case "point":
@@ -425,20 +425,20 @@ export const useSetup = () => {
                     // TODO 优化手段：减少对象创建
                     update = [
                         // @ts-ignore
-                        ...editor.getElement(edittingElement.id).positions
+                        ...editor.getElement(editingElement.id).positions
                     ];
                     update[update.length - 1] = point3FromCartesian3(endPoint);
-                    editor.mutateElement(edittingElement.id, {
+                    editor.mutateElement(editingElement.id, {
                         positions: update
                     });
                     break;
                 case "rectangle":
                     update = [
                         // @ts-ignore
-                        ...editor.getElement(edittingElement.id).positions
+                        ...editor.getElement(editingElement.id).positions
                     ];
                     update[update.length - 1] = point3FromCartesian3(endPoint);
-                    editor.mutateElement(edittingElement.id, {
+                    editor.mutateElement(editingElement.id, {
                         positions: update
                     });
                     break;
@@ -447,10 +447,10 @@ export const useSetup = () => {
                 case "polygon":
                     update = [
                         // @ts-ignore
-                        ...editor.getElement(edittingElement.id).positions
+                        ...editor.getElement(editingElement.id).positions
                     ];
                     update[update.length - 1] = point3FromCartesian3(endPoint);
-                    editor.mutateElement(edittingElement.id, {
+                    editor.mutateElement(editingElement.id, {
                         positions: update
                     });
                     break;
@@ -470,10 +470,10 @@ export const useSetup = () => {
             viewer.scene.screenSpaceCameraController.enableTranslate = true;
         }
 
-        if (edittingElement !== null) {
+        if (editingElement !== null) {
             switch (activeTool.value) {
                 case "point":
-                    edittingElement = null;
+                    editingElement = null;
                     activeTool.value = "default";
                     break;
                 case "polyline":
@@ -481,7 +481,7 @@ export const useSetup = () => {
                 case "rectangle":
                     break;
                 case "model":
-                    edittingElement = null;
+                    editingElement = null;
                     activeTool.value = "default";
                     break;
                 case "polygon":
@@ -494,14 +494,14 @@ export const useSetup = () => {
 
     const handleCanvasRightClick = () => {
         console.log("right click");
-        if (edittingElement !== null) {
+        if (editingElement !== null) {
             if (
                 activeTool.value === "polyline" ||
                 activeTool.value === "polygon" ||
                 activeTool.value === "rectangle"
             ) {
                 // stopEdit();
-                edittingElement = null;
+                editingElement = null;
                 activeTool.value = "default";
             }
             console.log(`${activeTool.value} finish`);

@@ -66,7 +66,6 @@ export class AssetLibrary {
         const asset = this.assetArray
             .toArray()
             .find((asset) => asset.id === assetId);
-        console.log(assetId, this.assetArray.toArray());
         if (asset && asset.ion) {
             const resource = await IonResource.fromAssetId(Number(asset.url));
             return resource;
