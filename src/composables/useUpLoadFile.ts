@@ -58,7 +58,6 @@ export const useUpLoadFile = () => {
             }
         });
 
-        // TODO: optimize, we don't want to use Yjs to transfer data? or we can use Yjs to transfer data
         if (
             fileType === FileType.GEOJSON ||
             fileType === FileType.JSON ||

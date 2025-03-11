@@ -16,8 +16,7 @@ import {
     IonResource,
     Quaternion,
     Matrix3,
-    CallbackPositionProperty,
-    PrimitiveCollection
+    CallbackPositionProperty
 } from "cesium";
 import * as Y from "yjs";
 import { ObservableV2 } from "lib0/observable.js";
@@ -427,7 +426,7 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
         console.log("TRANSACTION is: ", transactions);
         for (const e of events) {
             console.log("Events is: ", e);
-            e.changes.keys.forEach((change, key) => {
+            e.changes.keys.forEach(async (change, key) => {
                 console.log(
                     "This change's key: ",
                     key,
@@ -459,7 +458,7 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                             );
                             break;
                         case "model":
-                            entity = generateModelEntityfromElement(
+                            entity = await generateModelEntityfromElement(
                                 elementAdded as GeoOasisModelElement,
                                 this
                             );

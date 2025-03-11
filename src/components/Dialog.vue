@@ -18,31 +18,35 @@ import "./Dialog.css";
 
 const store = useGeoOasisStore();
 const { editor } = store;
-const option = ref(false);
-const assetUrl = ref("");
-const ionToken = ref(""); // TODO:
-const assetID = ref("");
+const isGltf = ref(false);
+const isCesiumIon = ref(false);
+const assetName = ref("");
+const asset = ref("");
+// const ionToken = ref(""); // TODO:
 const handleUpload = () => {
-    if (option.value) {
-        editor.addLayer({
-            id: nanoid(),
-            name: "",
-            type: "3dtiles",
-            url: assetID.value,
-            show: true,
-            ion: true
+    if (isGltf.value) {
+        editor.assetLibrary.addAsset({
+            name: assetName.value,
+            url: asset.value,
+            ion: isCesiumIon.value
+        });
+        console.log({
+            name: assetName.value,
+            url: asset.value,
+            ion: isCesiumIon.value
         });
     } else {
         editor.addLayer({
             id: nanoid(),
             name: "default",
             type: "3dtiles",
-            url: assetUrl.value,
-            show: true
+            url: asset.value,
+            show: true,
+            ion: isCesiumIon.value
         });
     }
-    assetID.value = "";
-    assetUrl.value = "";
+    assetName.value = "";
+    asset.value = "";
 };
 </script>
 
@@ -56,40 +60,44 @@ const handleUpload = () => {
             <DialogContent class="DialogContent">
                 <DialogTitle class="DialogTitle">Upload from Url</DialogTitle>
                 <DialogDescription class="DialogDescription">
-                    Add 3D Tiles from url or CesiumIon
+                    Add 3D Tiles or Gltf Model from url or Cesium Ion
                 </DialogDescription>
                 <fieldset class="Fieldset">
                     <Switch
-                        name="UrlOrCesiumIon"
-                        :checked="option"
-                        @update:checked="(checked) => (option = checked)"
+                        name="3D Tiles Or Gltf Model"
+                        :checked="isGltf"
+                        @update:checked="(checked) => (isGltf = checked)"
                     />
                 </fieldset>
-                <fieldset class="Fieldset" v-if="!option">
-                    <label class="Label" for="url">Url</label>
-                    <input
-                        id="url"
-                        class="Input"
-                        placeholder="please input 3D Tiles Url"
-                        v-model="assetUrl"
+                <fieldset class="Fieldset">
+                    <Switch
+                        name="Url Or CesiumIon"
+                        :checked="isCesiumIon"
+                        @update:checked="(checked) => (isCesiumIon = checked)"
                     />
                 </fieldset>
-                <!-- <fieldset class="Fieldset" v-if="option">
-                    <label class="Label" for="token">CesiumIonToken</label>
+                <fieldset class="Fieldset">
+                    <label class="Label" for="asset-name">Asset Name</label>
                     <input
-                        id="token"
+                        id="asset-name"
                         class="Input"
-                        placeholder="please input cesium Ion Token"
-                        v-model="ionToken"
+                        placeholder="please input Asset Name"
+                        v-model="assetName"
                     />
-                </fieldset> -->
-                <fieldset class="Fieldset" v-if="option">
-                    <label class="Label" for="assetId">Asset ID</label>
+                </fieldset>
+                <fieldset class="Fieldset">
+                    <label class="Label" for="asset">
+                        Asset {{ isCesiumIon ? "ID" : "Url" }}
+                    </label>
                     <input
-                        id="assetId"
+                        id="asset"
                         class="Input"
-                        placeholder="please input cesium Ion Token"
-                        v-model="assetID"
+                        :placeholder="
+                            isCesiumIon
+                                ? 'please input cesium Ion Asset Id'
+                                : 'please input Url'
+                        "
+                        v-model="asset"
                     />
                 </fieldset>
                 <div

@@ -76,13 +76,13 @@ export const generatePolygonEntityfromElement = (
     });
 };
 
-export const generateModelEntityfromElement = (
+export const generateModelEntityfromElement = async (
     element: GeoOasisModelElement,
     editor: Editor
-): Entity => {
+): Promise<Entity> => {
     const poi = element.positions[0];
     const center = Cartesian3.fromElements(poi.x, poi.y, poi.z);
-    let uri = editor.assetLibrary.getAssetUrl(element.assetId);
+    const uri = await editor.assetLibrary.getAssetUrl(element.assetId);
     return new Entity({
         id: element.id,
         name: element.name,

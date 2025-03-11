@@ -1,3 +1,4 @@
+import { IonResource } from "cesium";
 import { nanoid } from "nanoid";
 import * as Y from "yjs";
 
@@ -6,6 +7,7 @@ export type Asset = {
     name: string;
     url?: string;
     data?: string | Uint8Array;
+    ion?: boolean;
 };
 
 export const defaultAsset: Asset[] = [
@@ -42,16 +44,33 @@ export class AssetLibrary {
         this.assetArray.observe(createURLhandler);
     }
 
-    addAsset(option: { name: string; data: Uint8Array }) {
+    addAsset(option: {
+        name: string;
+        data?: Uint8Array;
+        url?: string;
+        ion?: boolean;
+    }) {
         const asset = {
             id: nanoid(),
             name: option.name,
-            data: option.data
+            url: option.url,
+            data: option.data,
+            ion: option.ion
         };
         this.assetArray.push([asset]);
     }
 
-    getAssetUrl(assetId: string): string | undefined {
+    async getAssetUrl(
+        assetId: string
+    ): Promise<string | IonResource | undefined> {
+        const asset = this.assetArray
+            .toArray()
+            .find((asset) => asset.id === assetId);
+        console.log(assetId, this.assetArray.toArray());
+        if (asset && asset.ion) {
+            const resource = await IonResource.fromAssetId(Number(asset.url));
+            return resource;
+        }
         return this.urlMap.get(assetId);
     }
 
@@ -77,9 +96,10 @@ export class AssetLibrary {
                     });
                     const uri = URL.createObjectURL(glbBlob);
                     this.urlMap.set(asset.id, uri);
+                } else if (asset.url) {
+                    this.urlMap.set(asset.id, asset.url);
                 }
             }
         });
-        console.log(this.urlMap);
     }
 }
