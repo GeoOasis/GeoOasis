@@ -3,7 +3,7 @@ import {
     Color,
     Entity,
     HeadingPitchRoll,
-    HeightReference,
+    // HeightReference,
     ImageMaterialProperty,
     LabelStyle,
     VerticalOrigin,

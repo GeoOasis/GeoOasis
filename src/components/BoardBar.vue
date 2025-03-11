@@ -2,10 +2,10 @@
 import { Icon } from "@iconify/vue";
 import { ref } from "vue";
 import {
-    MenubarCheckboxItem,
+    // MenubarCheckboxItem,
     MenubarContent,
     MenubarItem,
-    MenubarItemIndicator,
+    // MenubarItemIndicator,
     MenubarMenu,
     MenubarPortal,
     MenubarRoot,

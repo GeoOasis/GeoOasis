@@ -12,7 +12,7 @@ import {
 import { GeoOasisImageryLayer } from "./layer";
 
 export async function generateBingImageryFromLayer(
-    layer: GeoOasisImageryLayer
+    _layer: GeoOasisImageryLayer
 ) {
     const bingImageryProvider = await createWorldImageryAsync();
     return new ImageryLayer(bingImageryProvider);
