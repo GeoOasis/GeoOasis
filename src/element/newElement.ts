@@ -10,15 +10,15 @@ import {
 } from "./element";
 import { point3FromCartesian3 } from "./utils";
 
-// TODO defaultValue 设置, use option style
-export const newPointElement = (
-    id: string,
-    name: string,
-    show: boolean,
-    position: Cartesian3
-): GeoOasisPointElement => {
+export const newPointElement = (options: {
+    id?: string;
+    name?: string;
+    show?: boolean;
+    position: Cartesian3;
+}): GeoOasisPointElement => {
+    const { id = nanoid(), name = "default", show = true, position } = options;
     return {
-        id: nanoid(),
+        id,
         type: "point",
         name,
         show,
@@ -35,14 +35,15 @@ export const newPointElement = (
     };
 };
 
-export const newPolylineElement = (
-    id: string,
-    name: string,
-    show: boolean,
-    positions: Cartesian3[]
-): GeoOasisPolylineElement => {
+export const newPolylineElement = (options: {
+    id?: string;
+    name?: string;
+    show?: boolean;
+    positions: Cartesian3[];
+}): GeoOasisPolylineElement => {
+    const { id = nanoid(), name = "default", show = true, positions } = options;
     return {
-        id: nanoid(),
+        id: id,
         type: "polyline",
         name,
         show,
@@ -52,14 +53,16 @@ export const newPolylineElement = (
     };
 };
 
-export const newPolygonElement = (
-    id: string,
-    name: string,
-    show: boolean,
-    positions: Cartesian3[]
-): GeoOasisPolygonElement => {
+export const newPolygonElement = (options: {
+    id?: string;
+    name?: string;
+    show?: boolean;
+    positions: Cartesian3[];
+}): GeoOasisPolygonElement => {
+    const { id = nanoid(), name = "default", show = true, positions } = options;
+
     return {
-        id: nanoid(),
+        id,
         type: "polygon",
         name,
         show,
@@ -111,13 +114,15 @@ export const newModelElement = (options: {
     };
 };
 
-export const newRectangleElement = (
-    name: string,
-    show: boolean,
-    positions: Cartesian3[]
-): GeoOasisRectangleElement => {
+export const newRectangleElement = (options: {
+    id?: string;
+    name?: string;
+    show?: boolean;
+    positions: Cartesian3[];
+}): GeoOasisRectangleElement => {
+    const { id = nanoid(), name = "default", show = true, positions } = options;
     return {
-        id: nanoid(),
+        id,
         type: "rectangle",
         name,
         show,
@@ -126,26 +131,36 @@ export const newRectangleElement = (
     };
 };
 
-export const newImageElement = (option: any): GeoOasisImageElement => {
-    // TODO: calculate from center
-    const extent: {
+export const newImageElement = (options: {
+    id?: string;
+    name?: string;
+    show?: boolean;
+    extent?: {
         minLng: number;
         minLat: number;
         maxLng: number;
         maxLat: number;
-    } = option.extent
-        ? option.extent
-        : {
-              minLng: 0.0,
-              minLat: 0.0,
-              maxLng: 10.0,
-              maxLat: 10.0
-          };
+    };
+    url: string | Uint8Array;
+}): GeoOasisImageElement => {
+    const {
+        id = nanoid(),
+        name = "default",
+        show = true,
+        extent = {
+            minLng: 0.0,
+            minLat: 0.0,
+            maxLng: 10.0,
+            maxLat: 10.0
+        },
+        url
+    } = options;
+    // TODO: calculate from center
     return {
-        id: nanoid(),
+        id,
         type: "image",
-        name: option.name,
-        show: option.show,
+        name,
+        show,
         description: "",
         positions: [
             point3FromCartesian3(
@@ -155,6 +170,6 @@ export const newImageElement = (option: any): GeoOasisImageElement => {
                 Cartesian3.fromDegrees(extent.maxLng, extent.maxLat)
             )
         ],
-        url: option.url
+        url
     };
 };

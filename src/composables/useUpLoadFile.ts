@@ -49,8 +49,6 @@ export const useUpLoadFile = () => {
                     e.target?.result as ArrayBuffer
                 );
                 const imageElement = newImageElement({
-                    name: "",
-                    show: "true",
                     url: imageArr
                     // url: e.target?.result
                 });

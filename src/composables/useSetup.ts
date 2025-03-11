@@ -246,32 +246,26 @@ export const useSetup = () => {
         // 三种情况 point和polygon绘制的时候禁用mousemove，或者设置特定的mousemove
         switch (activeTool.value) {
             case "point":
-                const PointElement = newPointElement(
-                    "1232434123432314",
-                    "default",
-                    true,
-                    startPoint
-                );
+                const PointElement = newPointElement({
+                    position: startPoint
+                });
                 editor.addElement(PointElement);
                 editingElement = PointElement;
                 break;
             case "polyline":
                 if (editingElement === null) {
-                    const PolylineElement = newPolylineElement(
-                        "21",
-                        "myPolyline",
-                        true,
-                        [startPoint]
-                    );
+                    const PolylineElement = newPolylineElement({
+                        positions: [startPoint]
+                    });
                     editor.addElement(PolylineElement);
                     editingElement = PolylineElement;
                 }
                 break;
             case "rectangle":
                 if (editingElement === null) {
-                    const rectangleEle = newRectangleElement("", true, [
-                        startPoint
-                    ]);
+                    const rectangleEle = newRectangleElement({
+                        positions: [startPoint]
+                    });
                     editor.addElement(rectangleEle);
                     editingElement = rectangleEle;
                 }
@@ -299,12 +293,9 @@ export const useSetup = () => {
                 break;
             case "polygon":
                 if (editingElement === null) {
-                    const polygonElement = newPolygonElement(
-                        "test",
-                        "default",
-                        true,
-                        [startPoint]
-                    );
+                    const polygonElement = newPolygonElement({
+                        positions: [startPoint]
+                    });
                     editor.addElement(polygonElement);
                     editingElement = polygonElement;
                 }

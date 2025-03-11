@@ -103,10 +103,7 @@ export const useInfoPanel = () => {
                     //         blob?.arrayBuffer().then((buffer) => {
                     //             const imageArr = new Uint8Array(buffer);
                     //             const heatmap = newImageElement({
-                    //                 id: nanoid(),
-                    //                 type: "image",
                     //                 name: "heatMap",
-                    //                 show: true,
                     //                 url: imageArr,
                     //                 extent: option.extent
                     //             });
