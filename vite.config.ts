@@ -27,6 +27,7 @@ export default defineConfig({
             ]
         }),
         VitePWA({
+            disable: false,
             registerType: "autoUpdate",
             workbox: {
                 maximumFileSizeToCacheInBytes: 2097152 * 3,
@@ -34,6 +35,40 @@ export default defineConfig({
             },
             devOptions: {
                 enabled: false
+            },
+            includeAssets: ["favicon.ico", "apple-touch-icon.png"],
+            manifest: {
+                name: "GeoOasis",
+                short_name: "Geo",
+                icons: [
+                    {
+                        src: "/pwa-192x192.png",
+                        sizes: "192x192",
+                        type: "image/png",
+                        purpose: "any"
+                    },
+                    {
+                        src: "/pwa-512x512.png",
+                        sizes: "512x512",
+                        type: "image/png",
+                        purpose: "any"
+                    },
+                    {
+                        src: "/pwa-maskable-192x192.png",
+                        sizes: "192x192",
+                        type: "image/png",
+                        purpose: "maskable"
+                    },
+                    {
+                        src: "/pwa-maskable-512x512.png",
+                        sizes: "512x512",
+                        type: "image/png",
+                        purpose: "maskable"
+                    }
+                ],
+                description: "Collaboration in 3D WebGIS",
+                background_color: "#FFFFFF",
+                theme_color: "#FFFFFF"
             }
         })
     ],
