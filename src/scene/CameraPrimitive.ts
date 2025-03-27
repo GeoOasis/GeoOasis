@@ -16,13 +16,14 @@ import {
     Cartographic
 } from "cesium";
 import { Point3 } from "../element/types";
+import { CesiumPrimitive } from "../utils";
 
 const scratchRight = new Cartesian3();
 const scratchRotation = new Matrix3();
 const scratchOrientation = new Quaternion();
 const scratchCartographic = new Cartographic();
 
-export class CameraPrimitive {
+export class CameraPrimitive implements CesiumPrimitive {
     public show: boolean;
     private frustumPrimitive: Primitive | null;
     private frustumOutLinePrimitive: Primitive | null;

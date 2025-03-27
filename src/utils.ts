@@ -24,8 +24,8 @@ export const getFileType = (fileName: string): FileType | undefined => {
     );
 };
 
-export type CesiumRenderableObject = {
-    update?: () => void;
+export interface CesiumPrimitive {
+    update: (frameState?: any) => void;
     isDestroyed: () => boolean;
     destroy: () => void;
-};
+}

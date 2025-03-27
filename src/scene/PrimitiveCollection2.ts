@@ -1,6 +1,7 @@
 import { AssociativeArray, destroyObject } from "cesium";
+import { CesiumPrimitive } from "../utils";
 
-export class PrimitiveCollection2 {
+export class PrimitiveCollection2 implements CesiumPrimitive {
     private primitives: AssociativeArray; // Array<Primitive>
     public show: boolean;
     public destroyPrimitives: boolean;
