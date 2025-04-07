@@ -12,11 +12,9 @@ import Dialog from "./Dialog.vue";
 import { Icon } from "@iconify/vue";
 import { computed } from "vue";
 import { storeToRefs } from "pinia";
-import { nanoid } from "nanoid";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { useUpLoadFile } from "../composables/useUpLoadFile";
 import { useYjs } from "../composables/useYjs";
-import { randomGeoJsonPoint } from "../mock";
 import { DrawMode, GizmoMode } from "../editor/type";
 
 const toolOptions = [
@@ -68,18 +66,6 @@ const { undo, redo } = useYjs();
 const { selectedFile } = useUpLoadFile();
 
 const modelBarVisible = computed(() => activeTool.value === "model");
-
-const mockData = () => {
-    const mockData = randomGeoJsonPoint(1000);
-    store.editor.addLayer({
-        id: nanoid(),
-        name: "HeatMapMockData",
-        type: "service",
-        provider: "geojson",
-        show: true,
-        url: mockData
-    });
-};
 </script>
 
 <template>
@@ -163,13 +149,6 @@ const mockData = () => {
             @click="redo"
         >
             Redo
-        </ToolbarButton>
-        <ToolbarButton
-            class="ToolbarButton"
-            style="margin-left: 10px"
-            @click="mockData"
-        >
-            Mock
         </ToolbarButton>
     </ToolbarRoot>
     <div v-show="modelBarVisible" class="ModelBar">

@@ -60,17 +60,30 @@ export type EditorEvent = {
 };
 
 export interface BaseEditor {
+    // Element
     pickElement(position: Cartesian2): Element | undefined;
     getElement(id: Element["id"]): Element | undefined;
     addElement(element: Element): void;
     deleteElement(id: Element["id"]): void;
     mutateElement(id: Element["id"], update: { [key: string]: any }): void;
+
+    startEdit(id: Element["id"], type: Element["type"]): void;
+    stopEdit(id: Element["id"], type: Element["type"]): void;
+
+    // Layer
+    pickLayer(position: Cartesian2): Layer | undefined;
+    setBaseLayer(name: string): void;
     getLayer(id: Layer["id"]): Layer | undefined;
     addLayer(layer: Layer): void;
     getLayerData(id: Layer["id"]): any;
     deleteLayer(id: Layer["id"], type?: Layer["type"]): void;
-    startEdit(id: Element["id"], type: Element["type"]): void;
-    stopEdit(id: Element["id"], type: Element["type"]): void;
+
+    // Room
+    changeRoom(roomId?: string): string;
+    disconnectProvider(): void;
+
+    // Other
+    attachViewer(viewer: Viewer): void;
 }
 
 // Editor is singleton

@@ -71,10 +71,11 @@ export class ImageryLayerManager {
         this.yImageryLayers.push([yImageryLayer]);
     }
 
+    // ! Wrong
     raiseLayer(index: number) {
         const ylayer = this.yImageryLayers.get(index);
-        // ! In concurrent situation, will have a problem.
-        // ! like two user do some operation, delete one, but add twice.
+        // ! In concurrent situation, two user do this operation, delete one, but add twice.
+        // ! In Yjs, AbstractType can't be added to another AbstractType twice, so will be wrong.
         this.yImageryLayers.doc?.transact(() => {
             this.yImageryLayers.delete(index);
             this.yImageryLayers.insert(index + 1, [ylayer]);
