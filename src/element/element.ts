@@ -53,7 +53,6 @@ export interface GeoOasisRectangleElement extends GeoOasisBaseElement {
     type: "rectangle";
 }
 
-// YMap 's value cannot be ArrayBuffer
 export interface GeoOasisImageElement extends GeoOasisBaseElement {
     type: "image";
     url: string | Uint8Array; //image/png

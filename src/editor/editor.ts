@@ -24,23 +24,14 @@ import { IndexeddbPersistence } from "y-indexeddb";
 import { HocuspocusProvider } from "@hocuspocus/provider";
 import { nanoid } from "nanoid";
 import { createHocuspocusProvider } from "./provider";
-import {
-    Element,
-    GeoOasisPointElement,
-    GeoOasisPolylineElement,
-    GeoOasisModelElement,
-    GeoOasisPolygonElement,
-    GeoOasisImageElement,
-    GeoOasisRectangleElement,
-    ElementKV
-} from "../element/element";
+import { Element, ElementKV } from "../element/element";
 import {
     cartesian3FromPoint3,
-    generatePointEntityfromElement,
-    generatePolylineEntityfromElement,
-    generatePolygonEntityfromElement,
-    generateModelEntityfromElement,
-    generateRectangleEntityfromElement
+    generatePointEntity,
+    generatePolylineEntity,
+    generatePolygonEntity,
+    generateModelEntity,
+    generateRectangleEntity
 } from "../element/utils";
 import { Point3 } from "../element/types";
 import {
@@ -52,6 +43,7 @@ import { Hocuspocus_URL } from "../contants";
 import { AssetLibrary } from "./assetLibrary";
 import { ImageryLayerManager } from "./imageryLayerManager";
 import { PrimitiveCollection2 } from "../scene/PrimitiveCollection2";
+import { getYMapValues } from "./utils";
 
 export type EditorEvent = {
     "element:add": (key: string) => void;
@@ -88,20 +80,24 @@ export interface BaseEditor {
 
 // Editor is singleton
 export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
-    private yjsProvider?: HocuspocusProvider;
     private doc: Y.Doc;
     public elements: Y.Map<Y.Map<any>>; // how to use correct type? don't use Map
     public layers: Y.Map<Y.Map<any>>;
     public baseLayers: Y.Map<Y.Map<any>>;
-    private entities: Map<string, Entity> = new Map();
-    public viewer: Viewer | undefined;
-    public undoManager: Y.UndoManager;
+    public title: Y.Text;
+
     public assetLibrary: AssetLibrary;
     public imageryLayerManager: ImageryLayerManager;
-    public cameraPrimitivesCollection: PrimitiveCollection2 =
-        new PrimitiveCollection2();
+
+    public undoManager: Y.UndoManager;
+
+    private netWorkProvider?: HocuspocusProvider;
 
     // TODO: 减少状态
+    public viewer: Viewer | undefined;
+    private entities: Map<string, Entity> = new Map();
+    public cameraPrimitivesCollection: PrimitiveCollection2 =
+        new PrimitiveCollection2();
     private serviceLayersMap: Map<Layer["id"], DataSource> = new Map();
     private serviceLayersArray: [Layer["id"], DataSource][] = new Array();
     private cesium3dtilesLayersMap: Map<Layer["id"], Cesium3DTileset> =
@@ -110,6 +106,8 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
     constructor() {
         super();
         this.doc = new Y.Doc();
+        new IndexeddbPersistence("oasis-doc", this.doc);
+        this.title = this.doc.getText("title");
         this.elements = this.doc.getMap("ElementsMap");
         this.layers = this.doc.getMap("LayersMap");
         this.baseLayers = this.doc.getMap("BaseLayersMap");
@@ -122,12 +120,11 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
             this.layers,
             yArr
         ]);
-        new IndexeddbPersistence("oasis-doc", this.doc);
         this.init();
     }
 
     get provider() {
-        return this.yjsProvider;
+        return this.netWorkProvider;
     }
 
     init() {
@@ -151,7 +148,7 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
     changeRoom(roomId?: string) {
         this.disconnectProvider();
         const nextId = roomId ? roomId : nanoid();
-        this.yjsProvider = createHocuspocusProvider(
+        this.netWorkProvider = createHocuspocusProvider(
             Hocuspocus_URL,
             nextId,
             this.doc
@@ -160,12 +157,12 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
     }
 
     disconnectProvider() {
-        if (this.yjsProvider) {
-            this.yjsProvider.awareness?.destroy();
-            this.yjsProvider.removeAllListeners();
-            this.yjsProvider.disconnect();
-            this.yjsProvider.destroy();
-            this.yjsProvider = undefined;
+        if (this.netWorkProvider) {
+            this.netWorkProvider.awareness?.destroy();
+            this.netWorkProvider.removeAllListeners();
+            this.netWorkProvider.disconnect();
+            this.netWorkProvider.destroy();
+            this.netWorkProvider = undefined;
         }
     }
 
@@ -357,78 +354,15 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
         this.imageryLayerManager.setBaseLayer(name);
     }
 
-    private async addLayerToCesium(layerAdded: Layer) {
-        let layer;
-        switch (layerAdded.type) {
-            case "service":
-                layer = await this.addServiceLayer(layerAdded);
-                if (layer) {
-                    this.viewer?.dataSources.add(layer);
-                    this.serviceLayersMap.set(layerAdded.id, layer);
-                    this.serviceLayersArray.push([layerAdded.id, layer]);
-                }
-                break;
-            case "3dtiles":
-                try {
-                    const tilesetJson = await fetch3DTilesetJson(layerAdded);
-                    if (!layerAdded.tileset) {
-                        // cache tileset.josn
-                        this.layers
-                            .get(layerAdded.id)
-                            ?.set("tileset", tilesetJson);
-                    }
-                    await this.add3dtilesLayer(layerAdded);
-                } catch (error) {
-                    const tilesetJson = this.layers
-                        .get(layerAdded.id)
-                        ?.get("tileset");
-                    let boundingVolumeEntity: Entity;
-                    if (tilesetJson && this.viewer) {
-                        boundingVolumeEntity = renderBoundingVolume(
-                            tilesetJson,
-                            this.viewer
-                        );
-                    }
-                    retryAsync(
-                        async () => {
-                            await this.add3dtilesLayer(layerAdded);
-                        },
-                        10,
-                        10000
-                    ).then(() => {
-                        this.viewer?.entities.remove(boundingVolumeEntity);
-                    });
-                    console.error(error);
-                }
-                break;
-            case "terrain":
-                break;
-        }
-    }
-
-    private async add3dtilesLayer(layer: GeoOasis3DTilesLayer) {
-        const cesium3dtiles = await create3dtilesLayer(layer);
+    private async add3dtilesLayer(
+        id: Layer["id"],
+        url: GeoOasis3DTilesLayer["url"],
+        ion: GeoOasis3DTilesLayer["ion"]
+    ) {
+        const cesium3dtiles = await create3dtilesLayer(url, ion);
         this.viewer?.scene.primitives.add(cesium3dtiles);
-        this.cesium3dtilesLayersMap.set(layer.id, cesium3dtiles);
+        this.cesium3dtilesLayersMap.set(id, cesium3dtiles);
         await this.viewer?.zoomTo(cesium3dtiles);
-    }
-
-    private async addServiceLayer(layer: GeoOasisServiceLayer) {
-        switch (layer.provider) {
-            // TODO 优化
-            case "geojson":
-                const geojsonDataSource = await GeoJsonDataSource.load(
-                    layer.url,
-                    {
-                        markerSize: 12
-                    }
-                );
-                return geojsonDataSource;
-            case "gpx":
-            case "kml":
-            case " czml":
-            case "custom":
-        }
     }
 
     handleYjsElementsEvents(
@@ -450,48 +384,39 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                 );
                 if (change.action === "add") {
                     // this.emit("element:add", [key]);
-                    const elementAdded = this.elements
-                        .get(key)
-                        ?.toJSON() as Element; // 应该有更好的获取方法
+                    const eleYMap = this.elements.get(key);
+                    if (!eleYMap) return;
+
+                    const { id, type } = getYMapValues<Element>(eleYMap, [
+                        "id",
+                        "type"
+                    ]);
                     let entity;
-                    switch (elementAdded.type) {
+                    switch (type) {
                         case "point":
-                            entity = generatePointEntityfromElement(
-                                elementAdded as GeoOasisPointElement
-                            );
+                            entity = generatePointEntity(eleYMap);
                             break;
                         case "polyline":
-                            entity = generatePolylineEntityfromElement(
-                                elementAdded as GeoOasisPolylineElement
-                            );
+                            entity = generatePolylineEntity(eleYMap);
                             break;
                         case "polygon":
-                            entity = generatePolygonEntityfromElement(
-                                elementAdded as GeoOasisPolygonElement
-                            );
+                            entity = generatePolygonEntity(eleYMap);
                             break;
                         case "model":
-                            entity = await generateModelEntityfromElement(
-                                elementAdded as GeoOasisModelElement,
-                                this
-                            );
+                            entity = await generateModelEntity(eleYMap, this);
                             break;
                         case "image":
-                            entity = generateRectangleEntityfromElement(
-                                elementAdded as GeoOasisImageElement
-                            );
+                            entity = generateRectangleEntity(eleYMap);
                             break;
                         case "rectangle":
-                            entity = generateRectangleEntityfromElement(
-                                elementAdded as GeoOasisRectangleElement
-                            );
+                            entity = generateRectangleEntity(eleYMap);
                             break;
                     }
                     if (entity) {
                         this.viewer?.entities.add(entity);
-                        this.entities.set(entity.id, entity);
+                        this.entities.set(id, entity);
                         // * 默认开启callback property
-                        this.startEdit(elementAdded.id, elementAdded.type);
+                        this.startEdit(id, type);
                     }
                 } else if (change.action === "delete") {
                     this.entities.delete(key);
@@ -556,13 +481,98 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
         console.log("TRANSACTION is: ", transactions);
         for (const e of events) {
             console.log("Events is: ", e);
-            e.changes.keys.forEach((change, key) => {
+            e.changes.keys.forEach(async (change, key) => {
                 console.log(`this change's key is ${key}`);
                 if (change.action === "add") {
-                    this.addLayerToCesium(
-                        // TODO: toJSON is not the best way.
-                        this.layers.get(key)?.toJSON() as Layer
-                    );
+                    const layerYMap = this.layers.get(key);
+                    if (!layerYMap) {
+                        return;
+                    }
+                    const { id, type } = getYMapValues<Layer>(layerYMap, [
+                        "id",
+                        "type"
+                    ]);
+                    switch (type) {
+                        case "service":
+                            const { provider, url } =
+                                getYMapValues<GeoOasisServiceLayer>(layerYMap, [
+                                    "provider",
+                                    "url"
+                                ]);
+                            let layer;
+                            switch (provider) {
+                                case "geojson":
+                                    const geojsonDataSource =
+                                        await GeoJsonDataSource.load(url, {
+                                            markerSize: 12
+                                        });
+                                    layer = geojsonDataSource;
+                                    break;
+                                case "gpx":
+                                case "kml":
+                                case "czml":
+                                case "custom":
+                            }
+                            if (layer) {
+                                this.viewer?.dataSources.add(layer);
+                                this.serviceLayersMap.set(id, layer);
+                                this.serviceLayersArray.push([id, layer]);
+                            }
+                            break;
+                        case "3dtiles":
+                            const {
+                                url: urlTmp,
+                                ion,
+                                tileset
+                            } = getYMapValues<GeoOasis3DTilesLayer>(layerYMap, [
+                                "url",
+                                "ion",
+                                "tileset"
+                            ]);
+                            try {
+                                const tilesetJson = await fetch3DTilesetJson(
+                                    urlTmp,
+                                    ion
+                                );
+                                if (!tileset) {
+                                    // cache tileset.josn
+                                    this.layers
+                                        .get(id)
+                                        ?.set("tileset", tilesetJson);
+                                }
+                                await this.add3dtilesLayer(id, urlTmp, ion);
+                            } catch (error) {
+                                const tilesetJson = this.layers
+                                    .get(id)
+                                    ?.get("tileset");
+                                let boundingVolumeEntity: Entity;
+                                if (tilesetJson && this.viewer) {
+                                    boundingVolumeEntity = renderBoundingVolume(
+                                        tilesetJson,
+                                        this.viewer
+                                    );
+                                }
+                                retryAsync(
+                                    async () => {
+                                        await this.add3dtilesLayer(
+                                            id,
+                                            urlTmp,
+                                            ion
+                                        );
+                                    },
+                                    10,
+                                    10000
+                                ).then(() => {
+                                    this.viewer?.entities.remove(
+                                        boundingVolumeEntity
+                                    );
+                                });
+                                console.error(error);
+                            }
+                            break;
+                        case "terrain":
+                            break;
+                    }
                 } else if (change.action === "update") {
                 } else if (change.action === "delete") {
                     if (this.cesium3dtilesLayersMap.has(key)) {
@@ -588,25 +598,31 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
     }
 }
 
-async function create3dtilesLayer(layer: GeoOasis3DTilesLayer) {
+async function create3dtilesLayer(
+    url: GeoOasis3DTilesLayer["url"],
+    ion: GeoOasis3DTilesLayer["ion"]
+) {
     try {
-        if (layer.ion) {
-            return await Cesium3DTileset.fromIonAssetId(Number(layer.url));
+        if (ion) {
+            return await Cesium3DTileset.fromIonAssetId(Number(url));
         } else {
-            return await Cesium3DTileset.fromUrl(layer.url);
+            return await Cesium3DTileset.fromUrl(url);
         }
     } catch (error) {
         throw new Error(`Error creating tileset: ${error}`);
     }
 }
 
-async function fetch3DTilesetJson(layer: GeoOasis3DTilesLayer) {
+async function fetch3DTilesetJson(
+    url: GeoOasis3DTilesLayer["url"],
+    ion: GeoOasis3DTilesLayer["ion"]
+) {
     try {
         let resource;
-        if (layer.ion) {
-            resource = await IonResource.fromAssetId(Number(layer.url));
+        if (ion) {
+            resource = await IonResource.fromAssetId(Number(url));
         } else {
-            resource = layer.url;
+            resource = url;
         }
         const tilesetJson = await Cesium3DTileset.loadJson(resource);
         return tilesetJson;

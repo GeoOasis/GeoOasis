@@ -1,4 +1,4 @@
-import { onMounted, onUnmounted, ShallowRef, shallowRef } from "vue";
+import { onMounted, onUnmounted, ref, ShallowRef, shallowRef } from "vue";
 import * as Y from "yjs";
 
 export const useSyncArray = <T>(yarray: Y.Array<T>) => {
@@ -53,4 +53,18 @@ export const useSyncMapArray = <T>(ymap: Y.Map<T>) => {
         array.value = [...ymap.values()];
     };
     return array;
+};
+
+export const useSyncText = (ytext: Y.Text) => {
+    const text = ref("");
+    onMounted(() => {
+        ytext.observe(handler);
+    });
+    onUnmounted(() => {
+        ytext.unobserve(handler);
+    });
+    const handler = () => {
+        text.value = ytext.toString();
+    };
+    return text;
 };

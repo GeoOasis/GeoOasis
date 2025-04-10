@@ -1,7 +1,11 @@
 import { defineStore } from "pinia";
 import { shallowRef, ref, computed } from "vue";
 import { useAwareness } from "../composables/useAwareness";
-import { useSyncArray, useSyncMapArray } from "../composables/useSync";
+import {
+    useSyncArray,
+    useSyncMapArray,
+    useSyncText
+} from "../composables/useSync";
 import { Editor } from "../editor/editor";
 import { Element } from "../element/element";
 import { Layer } from "../layer/layer";
@@ -25,6 +29,7 @@ export const useGeoOasisStore = defineStore("viewer", () => {
         editor.value.imageryLayerManager.yImageryLayers
     );
     const assetState = useSyncArray(editor.value.assetLibrary.assetArray);
+    const title = useSyncText(editor.value.title);
 
     const roomId = ref("");
     const { userList, setUser, setUserPosition } = useAwareness(
@@ -45,6 +50,7 @@ export const useGeoOasisStore = defineStore("viewer", () => {
         layersArray,
         imageryLayersArray,
         assetState,
+        title,
         isPanelVisible,
         selectedElement,
         selectedLayer,
