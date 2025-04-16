@@ -8,7 +8,8 @@ import {
     ScreenSpaceEventHandler,
     ScreenSpaceEventType,
     Cartographic,
-    Math as CesiumMath
+    Math as CesiumMath,
+    Terrain
 } from "cesium";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { useSceneHelper } from "../composables/useSceneHelper";
@@ -69,11 +70,12 @@ export const useSetup = () => {
             timeline: false,
             navigationHelpButton: false,
             navigationInstructionsInitiallyVisible: false,
-            scene3DOnly: false,
+            scene3DOnly: true,
             shouldAnimate: false,
-            baseLayer: false
-            // terrain: Terrain.fromWorldTerrain()
+            baseLayer: false,
+            terrain: Terrain.fromWorldTerrain()
         });
+        cesiumViewer.scene.globe.depthTestAgainstTerrain = true;
         window.cesiumViewer = cesiumViewer;
         store.editor.attachViewer(cesiumViewer);
         viewer = cesiumViewer;
@@ -84,21 +86,19 @@ export const useSetup = () => {
 
     const setupBaseLayers = () => {
         editor.viewer?.imageryLayers.layerAdded.addEventListener((e) => {
-            console.log("layer added!!!", e);
+            console.log("viewer's imageryLayer added!!!", e);
         });
         editor.viewer?.imageryLayers.layerRemoved.addEventListener((e) => {
-            console.log("layer removed!!!", e);
+            console.log("viewer's imageryLayer removed!!!", e);
         });
         for (const layer of defaultBaseLayers) {
-            if (layer.name === selectedBaseLayer.value) {
-                editor.imageryLayerManager
-                    .addBaseLayerOption(layer, true)
-                    .then(() => {
+            editor.imageryLayerManager
+                .addBaseLayerOption(layer, true)
+                .then(() => {
+                    if (layer.name === selectedBaseLayer.value) {
                         editor.setBaseLayer(selectedBaseLayer.value);
-                    });
-            } else {
-                editor.imageryLayerManager.addBaseLayerOption(layer, true);
-            }
+                    }
+                });
         }
     };
 
