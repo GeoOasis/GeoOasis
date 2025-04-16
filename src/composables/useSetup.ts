@@ -6,7 +6,9 @@ import {
     Ion,
     Cartesian3,
     ScreenSpaceEventHandler,
-    ScreenSpaceEventType
+    ScreenSpaceEventType,
+    Cartographic,
+    Math as CesiumMath
 } from "cesium";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { useSceneHelper } from "../composables/useSceneHelper";
@@ -204,7 +206,15 @@ export const useSetup = () => {
             positionedEvent.position
         );
         let globePos = viewer.scene.pickPosition(positionedEvent.position);
-        console.log("scene.pickPos: ", globePos);
+        let cartoPos = Cartographic.fromCartesian(globePos);
+        console.log(
+            "scene.pickPos: ",
+            globePos,
+            "lng:",
+            CesiumMath.toDegrees(cartoPos.longitude),
+            "lat:",
+            CesiumMath.toDegrees(cartoPos.latitude)
+        );
         console.log("camera.pickEllipsoid: ", ellipsoidPos);
         if (!globePos) {
             // TODO 当LeftDown的时候，未选中地球时，LeftUp和MouseMove应该怎样处理

@@ -44,6 +44,7 @@ import { AssetLibrary } from "./assetLibrary";
 import { ImageryLayerManager } from "./imageryLayerManager";
 import { PrimitiveCollection2 } from "../scene/PrimitiveCollection2";
 import { getYMapValues } from "./utils";
+import { ToolBox } from "../tool/ToolBox";
 
 export type EditorEvent = {
     "element:add": (key: string) => void;
@@ -85,16 +86,17 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
     public layers: Y.Map<Y.Map<any>>;
     public baseLayers: Y.Map<Y.Map<any>>;
     public title: Y.Text;
+    public undoManager: Y.UndoManager;
 
     public assetLibrary: AssetLibrary;
     public imageryLayerManager: ImageryLayerManager;
 
-    public undoManager: Y.UndoManager;
+    public toolBox?: ToolBox;
 
     private netWorkProvider?: HocuspocusProvider;
 
     // TODO: 减少状态
-    public viewer: Viewer | undefined;
+    public viewer?: Viewer;
     private entities: Map<string, Entity> = new Map();
     public cameraPrimitivesCollection: PrimitiveCollection2 =
         new PrimitiveCollection2();
@@ -294,8 +296,8 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
         return undefined;
     }
 
+    // this method can't pick ImageryLayer.
     pickLayer(position: Cartesian2) {
-        // this method can't pick ImageryLayer.
         const pickedEntity = this.viewer?.scene.pick(position);
         if (pickedEntity) {
             const entity = pickedEntity.id;
@@ -310,8 +312,9 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
             console.log("layerfound", found);
             const pickedId = found?.[0];
             if (pickedId) {
-                console.log(this.layers.get(pickedId)?.toJSON());
-                return this.layers.get(pickedId)?.toJSON() as Layer;
+                const layer = this.layers.get(pickedId)?.toJSON() as Layer;
+                // console.log(layer);
+                return layer;
             }
         }
         return undefined;
@@ -347,6 +350,13 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
     deleteLayer(id: Layer["id"]): void {
         this.imageryLayerManager.deleteLayer(id);
         this.layers.delete(id);
+    }
+
+    mutateLayer(id: string, update: { [key: string]: any }): void {
+        const layer = this.layers.get(id);
+        for (const [key, value] of Object.entries(update)) {
+            layer?.set(key, value);
+        }
     }
 
     // the index of baseLayer is always 0 in the viewer.imageryLayers.
@@ -573,7 +583,6 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                         case "terrain":
                             break;
                     }
-                } else if (change.action === "update") {
                 } else if (change.action === "delete") {
                     if (this.cesium3dtilesLayersMap.has(key)) {
                         const layer = this.cesium3dtilesLayersMap.get(key);
@@ -592,6 +601,7 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
                                 }
                             );
                     }
+                } else if (change.action === "update") {
                 }
             });
         }
