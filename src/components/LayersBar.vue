@@ -2,10 +2,13 @@
 import { Label } from "radix-vue";
 import Separator from "./internals/Separator.vue";
 import Select from "./internals/Select.vue";
+import Button from "./internals/Button.vue";
 import LayerBarItem from "./LayerBarItem.vue";
 import { useLayersBar } from "../composables/useLayersBar";
 
 const {
+    isTick,
+    handleTickBtn,
     selectedBaseLayer,
     elementArray,
     layersArray,
@@ -56,6 +59,8 @@ const baseMapOptions = ["Bing", "ArcGIS", "Local"];
             @handle-select="handleSelect"
             @handle-delete="handleDelete"
         />
+        <Separator />
+        <Button @click="handleTickBtn">{{isTick ? "pause" : "play"}}</Button>
     </div>
 </template>
 
