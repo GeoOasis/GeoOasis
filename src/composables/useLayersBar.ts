@@ -4,10 +4,12 @@ import * as Y from "yjs";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { YElement } from "../type";
 import { YImageryLayer } from "../editor/imageryLayerManager";
+import { TerrainOption } from "../editor/terrain";
 
 export const useLayersBar = () => {
     const store = useGeoOasisStore();
     const {
+        selectedTerrain,
         selectedBaseLayer,
         selectedElement,
         selectedLayer,
@@ -39,12 +41,18 @@ export const useLayersBar = () => {
         selectedLayer.value = undefined;
     };
 
+    const selectTerrain = (terrain: TerrainOption) => {
+        editor.setTerrain(terrain);
+    }
+
     return {
+        selectedTerrain,
         selectedBaseLayer,
         elementArray: elementArray as ShallowRef<YElement[]>,
         layersArray: layersArray as ShallowRef<Y.Map<any>[]>,
         imageryLayersArray: imageryLayersArray as ShallowRef<YImageryLayer[]>,
         handleSelect,
-        handleDelete
+        handleDelete,
+        selectTerrain,
     };
 };

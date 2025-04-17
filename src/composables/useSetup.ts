@@ -8,8 +8,7 @@ import {
     ScreenSpaceEventHandler,
     ScreenSpaceEventType,
     Cartographic,
-    Math as CesiumMath,
-    Terrain
+    Math as CesiumMath
 } from "cesium";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 import { useSceneHelper } from "../composables/useSceneHelper";
@@ -72,8 +71,7 @@ export const useSetup = () => {
             navigationInstructionsInitiallyVisible: false,
             scene3DOnly: true,
             shouldAnimate: false,
-            baseLayer: false,
-            terrain: Terrain.fromWorldTerrain()
+            baseLayer: false
         });
         cesiumViewer.scene.globe.depthTestAgainstTerrain = true;
         window.cesiumViewer = cesiumViewer;

@@ -4,17 +4,21 @@ import Separator from "./internals/Separator.vue";
 import Select from "./internals/Select.vue";
 import LayerBarItem from "./LayerBarItem.vue";
 import { useLayersBar } from "../composables/useLayersBar";
+import { TerrainOption } from "../editor/terrain";
 
 const {
+    selectedTerrain,
     selectedBaseLayer,
     elementArray,
     layersArray,
     imageryLayersArray,
     handleSelect,
-    handleDelete
+    handleDelete,
+    selectTerrain
 } = useLayersBar();
 
 const baseMapOptions = ["Bing", "ArcGIS", "Local"];
+const terrainOptions = Object.values(TerrainOption);
 </script>
 
 <template>
@@ -26,6 +30,14 @@ const baseMapOptions = ["Bing", "ArcGIS", "Local"];
             :selected="selectedBaseLayer"
             :select-options="baseMapOptions"
             @update:model-value="selectedBaseLayer = $event"
+        ></Select>
+        <Separator />
+        <Label>Terrain:</Label>
+        <Select
+            title="Terrain"
+            :selected="selectedTerrain"
+            :select-options="terrainOptions"
+            @update:model-value="selectTerrain($event as TerrainOption)"
         ></Select>
         <LayerBarItem
             type="layer"
