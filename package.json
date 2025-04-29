@@ -23,7 +23,7 @@
         "papaparse": "^5.5.2",
         "pinia": "^2.1.7",
         "radix-vue": "^1.7.1",
-        "rust-wasm-heatmap": "0.1.6",
+        "rust-wasm-heatmap": "0.1.8",
         "vue": "^3.3.11",
         "y-indexeddb": "^9.0.12",
         "yjs": "^13.6.14"
