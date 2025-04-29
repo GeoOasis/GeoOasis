@@ -3,6 +3,7 @@ import { shallowRef, ref, computed } from "vue";
 import { useAwareness } from "../composables/useAwareness";
 import {
     useSyncArray,
+    useSyncMap,
     useSyncMapArray,
     useSyncText
 } from "../composables/useSync";
@@ -12,6 +13,7 @@ import { Layer } from "../layer/layer";
 import { ToolBox } from "../tool/ToolBox";
 import { DrawMode, GizmoMode } from "../editor/type";
 import { defaultAsset } from "../editor/assetLibrary";
+import { TerrainOption } from "../editor/terrain";
 
 export const useGeoOasisStore = defineStore("viewer", () => {
     const editor = shallowRef(new Editor());
@@ -30,6 +32,11 @@ export const useGeoOasisStore = defineStore("viewer", () => {
     );
     const assetState = useSyncArray(editor.value.assetLibrary.assetArray);
     const title = useSyncText(editor.value.title);
+    const options = useSyncMap<{ terrain: TerrainOption }>(
+        editor.value.options,
+        ["terrain"]
+    );
+    const selectedTerrain = computed(() => options.terrain.value);
 
     const roomId = ref("");
     const { userList, setUser, setUserPosition } = useAwareness(
@@ -51,6 +58,7 @@ export const useGeoOasisStore = defineStore("viewer", () => {
         imageryLayersArray,
         assetState,
         title,
+        selectedTerrain,
         isPanelVisible,
         selectedElement,
         selectedLayer,

@@ -32,6 +32,8 @@ export interface GeoOasisImageryLayer extends GeoOasisBaseLayer {
     parameters?: any;
 }
 
+
+// ! deprecated
 export interface GeoOasisTerrainLayer extends GeoOasisBaseLayer {
     type: "terrain";
 }

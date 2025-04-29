@@ -129,7 +129,7 @@ export class ImageryLayerManager {
                         break;
                 }
                 if (cesiumLayer) {
-                    console.log("adding base Layer success!!", layerOption);
+                    // console.log("adding base Layer success!!", layerOption);
                     this.imageryLayersMap.set(layerOption.id, cesiumLayer);
                 }
             } catch (error) {

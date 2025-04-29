@@ -26,12 +26,12 @@ export const useInfoPanel = () => {
     };
 
     const isToolBoxVisible = ref(false);
-    const selectedTool = ref();
+    const selectedTool = ref("buffer");
     const tools = ["buffer", "heatmap", "interpolation"];
     const isWasm = ref(false);
     const computeMode = computed(() => (isWasm.value ? "wasm" : "js"));
 
-    const handleExecuteBtn = (tool: string) => {
+    const handleExecuteBtn = async (tool: string) => {
         if (!selectedLayer.value) return;
         const geojsonData = editor.getLayerData(selectedLayer.value.id);
         let data: any;
@@ -71,65 +71,69 @@ export const useInfoPanel = () => {
                 size: 256,
                 radius: 10,
                 maxHeat: 20,
+                // size: 5000,
+                // radius: 10,
+                // maxHeat: 10,
                 gradient: ["00AAFF", "00FF00", "FFFF00", "FF8800", "FF0000"],
                 extent: extent
             };
             console.log(extent);
         }
 
-        toolBox.value.runTool(tool, data, option).then((result) => {
-            // add result to editor
-            if (tool === "buffer") {
-                editor.addLayer({
-                    id: nanoid(),
-                    name: "bufferResult",
-                    type: "service",
-                    provider: "geojson",
-                    url: result as Object,
-                    show: true
-                });
-            } else if (tool === "heatmap") {
-                let canvas: HTMLCanvasElement | null =
-                    document.createElement("canvas");
-                canvas.width = result.width;
-                canvas.height = result.height;
-                const ctx = canvas.getContext("2d");
-                createImageBitmap(result, {
-                    imageOrientation: "flipY"
-                }).then((bitmap) => {
-                    ctx?.drawImage(bitmap, 0, 0);
-                    // canvas.toBlob(
-                    //     (blob) => {
-                    //         blob?.arrayBuffer().then((buffer) => {
-                    //             const imageArr = new Uint8Array(buffer);
-                    //             const heatmap = newImageElement({
-                    //                 name: "heatMap",
-                    //                 url: imageArr,
-                    //                 extent: option.extent
-                    //             });
-                    //             editor.addElement(heatmap);
-                    //         });
-                    //     },
-                    //     "image/png",
-                    //     1.0
-                    // );
-                    const pngDataUrl = canvas?.toDataURL("image/png", 1.0);
-                    canvas?.remove();
-                    canvas = null;
-                    editor.addLayer({
-                        id: nanoid(),
-                        name: "heatMap",
-                        type: "imagery",
-                        provider: "singleTile",
-                        show: true,
-                        url: pngDataUrl,
-                        parameters: {
-                            extent: option.extent
-                        }
-                    });
-                });
-            }
-        });
+        const result = await toolBox.value.runTool(tool, data, option);
+        const id = nanoid();
+        if (tool === "buffer") {
+            editor.addLayer({
+                id,
+                name: "bufferResult",
+                type: "service",
+                provider: "geojson",
+                url: result as Object,
+                show: true
+            });
+        } else if (tool === "heatmap") {
+            let canvas = document.createElement("canvas");
+            canvas.width = result.width;
+            canvas.height = result.height;
+            const ctx = canvas.getContext("2d");
+            // document.body.appendChild(canvas);
+            // canvas.style.position = "absolute";
+            // canvas.style.bottom = "0px";
+            // canvas.style.right = "0px";
+            // canvas.style.width = "600px";
+            // canvas.style.height = "400px";
+            // canvas.style.pointerEvents = "none";
+            // canvas.style.zIndex = "9999";
+            // canvas.style.border = "1px solid red";
+            ctx?.putImageData(result, 0, 0);
+            // canvas.toBlob(
+            //     (blob) => {
+            //         blob?.arrayBuffer().then((buffer) => {
+            //             const imageArr = new Uint8Array(buffer);
+            //             const heatmap = newImageElement({
+            //                 name: "heatMap",
+            //                 url: imageArr,
+            //                 extent: option.extent
+            //             });
+            //             editor.addElement(heatmap);
+            //         });
+            //     },
+            //     "image/png",
+            //     1.0
+            // );
+            const pngDataUrl = canvas?.toDataURL("image/png", 1.0);
+            editor.addLayer({
+                id,
+                name: "heatMap",
+                type: "imagery",
+                provider: "singleTile",
+                show: true,
+                url: pngDataUrl,
+                parameters: {
+                    extent: option.extent
+                }
+            });
+        }
     };
 
     return {

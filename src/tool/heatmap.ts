@@ -215,8 +215,6 @@ const creatHeatmapUseWasm = (
         RGBA.new(color.r, color.g, color.b, 255)
     );
     heatmap.set_gradients(rgbas);
-    const hw = heatmap.width();
-    const hh = heatmap.height();
 
     const tmp: number[] = [];
     heatPoint.forEach(p => {
@@ -226,9 +224,8 @@ const creatHeatmapUseWasm = (
     })
     heatmap.add_points_v2(new Float64Array(tmp));
 
-    // const tmpPoints = heatPoint.map((p) => HeatPoint.new(p.lng, p.lat, p.heat));
-    // heatmap.add_points(tmpPoints);
-
+    const hw = heatmap.width();
+    const hh = heatmap.height();
     const colorsPtr = heatmap.color_values();
     const colorsArr = new Uint8ClampedArray(
         memory.buffer,

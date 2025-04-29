@@ -45,6 +45,7 @@ import { ImageryLayerManager } from "./imageryLayerManager";
 import { PrimitiveCollection2 } from "../scene/PrimitiveCollection2";
 import { getYMapValues } from "./utils";
 import { ToolBox } from "../tool/ToolBox";
+import { setTerrain, TerrainOption } from "./terrain";
 
 export type EditorEvent = {
     "element:add": (key: string) => void;
@@ -82,10 +83,11 @@ export interface BaseEditor {
 // Editor is singleton
 export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
     private doc: Y.Doc;
+    public title: Y.Text;
+    public options: Y.Map<any>;
     public elements: Y.Map<Y.Map<any>>; // how to use correct type? don't use Map
     public layers: Y.Map<Y.Map<any>>;
     public baseLayers: Y.Map<Y.Map<any>>;
-    public title: Y.Text;
     public undoManager: Y.UndoManager;
 
     public assetLibrary: AssetLibrary;
@@ -108,8 +110,10 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
     constructor() {
         super();
         this.doc = new Y.Doc();
-        new IndexeddbPersistence("oasis-doc", this.doc);
         this.title = this.doc.getText("title");
+        this.options = this.doc.getMap("options");
+        this.options.set("terrain", TerrainOption.ELLIPSOID);
+        new IndexeddbPersistence("oasis-doc", this.doc);
         this.elements = this.doc.getMap("ElementsMap");
         this.layers = this.doc.getMap("LayersMap");
         this.baseLayers = this.doc.getMap("BaseLayersMap");
@@ -138,12 +142,25 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
         this.layers.observeDeep((events, transactions) => {
             self.handleYjsLayersEvents(events, transactions);
         });
+        this.options.observe((event) => {
+            event.keysChanged.forEach((key) => {
+                if (key === "terrain") {
+                    const optionTerrain = this.options.get(
+                        key
+                    ) as TerrainOption;
+                    if (this.viewer) {
+                        setTerrain(this.viewer, optionTerrain);
+                    }
+                }
+            });
+        });
     }
 
     attachViewer(viewer: Viewer) {
         this.viewer = viewer;
         this.imageryLayerManager.imageryLayerCollection = viewer.imageryLayers;
         this.viewer.scene.primitives.add(this.cameraPrimitivesCollection);
+        setTerrain(this.viewer, this.options.get("terrain") as TerrainOption);
     }
 
     // change room
@@ -166,6 +183,10 @@ export class Editor extends ObservableV2<EditorEvent> implements BaseEditor {
             this.netWorkProvider.destroy();
             this.netWorkProvider = undefined;
         }
+    }
+
+    setTerrain(terrain: TerrainOption) {
+        this.options.set("terrain", terrain);
     }
 
     startEdit(id: Element["id"], type: Element["type"]): void {
