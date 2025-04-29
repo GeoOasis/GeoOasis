@@ -71,6 +71,9 @@ export const useInfoPanel = () => {
                 size: 256,
                 radius: 10,
                 maxHeat: 20,
+                // size: 5000,
+                // radius: 10,
+                // maxHeat: 10,
                 gradient: ["00AAFF", "00FF00", "FFFF00", "FF8800", "FF0000"],
                 extent: extent
             };
@@ -93,6 +96,15 @@ export const useInfoPanel = () => {
             canvas.width = result.width;
             canvas.height = result.height;
             const ctx = canvas.getContext("2d");
+            // document.body.appendChild(canvas);
+            // canvas.style.position = "absolute";
+            // canvas.style.bottom = "0px";
+            // canvas.style.right = "0px";
+            // canvas.style.width = "600px";
+            // canvas.style.height = "400px";
+            // canvas.style.pointerEvents = "none";
+            // canvas.style.zIndex = "9999";
+            // canvas.style.border = "1px solid red";
             ctx?.putImageData(result, 0, 0);
             // canvas.toBlob(
             //     (blob) => {
