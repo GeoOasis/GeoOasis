@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import { useSceneHelper } from "../composables/useSceneHelper";
-const { flyToHome } = useSceneHelper();
+const { cursorPosition, flyToHome } = useSceneHelper();
 </script>
 
 <template>
     <div class="footerbar">
-        <div @click="flyToHome">Home</div>
+        <div class="infobar">
+            <div class="info">Lng: {{ cursorPosition.lng }}</div>
+            <div class="info">Lat: {{ cursorPosition.lat }}</div>
+            <div class="info">Height: {{ cursorPosition.height }}</div>
+        </div>
+        <div class="home" @click="flyToHome">Home</div>
     </div>
 </template>
 
@@ -14,9 +19,26 @@ const { flyToHome } = useSceneHelper();
     position: fixed;
     bottom: 50px;
     right: 30px;
-    background-color: #e1f0da;
+    background-color: var(--grass-1);
     box-shadow: 0 0 10px;
     border-radius: 10px;
     padding: 0 15px;
+    display: flex;
+}
+
+.infobar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.info {
+    margin: 2px 10px;
+    text-align: center;
+    pointer-events: none;
+}
+
+.home {
+    cursor: pointer;
 }
 </style>

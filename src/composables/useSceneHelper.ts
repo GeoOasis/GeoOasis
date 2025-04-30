@@ -1,9 +1,13 @@
 import { Cartesian3, Math as CesiumMath, Matrix3, Quaternion } from "cesium";
+import { storeToRefs } from "pinia";
 import { User } from "./useAwareness";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
 
 export const useSceneHelper = () => {
     const store = useGeoOasisStore();
+
+    const { cursorPosition } = storeToRefs(store);
+
     const flyToHome = () => {
         store.editor.viewer?.camera.flyTo({
             destination: Cartesian3.fromDegrees(105.0, 20.0, 5000000.0),
@@ -38,5 +42,5 @@ export const useSceneHelper = () => {
         });
     };
 
-    return { flyToHome, synOtherUserCamera };
+    return { cursorPosition, flyToHome, synOtherUserCamera };
 };
