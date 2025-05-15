@@ -13,7 +13,6 @@ dist
 dist-ssr
 dev-dist
 *.local
-pnpm-lock.yaml
 trash
 certs
 

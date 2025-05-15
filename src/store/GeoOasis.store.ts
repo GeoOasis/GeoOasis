@@ -50,6 +50,8 @@ export const useGeoOasisStore = defineStore("viewer", () => {
     const selectedModelIdx = ref<number>();
     const assetsOption = computed(() => defaultAsset.concat(assetState.value));
 
+    const cursorPosition = ref({ lng: 0.0, lat: 0.0, height: 0.0 });
+
     return {
         editor,
         toolBox,
@@ -71,6 +73,7 @@ export const useGeoOasisStore = defineStore("viewer", () => {
         selectedModelIdx,
         assetsOption,
         setUser,
-        setUserPosition
+        setUserPosition,
+        cursorPosition
     };
 });

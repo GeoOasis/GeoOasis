@@ -37,7 +37,8 @@ export const useSetup = () => {
         selectedModelIdx,
         selectedElement,
         selectedLayer,
-        selectedBaseLayer
+        selectedBaseLayer,
+        cursorPosition
     } = storeToRefs(store);
     const { editor } = store;
     const { flyToHome } = useSceneHelper();
@@ -345,6 +346,8 @@ export const useSetup = () => {
         }
     };
 
+    const scratchCartographic = new Cartographic();
+
     const handleCanvasMouseMove = (
         motionEvent: ScreenSpaceEventHandler.MotionEvent
     ) => {
@@ -352,10 +355,19 @@ export const useSetup = () => {
         const startGlobePos = viewer.scene.pickPosition(
             motionEvent.startPosition
         );
-        const endGlobePos = viewer.scene.pickPosition(
-            motionEvent.startPosition
-        );
+        const endGlobePos = viewer.scene.pickPosition(motionEvent.endPosition);
         if (!startGlobePos || !endGlobePos) return;
+
+        Cartographic.fromCartesian(endGlobePos, undefined, scratchCartographic);
+
+        cursorPosition.value.lng = CesiumMath.toDegrees(
+            scratchCartographic.longitude
+        ).toFixed(6);
+        cursorPosition.value.lat = CesiumMath.toDegrees(
+            scratchCartographic.latitude
+        ).toFixed(6);
+        cursorPosition.value.height = scratchCartographic.height.toFixed(6);
+
         endPoint = endGlobePos;
         // drag element logic
         if (draggingElement !== undefined) {
