@@ -2,6 +2,7 @@ import { watch, ShallowRef, ref } from "vue";
 import { storeToRefs } from "pinia";
 import * as Y from "yjs";
 import { useGeoOasisStore } from "../store/GeoOasis.store";
+import { useLogStore } from "../store/Log.store";
 import { YElement } from "../type";
 import { YImageryLayer } from "../editor/imageryLayerManager";
 import { TerrainOption } from "../editor/terrain";
@@ -19,6 +20,8 @@ export const useLayersBar = () => {
         imageryLayersArray
     } = storeToRefs(store);
     const { editor } = store;
+
+    const { addLog } = useLogStore();
 
     watch(selectedBaseLayer, () => {
         editor.setBaseLayer(selectedBaseLayer.value);
@@ -44,6 +47,26 @@ export const useLayersBar = () => {
     let control: any;
     const isTick = ref(false);
 
+    let timer: number | null = null;
+    const start = () => {
+        if (!timer) {
+            timer = window.setInterval(() => {
+                control.tickOnce();
+                addLog("tickOnce");
+            }, 1000);
+        }
+    }
+
+    const stop = () => {
+        if (timer) {
+            window.clearInterval(timer);
+            timer = null;
+            addLog(`绘制次数：${control.statics.js.length}`, "success");
+            addLog(`JS平均绘制时间：${control.statics.js.reduce((a: number, b: number) => a + b, 0) / control.statics.js.length}`, "success");
+            addLog(`WASM平均绘制时间：${control.statics.rust.reduce((a: number, b: number) => a + b, 0) / control.statics.rust.length}`, "success");
+        }
+    }
+
     const handleTickBtn = () => {
         if (!control) {
             let result = createRealTimeHeatmap(store.editor.viewer!);
@@ -54,14 +77,11 @@ export const useLayersBar = () => {
 
         isTick.value = !isTick.value;
         if (isTick.value) {
-            control.start();
+            start();
         } else {
-            control.stop();
+            stop();
         }
-
-        // control.tickOnce();
     };
-
 
     return {
         isTick,

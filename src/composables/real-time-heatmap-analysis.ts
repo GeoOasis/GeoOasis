@@ -237,7 +237,8 @@ export function createRealTimeHeatmap(viewer: Cesium.Viewer) {
     return {
         start,
         stop,
-        tickOnce
+        tickOnce,
+        statics
     };
 }
 

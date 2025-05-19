@@ -4,6 +4,7 @@ import AppHeader from "./components/AppHeader.vue";
 import FooterBar from "./components/FooterBar.vue";
 import LayersBar from "./components/LayersBar.vue";
 import InfoPanel from "./components/InfoPanel.vue";
+import LogPanel from "./components/LogPanel.vue";
 </script>
 
 <template>
@@ -13,6 +14,7 @@ import InfoPanel from "./components/InfoPanel.vue";
             <LayersBar />
             <InfoPanel />
             <FooterBar />
+            <LogPanel />
         </Editor>
     </div>
 </template>
